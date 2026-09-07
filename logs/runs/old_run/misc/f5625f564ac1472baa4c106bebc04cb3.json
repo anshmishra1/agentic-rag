@@ -1,0 +1,60 @@
+{
+  "run_id": "f5625f564ac1472baa4c106bebc04cb3",
+  "started_at": "2026-09-01T17:14:33.817682+00:00",
+  "finished_at": "2026-09-01T17:14:34.111796+00:00",
+  "event_count": 3,
+  "events": [
+    {
+      "timestamp": "2026-09-01T17:14:33.817778+00:00",
+      "run_id": "f5625f564ac1472baa4c106bebc04cb3",
+      "event": "run_started",
+      "question": "What are the laws of Scaling",
+      "session_id": "239f3d6f-f5bb-40b4-a5b8-5bccab2ac967",
+      "document_id": "8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a"
+    },
+    {
+      "timestamp": "2026-09-01T17:14:34.111113+00:00",
+      "run_id": "f5625f564ac1472baa4c106bebc04cb3",
+      "event": "run_failed",
+      "error_type": "TypeError",
+      "error": "object of type 'int' has no len()"
+    },
+    {
+      "timestamp": "2026-09-01T17:14:34.111141+00:00",
+      "run_id": "f5625f564ac1472baa4c106bebc04cb3",
+      "event": "performance",
+      "stages": {
+        "contextualize_question": {
+          "calls": 1,
+          "total_time": 0.0003
+        },
+        "retrieve": {
+          "calls": 1,
+          "total_time": 0.2784
+        }
+      },
+      "total_time": 0.2787,
+      "bottleneck": "retrieve"
+    }
+  ],
+  "summary": {
+    "status": "failed",
+    "question": "What are the laws of Scaling",
+    "session_id": "239f3d6f-f5bb-40b4-a5b8-5bccab2ac967",
+    "document_id": "8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a",
+    "performance": {
+      "stages": {
+        "contextualize_question": {
+          "calls": 1,
+          "total_time": 0.0003
+        },
+        "retrieve": {
+          "calls": 1,
+          "total_time": 0.2784
+        }
+      },
+      "total_time": 0.2787,
+      "bottleneck": "retrieve"
+    }
+  }
+}

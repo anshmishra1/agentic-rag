@@ -1,0 +1,2 @@
+2026-09-01 22:43:21,404 | INFO | agentic_rag.logging | logging.py:1114 | configure_logging() | Logging initialized | run_id=2026-09-01_22-43-21
+2026-09-01 22:43:21,405 | INFO | agentic_rag.logging | logging.py:1121 | configure_logging() | Run artifacts directory | F:\Agentic_Project\branch\working\AgenticRAG\logs\runs\2026-09-01_22-43-21

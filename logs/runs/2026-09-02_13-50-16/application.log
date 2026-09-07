@@ -1,0 +1,14 @@
+2026-09-02 13:50:16,997 | INFO | agentic_rag.logging | Logging initialized | run_id=2026-09-02_13-50-16
+2026-09-02 13:50:16,997 | INFO | agentic_rag.logging | Run artifacts directory | F:\Agentic_Project\branch\working\AgenticRAG\logs\runs\2026-09-02_13-50-16
+2026-09-02 13:58:41,963 | INFO | agentic_rag.trace | [route_after_contextualization] query_intent='new_question' | decision='retrieve'
+2026-09-02 13:58:42,255 | INFO | agentic_rag.graph.nodes | RETRIEVAL | query_representation | dense=1 | sparse=1
+2026-09-02 13:58:45,949 | INFO | agentic_rag.graph.nodes | RETRIEVAL | query='Does Human Feedback a part of Alignment? If yes then which type of Alignment does it fall to?' | candidates=7 | top=0.3377 | second=0.2358 | gap=0.1019 | mean=0.1150 | top/mean=2.9375 | gap_ratio=0.3018
+2026-09-02 13:58:45,953 | INFO | agentic_rag.trace | [route_after_retrieval_assessment] retrieval_decision='generate' | decision='generate'
+2026-09-02 13:58:45,956 | INFO | agentic_rag.llm.provider | [LLM:primary] Attempt 1/4 → openrouter
+2026-09-02 13:58:50,282 | INFO | agentic_rag.llm.provider | [LLM:primary] openrouter → SUCCESS in 4.33s
+2026-09-02 13:58:50,284 | INFO | agentic_rag.llm.provider | [LLM:fast] Attempt 1/4 → openrouter
+2026-09-02 13:58:51,175 | INFO | agentic_rag.llm.provider | [LLM:fast] openrouter → SUCCESS in 0.89s
+2026-09-02 13:58:51,176 | INFO | agentic_rag.trace | [route_after_hallucination_check] grounding_diagnosis='grounded' | correction_attempted='False' | decision='end'
+2026-09-02 14:00:34,303 | INFO | agentic_rag.llm.provider | [LLM:fast] Attempt 1/4 → openrouter
+2026-09-02 14:00:35,846 | INFO | agentic_rag.llm.provider | [LLM:fast] openrouter → SUCCESS in 1.54s
+2026-09-02 14:00:35,847 | INFO | agentic_rag.trace | [route_after_contextualization] query_intent='control' | decision='record_turn'

@@ -1,0 +1,60 @@
+{
+  "run_id": "2026-09-02_13-50-16",
+  "query_number": 2,
+  "query": "Can you elaborate on that method?",
+  "session_id": "7f42c094-6495-48a7-90f9-d1891193610d",
+  "started_at": "2026-09-02T14:00:34.297230+05:30",
+  "finished_at": "2026-09-02T08:30:35.856580+00:00",
+  "event_count": 3,
+  "events": [
+    {
+      "timestamp": "2026-09-02T08:30:34.297699+00:00",
+      "run_id": "2026-09-02_13-50-16",
+      "query_number": 2,
+      "event": "run_started",
+      "session_id": "7f42c094-6495-48a7-90f9-d1891193610d",
+      "question": "Can you elaborate on that method?",
+      "document_id": "8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a"
+    },
+    {
+      "timestamp": "2026-09-02T08:30:35.855926+00:00",
+      "run_id": "2026-09-02_13-50-16",
+      "query_number": 2,
+      "event": "run_completed",
+      "session_id": "7f42c094-6495-48a7-90f9-d1891193610d",
+      "grounded": false,
+      "verification_exhausted": false
+    },
+    {
+      "timestamp": "2026-09-02T08:30:35.855980+00:00",
+      "run_id": "2026-09-02_13-50-16",
+      "query_number": 2,
+      "event": "performance",
+      "session_id": "7f42c094-6495-48a7-90f9-d1891193610d",
+      "stages": {
+        "contextualize_question": {
+          "calls": 1,
+          "total_time": 1.5445
+        }
+      },
+      "total_time": 1.5445,
+      "bottleneck": "contextualize_question"
+    }
+  ],
+  "summary": {
+    "status": "completed",
+    "question": "Can you elaborate on that method?",
+    "session_id": "7f42c094-6495-48a7-90f9-d1891193610d",
+    "document_id": "8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a",
+    "performance": {
+      "stages": {
+        "contextualize_question": {
+          "calls": 1,
+          "total_time": 1.5445
+        }
+      },
+      "total_time": 1.5445,
+      "bottleneck": "contextualize_question"
+    }
+  }
+}

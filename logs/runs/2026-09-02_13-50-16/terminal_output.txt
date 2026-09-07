@@ -1,0 +1,337 @@
+======================================================================
+CROSS-ENCODER WARM-UP
+======================================================================
+Model: cross-encoder/ms-marco-MiniLM-L-6-v2
+Device: cuda
+Warm-up time: 8.12 sec
+Status: READY
+INFO:     Application startup complete.
+INFO:     127.0.0.1:52615 - "GET /documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53286 - "GET /documents HTTP/1.1" 200 OK
+
+======================================================================
+QUERY INTENT
+======================================================================
+Question: Does Human Feedback a part of Alignment? If yes then which type of Alignment does it fall to?
+Intent: new_question
+Control query: False
+
+======================================================================
+GRAPH ROUTER: AFTER CONTEXTUALIZATION
+======================================================================
+Query intent: new_question
+ROUTE -> retrieve
+2026-09-02 13:58:41,963 | INFO | agentic_rag.trace | [route_after_contextualization] query_intent='new_question' | decision='retrieve'
+2026-09-02 13:58:42,255 | INFO | agentic_rag.graph.nodes | RETRIEVAL | query_representation | dense=1 | sparse=1
+
+======================================================================
+HYBRID RETRIEVAL: DENSE + BM25 + RRF
+======================================================================
+Query: Does Human Feedback a part of Alignment? If yes then which type of Alignment does it fall to?
+Candidate k per retriever: 15
+RRF k: 60
+Document filter: {'$and': [{'document_id': {'$eq': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a'}}, {'type': {'$eq': 'overview'}}]}
+
+======================================================================
+HYBRID RETRIEVAL: DENSE + BM25 + RRF
+======================================================================
+Query: Does Human Feedback a part of Alignment? If yes then which type of Alignment does it fall to?
+Candidate k per retriever: 15
+RRF k: 60
+Document filter: {'$and': [{'document_id': {'$eq': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a'}}, {'type': {'$eq': 'content'}}]}
+
+----------------------------------------------------------------------
+1. DENSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.236455 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-96cea28ef512
+[02] score=0.213365 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-a0e6276d4ded
+[03] score=0.173482 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-c0e10d5182e5f1c8
+
+----------------------------------------------------------------------
+1. DENSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.510948 | type=content | page=156 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-a78949c02590
+[02] score=0.510948 | type=content | page=156 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-f9191ef305a91085
+[03] score=0.510948 | type=content | page=156 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-d586a14d99e8
+[04] score=0.502526 | type=content | page=202 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-3de0c16e96c3
+[05] score=0.502526 | type=content | page=202 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-8e8de268b720
+[06] score=0.502526 | type=content | page=202 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-2ab4284a65ef9e99
+[07] score=0.474937 | type=content | page=156 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-5dd07d25fec87511
+[08] score=0.474937 | type=content | page=156 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-efa344321b74
+[09] score=0.474937 | type=content | page=156 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-cd25788f5bb9
+[10] score=0.472399 | type=content | page=155 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-81a331025766bf5f
+[11] score=0.472399 | type=content | page=155 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-d55ef0a69064
+[12] score=0.472399 | type=content | page=155 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-b3b542927717
+[13] score=0.451208 | type=content | page=181 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-5097b00341706176
+[14] score=0.451208 | type=content | page=181 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-6fd35cd2d159
+[15] score=0.451208 | type=content | page=181 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-1f563ac139c9
+
+----------------------------------------------------------------------
+2. BM25 / SPARSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.136528 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-c0e10d5182e5f1c8
+[02] score=0.136268 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-a0e6276d4ded
+[03] score=0.130358 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-96cea28ef512
+BM25 query terms encoded: 7
+
+----------------------------------------------------------------------
+3. RRF FUSION
+----------------------------------------------------------------------
+[01] RRF=0.03226646 | DenseRank=1 | DenseScore=0.236455 | BM25Rank=3 | BM25Score=0.130358 | type=overview | page=-
+[02] RRF=0.03226646 | DenseRank=3 | DenseScore=0.173482 | BM25Rank=1 | BM25Score=0.136528 | type=overview | page=-
+[03] RRF=0.03225806 | DenseRank=2 | DenseScore=0.213365 | BM25Rank=2 | BM25Score=0.136268 | type=overview | page=-
+
+----------------------------------------------------------------------
+RRF OUTPUT: 3 candidates
+----------------------------------------------------------------------
+[01] RRF=0.03226646 | type=overview | page=-
+[02] RRF=0.03226646 | type=overview | page=-
+[03] RRF=0.03225806 | type=overview | page=-
+
+----------------------------------------------------------------------
+2. BM25 / SPARSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.210092 | type=content | page=118 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-cd76f136c0fb
+[02] score=0.210019 | type=content | page=118 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-db41790c72f5
+[03] score=0.209994 | type=content | page=118 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-9d5b2a81b7fb678d
+[04] score=0.205558 | type=content | page=129 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-c89c0e21f314
+[05] score=0.205431 | type=content | page=129 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-d1cffef5ae8b
+[06] score=0.205325 | type=content | page=129 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-9adccd56f7b14bdf
+[07] score=0.199535 | type=content | page=156 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-07d259fca2e42c07
+[08] score=0.199396 | type=content | page=156 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-168a8f0975d5
+[09] score=0.199339 | type=content | page=156 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-fd25375c6fa7
+[10] score=0.190471 | type=content | page=47 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-8c4e7f0de37e
+[11] score=0.190439 | type=content | page=47 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-713d70119cf7
+[12] score=0.190369 | type=content | page=47 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-9e0263d7c833980e
+[13] score=0.189292 | type=content | page=189 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-35a89b73bc85
+[14] score=0.189166 | type=content | page=189 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-82b5fb187ea69d7a
+[15] score=0.189157 | type=content | page=189 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-53eef1055ced
+BM25 query terms encoded: 7
+
+----------------------------------------------------------------------
+3. RRF FUSION
+----------------------------------------------------------------------
+[01] RRF=0.01639344 | DenseRank=1 | DenseScore=0.510948 | BM25Rank=- | BM25Score=- | type=content | page=156
+[02] RRF=0.01639344 | DenseRank=- | DenseScore=- | BM25Rank=1 | BM25Score=0.210092 | type=content | page=118
+[03] RRF=0.01562500 | DenseRank=4 | DenseScore=0.502526 | BM25Rank=- | BM25Score=- | type=content | page=202
+[04] RRF=0.01562500 | DenseRank=- | DenseScore=- | BM25Rank=4 | BM25Score=0.205558 | type=content | page=129
+[05] RRF=0.01492537 | DenseRank=7 | DenseScore=0.474937 | BM25Rank=- | BM25Score=- | type=content | page=156
+[06] RRF=0.01492537 | DenseRank=- | DenseScore=- | BM25Rank=7 | BM25Score=0.199535 | type=content | page=156
+[07] RRF=0.01428571 | DenseRank=10 | DenseScore=0.472399 | BM25Rank=- | BM25Score=- | type=content | page=155
+[08] RRF=0.01428571 | DenseRank=- | DenseScore=- | BM25Rank=10 | BM25Score=0.190471 | type=content | page=47
+[09] RRF=0.01369863 | DenseRank=13 | DenseScore=0.451208 | BM25Rank=- | BM25Score=- | type=content | page=181
+[10] RRF=0.01369863 | DenseRank=- | DenseScore=- | BM25Rank=13 | BM25Score=0.189292 | type=content | page=189
+
+----------------------------------------------------------------------
+RRF OUTPUT: 10 candidates
+----------------------------------------------------------------------
+[01] RRF=0.01639344 | type=content | page=156
+[02] RRF=0.01639344 | type=content | page=118
+[03] RRF=0.01562500 | type=content | page=202
+[04] RRF=0.01562500 | type=content | page=129
+[05] RRF=0.01492537 | type=content | page=156
+[06] RRF=0.01492537 | type=content | page=156
+[07] RRF=0.01428571 | type=content | page=155
+[08] RRF=0.01428571 | type=content | page=47
+[09] RRF=0.01369863 | type=content | page=181
+[10] RRF=0.01369863 | type=content | page=189
+
+----------------------------------------------------------------------
+HYBRID CANDIDATE DEDUPLICATION
+----------------------------------------------------------------------
+Overview: 3 -> 3 (0 duplicates removed)
+Content: 10 -> 10 (0 duplicates removed)
+
+----------------------------------------------------------------------
+CROSS-ENCODER RERANKER | BATCHED GROUPS
+----------------------------------------------------------------------
+Model: cross-encoder/ms-marco-MiniLM-L-6-v2
+Device: cuda
+Groups: overview, content
+Total candidates: 13
+Inference time: 0.287 sec
+Batch size: 32
+
+[OVERVIEW]
+[01] CE=0.000921 | logit=-6.989364 | RRF=0.03225806 | previous_rank=3 | type=overview | page=-
+[02] CE=0.000536 | logit=-7.531362 | RRF=0.03226646 | previous_rank=1 | type=overview | page=-
+[03] CE=0.000017 | logit=-10.960556 | RRF=0.03226646 | previous_rank=2 | type=overview | page=-
+Selected top 2 overview candidates.
+
+[CONTENT]
+[01] CE=0.337695 | logit=-0.673583 | RRF=0.01369863 | previous_rank=9 | type=content | page=181
+[02] CE=0.235774 | logit=-1.175988 | RRF=0.01639344 | previous_rank=1 | type=content | page=156
+[03] CE=0.131193 | logit=-1.890455 | RRF=0.01428571 | previous_rank=8 | type=content | page=47
+[04] CE=0.051170 | logit=-2.920081 | RRF=0.01428571 | previous_rank=7 | type=content | page=155
+[05] CE=0.047443 | logit=-2.999613 | RRF=0.01492537 | previous_rank=6 | type=content | page=156
+[06] CE=0.031548 | logit=-3.424195 | RRF=0.01369863 | previous_rank=10 | type=content | page=189
+[07] CE=0.023227 | logit=-3.738927 | RRF=0.01492537 | previous_rank=5 | type=content | page=156
+[08] CE=0.010464 | logit=-4.549314 | RRF=0.01562500 | previous_rank=3 | type=content | page=202
+[09] CE=0.000118 | logit=-9.044711 | RRF=0.01562500 | previous_rank=4 | type=content | page=129
+[10] CE=0.000013 | logit=-11.240079 | RRF=0.01639344 | previous_rank=2 | type=content | page=118
+Selected top 5 content candidates.
+----------------------------------------------------------------------
+
+Overview candidates (hybrid): 3 -> reranked to 2
+Content candidates (hybrid): 10 -> reranked to 5
+
+------------------------------------------------------------
+DOCUMENT 1
+Cross-encoder relevance score: 0.33769491314888
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 187.0, 'page_label': '181', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.0136986301369863, '_cross_encoder_logit': -0.6735833883285522, '_cross_encoder_score': 0.33769491314888}
+Content preview:
+4.3 Human Preference Alignment: RLHF 181 • Listwise Ranking . Human experts are asked to rank or order the given set of poss ible outputs. Here we consider pairwise comparison feedback as it is one of the simplest and most com- mon forms of human feedback used in RLHF. In this setting, eac h time, two outputs (ya, yb) are randonly drawn from the candidate pool {y1,..., yN }. Human experts are then presented with these pairs and asked to decide which output they prefer base d on speciﬁc criteria,
+
+------------------------------------------------------------
+DOCUMENT 2
+Cross-encoder relevance score: 0.23577439785003662
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 162.0, 'page_label': '156', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.01639344262295082, '_cross_encoder_logit': -1.175987720489502, '_cross_encoder_score': 0.23577439785003662}
+
+Content preview:
+ﬁne-tuning. From this perspective, prompting in LLMs can al so be seen as a form of alignment, but it does not involve training or ﬁne-funing. So we can dyna mically adapt an LLM to various tasks at minimal cost. Another method to do alignment at infe rence time is to rescore the outputs of an LLM. For example, we could develop a scoring system to si mulate human feedback on the outputs of the LLM (like a reward model) and prioritize those that receive more positive feedback. The three methods m
+
+------------------------------------------------------------
+DOCUMENT 3
+Cross-encoder relevance score: 0.13119260966777802
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 53.0, 'page_label': '47', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.014285714285714285, '_cross_encoder_logit': -1.890454888343811, '_cross_encoder_score': 0.13119260966777802}
+
+Content preview:
+tuning, it can be used to respond to user requests if appropri ately prompted. But this model may generate content that is unfactual, biased, or harmful. To make the LLM more aligned with the users, one simple approach is to directly learn from human feedback. For example, given some instructions and inputs provided by the users, ex perts are asked to evaluate how well the model responds in accordance with their preference s and interests. This feedback is then used to further train the LLM for 
+
+------------------------------------------------------------
+DOCUMENT 4
+Cross-encoder relevance score: 0.051169756799936295
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 161.0, 'page_label': '155', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.014285714285714285, '_cross_encoder_logit': -2.92008113861084, '_cross_encoder_score': 0.051169756799936295}
+
+Content preview:
+CHAPTER 4 Alignment Alignment is not a new concept in NLP , but its meaning varies a cross different domains and over time. In traditional NLP , the term alignment typically refers to the tasks that link corresponding elements in two sets, such as aligning words between a Chines e sentence and an English sentence. As LLMs become increasingly important in NLP research, this term is more broadly used to refer to aligning model outputs with human expectations. The prob lem that alignment addresses 
+
+------------------------------------------------------------
+DOCUMENT 5
+Cross-encoder relevance score: 0.04744337871670723
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 162.0, 'page_label': '156', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.014925373134328358, '_cross_encoder_logit': -2.99961256980896, '_cross_encoder_score': 0.04744337871670723}
+
+Content preview:
+annotated by humans are often insufﬁcient to comprehensive ly describe these behaviors. What we really need here is to teach the model how to determine which o utputs are more in line with human preferences, for example, we not only want the outputs to be t echnically accurate but also to align with human expectations and values. One idea is to develop a r eward model analogous to a human expert. This reward model would work by rewarding the LLM whe never it generates responses that align more c
+
+------------------------------------------------------------
+DOCUMENT 6
+Cross-encoder relevance score: 0.0009207841358147562
+Metadata: {'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'type': 'overview', '_retrieval_rrf_score': 0.03225806451612903, '_cross_encoder_logit': -6.989363670349121, '_cross_encoder_score': 0.0009207841358147562}
+
+Content preview:
+The document titled "Foundations of Large Language Models" by Tong Xiao and Jingbo Zhu provides an in-depth exploration of the fundamental concepts and techniques behind large language models (LLMs) in artificial intelligence, particularly in natural language processing (NLP). It is structured into four main chapters: the first focuses on pre-training methods and model architectures; the second covers generative models and their scaling; the third discusses various prompting strategies for LLMs;
+
+------------------------------------------------------------
+DOCUMENT 7
+Cross-encoder relevance score: 0.0005357207846827805
+Metadata: {'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'type': 'overview', '_retrieval_rrf_score': 0.032266458495966696, '_cross_encoder_logit': -7.5313615798950195, '_cross_encoder_score': 0.0005357207846827805}
+
+Content preview:
+The document titled "Foundations of Large Language Models," authored by Tong Xiao and Jingbo Zhu, provides a comprehensive overview of the foundational concepts and methodologies related to large language models (LLMs) in the context of natural language processing (NLP). It is structured into four main chapters: the first chapter focuses on pre-training techniques and architectures essential for LLMs; the second chapter explores generative models, detailing their construction, scaling, and train
+2026-09-02 13:58:45,949 | INFO | agentic_rag.graph.nodes | RETRIEVAL | query='Does Human Feedback a part of Alignment? If yes then which type of Alignment does it fall to?' | candidates=7 | top=0.3377 | second=0.2358 | gap=0.1019 | mean=0.1150 | top/mean=2.9375 | gap_ratio=0.3018
+
+======================================================================
+3. RETRIEVAL ASSESSMENT
+======================================================================
+Top score: 0.337695
+Second score: 0.235774
+Mean score: 0.114962
+Score gap: 0.101921
+Top/mean ratio: 2.9375
+Gap ratio: 0.3018
+Top document type: content
+Score interpretation: cross-encoder ranking signal, not calibrated probability
+Evidence strength: strong
+Retrieval decision: generate
+Decision reason: strong_cross_encoder_score_distribution
+
+======================================================================
+GRAPH ROUTER: AFTER RETRIEVAL ASSESSMENT
+======================================================================
+Retrieval decision: generate
+ROUTE -> generate
+2026-09-02 13:58:45,953 | INFO | agentic_rag.trace | [route_after_retrieval_assessment] retrieval_decision='generate' | decision='generate'
+
+======================================================================
+6. GENERATION
+======================================================================
+Context characters : 6585
+History characters : 4
+Prompt characters  : 7138
+Documents supplied : 7
+History turns      : 0
+2026-09-02 13:58:45,956 | INFO | agentic_rag.llm.provider | [LLM:primary] Attempt 1/4 → openrouter
+2026-09-02 13:58:50,282 | INFO | agentic_rag.llm.provider | [LLM:primary] openrouter → SUCCESS in 4.33s
+Output characters  : 507
+
+======================================================================
+7. HALLUCINATION CHECK
+======================================================================
+2026-09-02 13:58:50,284 | INFO | agentic_rag.llm.provider | [LLM:fast] Attempt 1/4 → openrouter
+2026-09-02 13:58:51,175 | INFO | agentic_rag.llm.provider | [LLM:fast] openrouter → SUCCESS in 0.89s
+Raw hallucination grader response: grounded
+Normalized grade: grounded
+Hallucination retry count: 0 / 2
+Verification exhausted: False
+
+======================================================================
+GRAPH ROUTER: AFTER HALLUCINATION CHECK
+======================================================================
+Grounding diagnosis: grounded
+Correction already attempted: False
+Retrieval retry count: 0 / 2
+ROUTE -> record_turn
+2026-09-02 13:58:51,176 | INFO | agentic_rag.trace | [route_after_hallucination_check] grounding_diagnosis='grounded' | correction_attempted='False' | decision='end'
+
+======================================================================
+STRUCTURED TRACE SUMMARY (full request, end to end)
+======================================================================
+[
+  {
+    "stage": "record_turn",
+    "final_route": "end",
+    "query_intent": "new_question",
+    "query_is_control": false,
+    "retry_count": 0,
+    "retrieval_decision": "generate",
+    "retrieval_evidence_strength": "strong",
+    "retrieval_decision_reason": "strong_cross_encoder_score_distribution",
+    "hallucination_final_grade": "grounded",
+    "hallucination_retry_count": 0,
+    "answer_verified": true
+  }
+]
+INFO:     127.0.0.1:53286 - "POST /query HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54620 - "GET /documents HTTP/1.1" 200 OK
+
+======================================================================
+QUERY INTENT
+======================================================================
+Question: Can you elaborate on that method?
+Intent: follow_up
+Control query: False
+2026-09-02 14:00:34,303 | INFO | agentic_rag.llm.provider | [LLM:fast] Attempt 1/4 → openrouter
+2026-09-02 14:00:35,846 | INFO | agentic_rag.llm.provider | [LLM:fast] openrouter → SUCCESS in 1.54s
+
+======================================================================
+GRAPH ROUTER: AFTER CONTEXTUALIZATION
+======================================================================
+Query intent: control
+ROUTE -> record_turn
+2026-09-02 14:00:35,847 | INFO | agentic_rag.trace | [route_after_contextualization] query_intent='control' | decision='record_turn'
+
+======================================================================
+8. RECORD TURN
+======================================================================
+Question               : Can you elaborate on that method?
+Query type             : control
+Retrieval              : skipped
+Generation             : skipped
+Hallucination check    : skipped
+Final answer length    : 77 chars
+INFO:     127.0.0.1:54620 - "POST /query HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [20880]

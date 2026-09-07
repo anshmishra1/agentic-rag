@@ -1,0 +1,940 @@
+[01] CE=0.994816 | logit=5.256900 | RRF=0.03226646 | previous_rank=2 | type=overview | page=-
+[02] CE=0.991346 | logit=4.741031 | RRF=0.03226646 | previous_rank=1 | type=overview | page=-
+[03] CE=0.970936 | logit=3.508760 | RRF=0.03225806 | previous_rank=3 | type=overview | page=-
+Selected top 2 overview candidates.
+
+[CONTENT]
+[01] CE=0.979317 | logit=3.857562 | RRF=0.02913851 | previous_rank=1 | type=content | page=ii
+[02] CE=0.874053 | logit=1.937284 | RRF=0.01369863 | previous_rank=9 | type=content | page=36
+[03] CE=0.785244 | logit=1.296493 | RRF=0.01639344 | previous_rank=2 | type=content | page=1
+[04] CE=0.748985 | logit=1.093205 | RRF=0.01428571 | previous_rank=7 | type=content | page=29
+[05] CE=0.714950 | logit=0.919546 | RRF=0.01562500 | previous_rank=4 | type=content | page=95
+[06] CE=0.521369 | logit=0.085527 | RRF=0.01492537 | previous_rank=5 | type=content | page=ii
+[07] CE=0.095277 | logit=-2.250836 | RRF=0.01492537 | previous_rank=6 | type=content | page=1
+[08] CE=0.026865 | logit=-3.589700 | RRF=0.01639344 | previous_rank=3 | type=content | page=28
+[09] CE=0.000022 | logit=-10.711100 | RRF=0.01428571 | previous_rank=8 | type=content | page=53
+Selected top 5 content candidates.
+----------------------------------------------------------------------
+
+Overview candidates (hybrid): 3 -> reranked to 2
+2026-08-31 17:17:03,029 | INFO | RETRIEVAL | query='What are large language models and what are their primary applications?' | scores=[0.9948, 0.9913, 0.9793, 0.8741, 0.7852, 0.749, 0.7149] | 
+top=0.9948 | second=0.9913 | gap=0.0035 | mean=0.8698 | top/mean=1.1437 | gap_ratio=0.0035
+Content candidates (hybrid): 9 -> reranked to 5
+
+------------------------------------------------------------
+DOCUMENT 1
+Cross-encoder relevance score: 0.9948155283927917
+Metadata: {'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'type': 'overview', '_retrieval_rrf_score': 0.032266458495966696, '_cross_encoder_logit': 5.256899833679199, '_cross_encoder_score': 0.9948155283927917}
+
+Content preview:
+The document titled "Foundations of Large Language Models," authored by Tong Xiao and Jingbo Zhu, provides a comprehensive overview of the foundational concepts and methodologies related to large language models (LLMs) in the context of natural language processing (NLP). It is structured into four main chapters: the first chapter focuses on pre-training techniques and architectures essential for LLMs; the second chapter explores generative models, detailing their construction, scaling, and train
+
+------------------------------------------------------------
+DOCUMENT 2
+2026-08-31 17:17:03,030 | INFO | [route_after_retrieval_assessment] retrieval_decision='grade' | decision='grade_documents'
+Cross-encoder relevance score: 0.9913458228111267
+Metadata: {'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'type': 'overview', '_retrieval_rrf_score': 0.032266458495966696, '_cross_encoder_logit': 4.741030693054199, '_cross_encoder_score': 0.9913458228111267}
+
+Content preview:
+The document titled "Foundations of Large Language Models" by Tong Xiao and Jingbo Zhu provides an in-depth exploration of the fundamental concepts and techniques behind large language models (LLMs) in artificial intelligence, particularly in natural language processing (NLP). It is structured into four main chapters: the first focuses on pre-training methods and model architectures; the second covers generative models and their scaling; the third discusses various prompting strategies for LLMs;
+
+------------------------------------------------------------
+DOCUMENT 3
+Cross-encoder relevance score: 0.979317307472229
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 2.0, 'page_label': 'ii', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.029138513513513514, '_cross_encoder_logit': 3.8575620651245117, '_cross_encoder_score': 0.979317307472229}
+
+Content preview:
+Preface Large language models originated from natural language pro cessing, but they have undoubtedly become one of the most revolutionary technological advance ments in the ∩¼üeld of arti∩¼ücial intelli- gence in recent years. An important insight brought by large language models is that knowledge of the world and languages can be acquired through large-sca le language modeling tasks, and in this way, we can create a universal model that handles dive rse problems. This discovery has profoundly impa
+
+------------------------------------------------------------
+DOCUMENT 4
+Cross-encoder relevance score: 0.874053418636322
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 42.0, 'page_label': '36', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.0136986301369863, '_cross_encoder_logit': 1.9372837543487549, '_cross_encoder_score': 0.874053418636322}
+
+Content preview:
+CHAPTER 2 Generative Models One of the most signi∩¼ücant advances in NLP in recent years mig ht be the development of large language models (LLMs). This has helped create systems that can understand and generate nat- ural languages like humans. These systems have even been fou nd to be able to reason, which is considered a very challenging AI problem. With these achi evements, NLP made big strides and entered a new era of research in which dif∩¼ücult problems a re being solved, such as building conv
+
+------------------------------------------------------------
+DOCUMENT 5
+Cross-encoder relevance score: 0.7852441668510437
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 0.0, 'page_label': '1', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.01639344262295082, '_cross_encoder_logit': 1.2964931726455688, '_cross_encoder_score': 0.7852441668510437}
+
+Content preview:
+arXiv:2501.09223v1  [cs.CL]  16 Jan 2025 Foundations of Large Language Models Tong Xiao and Jingbo Zhu January 17, 2025 NLP Lab, Northeastern University & NiuTrans Research
+
+------------------------------------------------------------
+DOCUMENT 6
+Cross-encoder relevance score: 0.7489847540855408
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 35.0, 'page_label': '29', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.014285714285714285, '_cross_encoder_logit': 1.0932047367095947, '_cross_encoder_score': 0.7489847540855408}
+
+Content preview:
+centage) of samples in each language, the size of the model, a nd so on. Conneau et al. [2020] point out several interesting issues regarding large-scal e multi-lingual pre-training for XLM-like models. First, as the number of supported languages increas es, a larger model is needed to handle these languages. Second, a larger shared vocabulary is help ful for modeling the increased diver- sity in languages. Third, low-resource languages more easi ly bene∩¼üt from cross-lingual transfer from high-r
+
+------------------------------------------------------------
+DOCUMENT 7
+Cross-encoder relevance score: 0.7149497270584106
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 101.0, 'page_label': '95', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.015625, '_cross_encoder_logit': 0.9195464849472046, '_cross_encoder_score': 0.7149497270584106}
+
+Content preview:
+2.4 Summary 95 A general view is that, by repeating this token prediction ta sk a large number of times, LLMs can acquire some knowledge of the world and language, which can t hen be applied to new tasks. As a result, LLMs can be prompted to perform any task by framing it as a task of predicting subsequent tokens given prompts. This emergent ability in language mod els comes from several dimensions, such as scaling up training, model size, and context size. It is undeniable that scaling laws are
+
+======================================================================
+3. RETRIEVAL ASSESSMENT
+======================================================================
+Top score: 0.994816
+Second score: 0.991346
+Mean score: 0.869816
+Score gap: 0.003470
+Top/mean ratio: 1.1437
+Gap ratio: 0.0035
+Top document type: overview
+Score interpretation: cross-encoder ranking signal, not calibrated probability
+Evidence strength: ambiguous
+Retrieval decision: grade
+Decision reason: top_candidates_too_close
+
+======================================================================
+GRAPH ROUTER: AFTER RETRIEVAL ASSESSMENT
+======================================================================
+Retrieval decision: grade
+ROUTE -> grade_documents
+
+======================================================================
+4. DOCUMENT RELEVANCE GRADING
+======================================================================
+INFO:     127.0.0.1:51384 - "POST /query HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 1281, in handle
+    await super().handle(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 354, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\src\agentic_rag\api\main.py", line 88, in query
+    result = http_request.app.state.rag_graph.invoke(
+        {
+    ...<3 lines>...
+        config=config,
+    )
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\pregel\main.py", line 3913, in invoke
+    for chunk in self.stream(
+                 ~~~~~~~~~~~^
+        input,
+        ^^^^^^
+    ...<11 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ):
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\pregel\main.py", line 2967, in stream
+    for _ in runner.tick(
+             ~~~~~~~~~~~^
+        [t for t in loop.tasks.values() if not t.writes],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        schedule_task=loop.accept_push,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\pregel\_runner.py", line 207, in tick
+    run_with_retry(
+    ~~~~~~~~~~~~~~^
+        t,
+        ^^
+    ...<10 lines>...
+        },
+        ^^
+    )
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\pregel\_retry.py", line 617, in run_with_retry
+    return task.proc.invoke(task.input, config)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\_internal\_runnable.py", line 684, in invoke
+    input = context.run(step.invoke, input, config, **kwargs)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\_internal\_runnable.py", line 426, in invoke
+    ret = self.func(*args, **kwargs)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\src\agentic_rag\graph\nodes.py", line 592, in grade_documents
+    candidates = list(zip(documents, scores))[:MAX_GRADING_CANDIDATES]
+                                               ^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'MAX_GRADING_CANDIDATES' is not defined
+During task with name 'grade_documents' and id 'f55ef5c1-9a1f-0239-083f-e65a3619adb8'
+WARNING:  WatchFiles detected changes in 'src\agentic_rag\graph\nodes.py'. Reloading...
+(agentic-rag) PS F:\Agentic_Project\branch\working\AgenticRAG> $env:PYTHONIOENCODING="utf-8"; python -u -m uvicorn src.agentic_rag.api.main:app --reload *>&1 | Tee-Object -FilePath "F:\Agentic_Project\branch\working\AgenticRAG\logs\app_run_v9.md"
+python : INFO:     Will watch for changes in these directories: ['F:\\Agentic_Project\\branch\\working\\AgenticRAG']
+At line:1 char:32
++ ... NG="utf-8"; python -u -m uvicorn src.agentic_rag.api.main:app --reloa ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (INFO:     Will ...g\\AgenticRAG']:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [23532] using WatchFiles
+2026-08-31 21:07:25,292 | INFO | LLM provider chain initialized (primary tier): ['openrouter', 'cerebras', 'groq', 'nvidia']
+2026-08-31 21:07:25,361 | INFO | LLM provider chain initialized (fast tier): ['openrouter', 'cerebras', 'groq', 'nvidia']
+2026-08-31 21:07:29,054 | INFO | No device provided, using cpu
+2026-08-31 21:07:29,654 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-08-31 21:07:29,655 | WARNING | Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-08-31 21:07:29,702 | INFO | HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/modules.json 
+"HTTP/1.1 200 OK"
+2026-08-31 21:07:29,963 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json "HTTP/1.1 307 Temporary 
+Redirect"
+2026-08-31 21:07:30,010 | INFO | HTTP Request: HEAD 
+https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config_sentence_transformers.json "HTTP/1.1 200 OK"
+2026-08-31 21:07:30,011 | INFO | Loading SentenceTransformer model from sentence-transformers/all-MiniLM-L6-v2.
+2026-08-31 21:07:30,360 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json "HTTP/1.1 307 Temporary 
+Redirect"
+2026-08-31 21:07:30,406 | INFO | HTTP Request: HEAD 
+https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config_sentence_transformers.json "HTTP/1.1 200 OK"
+2026-08-31 21:07:30,665 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+2026-08-31 21:07:30,711 | INFO | HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/README.md 
+"HTTP/1.1 200 OK"
+2026-08-31 21:07:30,972 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+2026-08-31 21:07:31,018 | INFO | HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/modules.json 
+"HTTP/1.1 200 OK"
+2026-08-31 21:07:31,281 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/sentence_bert_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-08-31 21:07:31,327 | INFO | HTTP Request: HEAD 
+https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/sentence_bert_config.json "HTTP/1.1 200 OK"
+2026-08-31 21:07:31,592 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+2026-08-31 21:07:31,856 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-08-31 21:07:31,902 | INFO | HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json 
+"HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]
+Loading weights: 100%|ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê| 103/103 [00:00<00:00, 8287.55it/s]
+2026-08-31 21:07:32,249 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-08-31 21:07:32,515 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-08-31 21:07:32,780 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-08-31 21:07:33,065 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-08-31 21:07:33,321 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-08-31 21:07:33,367 | INFO | HTTP Request: HEAD 
+https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-08-31 21:07:33,622 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-08-31 21:07:33,668 | INFO | HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json 
+"HTTP/1.1 200 OK"
+2026-08-31 21:07:33,941 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-08-31 21:07:33,988 | INFO | HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json 
+"HTTP/1.1 200 OK"
+2026-08-31 21:07:34,244 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-08-31 21:07:34,290 | INFO | HTTP Request: HEAD 
+https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-08-31 21:07:34,556 | INFO | HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=false&expand=false 
+"HTTP/1.1 404 Not Found"
+2026-08-31 21:07:34,813 | INFO | HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-08-31 21:07:35,101 | INFO | HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/1_Pooling/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-08-31 21:07:35,146 | INFO | HTTP Request: HEAD 
+https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/1_Pooling%2Fconfig.json "HTTP/1.1 200 OK"
+2026-08-31 21:07:35,409 | INFO | HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2 "HTTP/1.1 200 OK"
+INFO:     Started server process [20152]
+INFO:     Waiting for application startup.
+2026-08-31 21:07:36,338 | INFO | No modules.json found for cross-encoder/ms-marco-MiniLM-L-6-v2, initializing a new CrossEncoder model.
+CROSS-ENCODER DEVICE: cpu
+Loading weights:   0%|          | 0/105 [00:00<?, ?it/s]
+Loading weights: 100%|ΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûêΓûê| 105/105 [00:00<00:00, 8500.65it/s]
+INFO:     Application startup complete.
+
+======================================================================
+CROSS-ENCODER WARM-UP
+======================================================================
+Model: cross-encoder/ms-marco-MiniLM-L-6-v2
+Device: cpu
+Warm-up time: 8.21 sec
+Status: READY
+INFO:     127.0.0.1:62203 - "GET /documents HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62365 - "GET /documents HTTP/1.1" 200 OK
+2026-08-31 21:08:57,403 | INFO | [route_after_contextualization] query_intent='new_question' | decision='retrieve'
+
+======================================================================
+QUERY INTENT
+======================================================================
+Question: what is a large language model
+Intent: new_question
+Control query: False
+
+======================================================================
+GRAPH ROUTER: AFTER CONTEXTUALIZATION
+======================================================================
+Query intent: new_question
+ROUTE -> retrieve
+
+======================================================================
+2. RETRIEVAL
+======================================================================
+Query sent to retriever:
+what is a large language model
+Document scope: 8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a
+Query representation: dense=1 | sparse=1
+
+======================================================================
+HYBRID RETRIEVAL: DENSE + BM25 + RRF
+======================================================================
+Query: what is a large language model
+Candidate k per retriever: 15
+RRF k: 60
+Document filter: {'$and': [{'document_id': {'$eq': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a'}}, {'type': {'$eq': 'content'}}]}
+
+======================================================================
+HYBRID RETRIEVAL: DENSE + BM25 + RRF
+======================================================================
+Query: what is a large language model
+Candidate k per retriever: 15
+RRF k: 60
+Document filter: {'$and': [{'document_id': {'$eq': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a'}}, {'type': {'$eq': 'overview'}}]}
+
+----------------------------------------------------------------------
+1. DENSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.611011 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-c0e10d5182e5f1c8
+[02] score=0.604731 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-a0e6276d4ded
+[03] score=0.576185 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-96cea28ef512
+
+----------------------------------------------------------------------
+1. DENSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.698984 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-7c41831c1aa7
+[02] score=0.698984 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-4238c2fb562d
+[03] score=0.698984 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-be18dcc08d047b4c
+[04] score=0.684946 | type=content | page=1 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-ef7e0ab62c89
+[05] score=0.684946 | type=content | page=1 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-5e971b162a6a
+[06] score=0.684946 | type=content | page=1 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-99ecd1aa6216777a
+[07] score=0.656801 | type=content | page=29 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-548da7500aed
+[08] score=0.656801 | type=content | page=29 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-6ff99554654c901b
+[09] score=0.656801 | type=content | page=29 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-7a69b1becc5c
+[10] score=0.633467 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-cd925b2c07bee467
+[11] score=0.633467 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-709515ed4e60
+[12] score=0.633467 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-29db547e69be
+[13] score=0.585788 | type=content | page=36 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-26b36870fe68
+[14] score=0.585788 | type=content | page=36 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-1a0d62b2a09beb29
+[15] score=0.585788 | type=content | page=36 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-352366b196ed
+
+----------------------------------------------------------------------
+2. BM25 / SPARSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.757001 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-c0e10d5182e5f1c8
+[02] score=0.723525 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-a0e6276d4ded
+[03] score=0.703222 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-96cea28ef512
+BM25 query terms encoded: 3
+
+----------------------------------------------------------------------
+3. RRF FUSION
+----------------------------------------------------------------------
+[01] RRF=0.03278689 | DenseRank=1 | DenseScore=0.611011 | BM25Rank=1 | BM25Score=0.757001 | type=overview | page=-
+[02] RRF=0.03225806 | DenseRank=2 | DenseScore=0.604731 | BM25Rank=2 | BM25Score=0.723525 | type=overview | page=-
+[03] RRF=0.03174603 | DenseRank=3 | DenseScore=0.576185 | BM25Rank=3 | BM25Score=0.703222 | type=overview | page=-
+
+----------------------------------------------------------------------
+RRF OUTPUT: 3 candidates
+----------------------------------------------------------------------
+[01] RRF=0.03278689 | type=overview | page=-
+[02] RRF=0.03225806 | type=overview | page=-
+[03] RRF=0.03174603 | type=overview | page=-
+
+----------------------------------------------------------------------
+2. BM25 / SPARSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.869029 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-4238c2fb562d
+[02] score=0.868617 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-be18dcc08d047b4c
+[03] score=0.867955 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-7c41831c1aa7
+[04] score=0.816017 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-ed1064bf505bfd26
+[05] score=0.815921 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-e45f8e6ec358
+[06] score=0.815001 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-cf6694d28b4e
+[07] score=0.810061 | type=content | page=6 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-53d37e346a97
+[08] score=0.809094 | type=content | page=6 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-615b26ddcc2d
+[09] score=0.809062 | type=content | page=6 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-7632743c7fba8db8
+[10] score=0.758749 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-cd925b2c07bee467
+[11] score=0.758676 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-29db547e69be
+[12] score=0.758088 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-709515ed4e60
+[13] score=0.732979 | type=content | page=6 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-fc5e5516dc6e970a
+[14] score=0.732322 | type=content | page=6 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-ebce051b6bd4
+[15] score=0.731674 | type=content | page=6 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-7735f1f38628
+BM25 query terms encoded: 3
+
+----------------------------------------------------------------------
+3. RRF FUSION
+----------------------------------------------------------------------
+[01] RRF=0.03252247 | DenseRank=2 | DenseScore=0.698984 | BM25Rank=1 | BM25Score=0.869029 | type=content | page=ii
+[02] RRF=0.02857143 | DenseRank=10 | DenseScore=0.633467 | BM25Rank=10 | BM25Score=0.758749 | type=content | page=ii
+[03] RRF=0.01562500 | DenseRank=4 | DenseScore=0.684946 | BM25Rank=- | BM25Score=- | type=content | page=1
+[04] RRF=0.01562500 | DenseRank=- | DenseScore=- | BM25Rank=4 | BM25Score=0.816017 | type=content | page=ii
+[05] RRF=0.01492537 | DenseRank=7 | DenseScore=0.656801 | BM25Rank=- | BM25Score=- | type=content | page=29
+[06] RRF=0.01492537 | DenseRank=- | DenseScore=- | BM25Rank=7 | BM25Score=0.810061 | type=content | page=6
+[07] RRF=0.01369863 | DenseRank=13 | DenseScore=0.585788 | BM25Rank=- | BM25Score=- | type=content | page=36
+[08] RRF=0.01369863 | DenseRank=- | DenseScore=- | BM25Rank=13 | BM25Score=0.732979 | type=content | page=6
+
+----------------------------------------------------------------------
+RRF OUTPUT: 8 candidates
+----------------------------------------------------------------------
+[01] RRF=0.03252247 | type=content | page=ii
+[02] RRF=0.02857143 | type=content | page=ii
+[03] RRF=0.01562500 | type=content | page=1
+[04] RRF=0.01562500 | type=content | page=ii
+[05] RRF=0.01492537 | type=content | page=29
+[06] RRF=0.01492537 | type=content | page=6
+[07] RRF=0.01369863 | type=content | page=36
+[08] RRF=0.01369863 | type=content | page=6
+
+----------------------------------------------------------------------
+HYBRID CANDIDATE DEDUPLICATION
+----------------------------------------------------------------------
+Overview: 3 -> 3 (0 duplicates removed)
+Content: 8 -> 8 (0 duplicates removed)
+
+----------------------------------------------------------------------
+CROSS-ENCODER RERANKER | BATCHED GROUPS
+----------------------------------------------------------------------
+Model: cross-encoder/ms-marco-MiniLM-L-6-v2
+Device: cpu
+Groups: overview, content
+Total candidates: 11
+Inference time: 0.257 sec
+Batch size: 32
+
+[OVERVIEW]
+[01] CE=0.999639 | logit=7.926339 | RRF=0.03225806 | previous_rank=2 | type=overview | page=-
+[02] CE=0.999549 | logit=7.704112 | RRF=0.03174603 | previous_rank=3 | type=overview | page=-
+[03] CE=0.999077 | logit=6.987387 | RRF=0.03278689 | previous_rank=1 | type=overview | page=-
+Selected top 2 overview candidates.
+
+[CONTENT]
+[01] CE=0.999582 | logit=7.778870 | RRF=0.03252247 | previous_rank=1 | type=content | page=ii
+[02] CE=0.997404 | logit=5.951117 | RRF=0.01492537 | previous_rank=6 | type=content | page=6
+[03] CE=0.995978 | logit=5.512009 | RRF=0.01369863 | previous_rank=7 | type=content | page=36
+[04] CE=0.995959 | logit=5.507148 | RRF=0.01562500 | previous_rank=4 | type=content | page=ii
+[05] CE=0.989957 | logit=4.590825 | RRF=0.01492537 | previous_rank=5 | type=content | page=29
+[06] CE=0.987506 | logit=4.369941 | RRF=0.01562500 | previous_rank=3 | type=content | page=1
+[07] CE=0.981697 | logit=3.982195 | RRF=0.02857143 | previous_rank=2 | type=content | page=ii
+[08] CE=0.821687 | logit=1.527821 | RRF=0.01369863 | previous_rank=8 | type=content | page=6
+Selected top 5 content candidates.
+----------------------------------------------------------------------
+
+Overview candidates (hybrid): 3 -> reranked to 2
+Content candidates (hybrid): 8 -> reranked to 5
+
+------------------------------------------------------------
+DOCUMENT 1
+Cross-encoder relevance score: 0.9996390342712402
+Metadata: {'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'type': 'overview', '_retrieval_rrf_score': 0.03225806451612903, '_cross_encoder_logit': 7.926339149475098, '_cross_encoder_score': 0.9996390342712402}
+
+Content preview:
+The document titled "Foundations of Large Language Models" by Tong Xiao and Jingbo Zhu provides an in-depth exploration of the fundamental concepts and techniques behind large language models (LLMs) in artificial intelligence, particularly in natural language processing (NLP). It is structured into four main chapters: the first focuses on pre-training methods and model architectures; the second covers generative models and their scaling; the third discusses various prompting strategies for LLMs;
+
+------------------------------------------------------------
+DOCUMENT 2
+Cross-encoder relevance score: 0.9995816349983215
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 2.0, 'page_label': 'ii', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.03252247488101534, '_cross_encoder_logit': 7.77886962890625, '_cross_encoder_score': 0.9995816349983215}
+
+Content preview:
+Preface Large language models originated from natural language pro cessing, but they have undoubtedly become one of the most revolutionary technological advance ments in the ∩¼üeld of arti∩¼ücial intelli- gence in recent years. An important insight brought by large language models is that knowledge of the world and languages can be acquired through large-sca le language modeling tasks, and in this way, we can create a universal model that handles dive rse problems. This discovery has profoundly impa
+
+------------------------------------------------------------
+DOCUMENT 3
+Cross-encoder relevance score: 0.9995492100715637
+Metadata: {'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'type': 'overview', '_retrieval_rrf_score': 0.031746031746031744, '_cross_encoder_logit': 7.7041120529174805, '_cross_encoder_score': 0.9995492100715637}
+
+Content preview:
+The document titled "Foundations of Large Language Models," authored by Tong Xiao and Jingbo Zhu, provides a comprehensive overview of the foundational concepts and methodologies related to large language models (LLMs) in the context of natural language processing (NLP). It is structured into four main chapters: the first chapter focuses on pre-training techniques and architectures essential for LLMs; the second chapter explores generative models, detailing their construction, scaling, and train
+
+------------------------------------------------------------
+DOCUMENT 4
+Cross-encoder relevance score: 0.9974038004875183
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 12.0, 'page_label': '6', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.014925373134328358, '_cross_encoder_logit': 5.951116561889648, '_cross_encoder_score': 0.9974038004875183}
+
+Content preview:
+6 Pre-training as complete systems on downstream tasks. For example, we can ∩¼üne-tune a pre-trained encoder- decoder multilingual model on some bilingual data to improv e its performance on a speci∩¼üc trans- lation task. Among various sequence generation models, a notable exampl e is the large language models trained on very large amounts of data. These language models are trained to simply predict the next token given its preceding tokens. Although token predictio n is such a simple task that it 
+
+------------------------------------------------------------
+DOCUMENT 5
+Cross-encoder relevance score: 0.9959782361984253
+2026-08-31 21:09:01,742 | INFO | RETRIEVAL | query='what is a large language model' | scores=[0.9996, 0.9996, 0.9995, 0.9974, 0.996, 0.996, 0.99] | top=0.9996 | second=0.9996 | gap=0.0001 | 
+mean=0.9969 | top/mean=1.0028 | gap_ratio=0.0001
+2026-08-31 21:09:01,743 | INFO | [route_after_retrieval_assessment] retrieval_decision='rewrite_query' | decision='rewrite_query'
+2026-08-31 21:09:01,744 | INFO | [LLM:fast] Attempt 1/4 ΓåÆ openrouter
+2026-08-31 21:09:04,323 | INFO | [LLM:fast] openrouter ΓåÆ SUCCESS in 2.58s
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 42.0, 'page_label': '36', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.0136986301369863, '_cross_encoder_logit': 5.512009143829346, '_cross_encoder_score': 0.9959782361984253}
+
+Content preview:
+CHAPTER 2 Generative Models One of the most signi∩¼ücant advances in NLP in recent years mig ht be the development of large language models (LLMs). This has helped create systems that can understand and generate nat- ural languages like humans. These systems have even been fou nd to be able to reason, which is considered a very challenging AI problem. With these achi evements, NLP made big strides and entered a new era of research in which dif∩¼ücult problems a re being solved, such as building conv
+
+------------------------------------------------------------
+DOCUMENT 6
+Cross-encoder relevance score: 0.9959587454795837
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 2.0, 'page_label': 'ii', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.015625, '_cross_encoder_logit': 5.507148265838623, '_cross_encoder_score': 0.9959587454795837}
+
+Content preview:
+ΓÇó Chapter 1 introduces the basics of pre-training. This is th e foundation of large language models, and common pre-training methods and model architec tures will be discussed here. ΓÇó Chapter 2 introduces generative models, which are the larg e language models we commonly refer to today. After presenting the basic process of buildi ng these models, we will also explore how to scale up model training and handle long texts. ΓÇó Chapter 3 introduces prompting methods for large language models. We wil
+
+------------------------------------------------------------
+DOCUMENT 7
+Cross-encoder relevance score: 0.9899573922157288
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 35.0, 'page_label': '29', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.014925373134328358, '_cross_encoder_logit': 4.590825080871582, '_cross_encoder_score': 0.9899573922157288}
+
+Content preview:
+centage) of samples in each language, the size of the model, a nd so on. Conneau et al. [2020] point out several interesting issues regarding large-scal e multi-lingual pre-training for XLM-like models. First, as the number of supported languages increas es, a larger model is needed to handle these languages. Second, a larger shared vocabulary is help ful for modeling the increased diver- sity in languages. Third, low-resource languages more easi ly bene∩¼üt from cross-lingual transfer from high-r
+
+======================================================================
+3. RETRIEVAL ASSESSMENT
+======================================================================
+Top score: 0.999639
+Second score: 0.999582
+Mean score: 0.996867
+Score gap: 0.000057
+Top/mean ratio: 1.0028
+Gap ratio: 0.0001
+Top document type: overview
+Score interpretation: cross-encoder ranking signal, not calibrated probability
+Evidence strength: weak
+Retrieval decision: rewrite_query
+Decision reason: weak_candidate_separation
+
+======================================================================
+GRAPH ROUTER: AFTER RETRIEVAL ASSESSMENT
+======================================================================
+Retrieval decision: rewrite_query
+ROUTE -> rewrite_query
+
+======================================================================
+5. QUERY REWRITE
+======================================================================
+Original question: what is a large language model
+Previous attempt  : what is a large language model
+Rewritten query   : what is a large language model and what are its main characteristics and applications
+Retry count       : 1
+
+======================================================================
+2. RETRIEVAL
+======================================================================
+Query sent to retriever:
+what is a large language model and what are its main characteristics and applications
+Document scope: 8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a
+Query representation: dense=1 | sparse=1
+
+======================================================================
+HYBRID RETRIEVAL: DENSE + BM25 + RRF
+======================================================================
+Query: what is a large language model and what are its main characteristics and applications
+Candidate k per retriever: 15
+RRF k: 60
+Document filter: {'$and': [{'document_id': {'$eq': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a'}}, {'type': {'$eq': 'overview'}}]}
+
+======================================================================
+HYBRID RETRIEVAL: DENSE + BM25 + RRF
+======================================================================
+Query: what is a large language model and what are its main characteristics and applications
+Candidate k per retriever: 15
+RRF k: 60
+Document filter: {'$and': [{'document_id': {'$eq': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a'}}, {'type': {'$eq': 'content'}}]}
+
+----------------------------------------------------------------------
+1. DENSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.603326 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-c0e10d5182e5f1c8
+[02] score=0.598068 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-a0e6276d4ded
+[03] score=0.567632 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-96cea28ef512
+
+----------------------------------------------------------------------
+2. BM25 / SPARSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.345899 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-96cea28ef512
+[02] score=0.278174 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-a0e6276d4ded
+[03] score=0.151574 | type=overview | page=- | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-overview-c0e10d5182e5f1c8
+BM25 query terms encoded: 6
+
+----------------------------------------------------------------------
+3. RRF FUSION
+----------------------------------------------------------------------
+[01] RRF=0.03226646 | DenseRank=1 | DenseScore=0.603326 | BM25Rank=3 | BM25Score=0.151574 | type=overview | page=-
+[02] RRF=0.03226646 | DenseRank=3 | DenseScore=0.567632 | BM25Rank=1 | BM25Score=0.345899 | type=overview | page=-
+[03] RRF=0.03225806 | DenseRank=2 | DenseScore=0.598068 | BM25Rank=2 | BM25Score=0.278174 | type=overview | page=-
+
+----------------------------------------------------------------------
+RRF OUTPUT: 3 candidates
+----------------------------------------------------------------------
+[01] RRF=0.03226646 | type=overview | page=-
+[02] RRF=0.03226646 | type=overview | page=-
+[03] RRF=0.03225806 | type=overview | page=-
+
+----------------------------------------------------------------------
+1. DENSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.672090 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-7c41831c1aa7
+[02] score=0.672090 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-be18dcc08d047b4c
+[03] score=0.672090 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-4238c2fb562d
+[04] score=0.654263 | type=content | page=1 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-ef7e0ab62c89
+[05] score=0.654263 | type=content | page=1 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-99ecd1aa6216777a
+[06] score=0.654263 | type=content | page=1 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-5e971b162a6a
+[07] score=0.619069 | type=content | page=29 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-7a69b1becc5c
+[08] score=0.619069 | type=content | page=29 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-6ff99554654c901b
+[09] score=0.619069 | type=content | page=29 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-548da7500aed
+[10] score=0.613166 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-29db547e69be
+[11] score=0.613166 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-709515ed4e60
+[12] score=0.613166 | type=content | page=ii | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-cd925b2c07bee467
+[13] score=0.579538 | type=content | page=36 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-26b36870fe68
+[14] score=0.579538 | type=content | page=36 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-1a0d62b2a09beb29
+[15] score=0.579538 | type=content | page=36 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-352366b196ed
+
+----------------------------------------------------------------------
+2. BM25 / SPARSE RETRIEVAL
+----------------------------------------------------------------------
+[01] score=0.215543 | type=content | page=120 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-619755ea0cf9b633
+[02] score=0.215531 | type=content | page=120 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-518622d87ac5
+[03] score=0.215522 | type=content | page=120 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-f5940eb7cab1
+[04] score=0.210837 | type=content | page=52 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-c45f19fac337
+[05] score=0.210751 | type=content | page=52 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-04231698e25d8da6
+[06] score=0.210714 | type=content | page=52 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-83c6894f3d59
+[07] score=0.201383 | type=content | page=95 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-65eed897e080
+[08] score=0.201254 | type=content | page=95 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-5241e1594fecacfd
+[09] score=0.201129 | type=content | page=95 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-b47b4aee0d17
+[10] score=0.198079 | type=content | page=1 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-254c6d0b489b
+[11] score=0.198026 | type=content | page=1 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-b2560836c2f78c92
+[12] score=0.197952 | type=content | page=1 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-e4b9dfdfd0f9
+[13] score=0.192467 | type=content | page=153 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-0c2e8c3823b5
+[14] score=0.192368 | type=content | page=153 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-899b553045c4
+[15] score=0.192357 | type=content | page=153 | id=8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a-content-2e804edccf334868
+BM25 query terms encoded: 6
+
+----------------------------------------------------------------------
+3. RRF FUSION
+----------------------------------------------------------------------
+[01] RRF=0.01639344 | DenseRank=1 | DenseScore=0.672090 | BM25Rank=- | BM25Score=- | type=content | page=ii
+[02] RRF=0.01639344 | DenseRank=- | DenseScore=- | BM25Rank=1 | BM25Score=0.215543 | type=content | page=120
+[03] RRF=0.01562500 | DenseRank=4 | DenseScore=0.654263 | BM25Rank=- | BM25Score=- | type=content | page=1
+[04] RRF=0.01562500 | DenseRank=- | DenseScore=- | BM25Rank=4 | BM25Score=0.210837 | type=content | page=52
+[05] RRF=0.01492537 | DenseRank=7 | DenseScore=0.619069 | BM25Rank=- | BM25Score=- | type=content | page=29
+[06] RRF=0.01492537 | DenseRank=- | DenseScore=- | BM25Rank=7 | BM25Score=0.201383 | type=content | page=95
+[07] RRF=0.01428571 | DenseRank=10 | DenseScore=0.613166 | BM25Rank=- | BM25Score=- | type=content | page=ii
+[08] RRF=0.01428571 | DenseRank=- | DenseScore=- | BM25Rank=10 | BM25Score=0.198079 | type=content | page=1
+[09] RRF=0.01369863 | DenseRank=13 | DenseScore=0.579538 | BM25Rank=- | BM25Score=- | type=content | page=36
+[10] RRF=0.01369863 | DenseRank=- | DenseScore=- | BM25Rank=13 | BM25Score=0.192467 | type=content | page=153
+
+----------------------------------------------------------------------
+RRF OUTPUT: 10 candidates
+----------------------------------------------------------------------
+[01] RRF=0.01639344 | type=content | page=ii
+[02] RRF=0.01639344 | type=content | page=120
+[03] RRF=0.01562500 | type=content | page=1
+[04] RRF=0.01562500 | type=content | page=52
+[05] RRF=0.01492537 | type=content | page=29
+[06] RRF=0.01492537 | type=content | page=95
+[07] RRF=0.01428571 | type=content | page=ii
+[08] RRF=0.01428571 | type=content | page=1
+[09] RRF=0.01369863 | type=content | page=36
+[10] RRF=0.01369863 | type=content | page=153
+
+----------------------------------------------------------------------
+HYBRID CANDIDATE DEDUPLICATION
+----------------------------------------------------------------------
+Overview: 3 -> 3 (0 duplicates removed)
+Content: 10 -> 10 (0 duplicates removed)
+
+----------------------------------------------------------------------
+CROSS-ENCODER RERANKER | BATCHED GROUPS
+----------------------------------------------------------------------
+Model: cross-encoder/ms-marco-MiniLM-L-6-v2
+Device: cpu
+Groups: overview, content
+Total candidates: 13
+Inference time: 0.311 sec
+Batch size: 32
+
+[OVERVIEW]
+[01] CE=0.997149 | logit=5.857249 | RRF=0.03226646 | previous_rank=2 | type=overview | page=-
+[02] CE=0.995863 | logit=5.483701 | RRF=0.03225806 | previous_rank=3 | type=overview | page=-
+[03] CE=0.980952 | logit=3.941568 | RRF=0.03226646 | previous_rank=1 | type=overview | page=-
+Selected top 2 overview candidates.
+
+[CONTENT]
+[01] CE=0.992303 | logit=4.859204 | RRF=0.01639344 | previous_rank=1 | type=content | page=ii
+[02] CE=0.938216 | logit=2.720328 | RRF=0.01369863 | previous_rank=9 | type=content | page=36
+[03] CE=0.826908 | logit=1.563871 | RRF=0.01492537 | previous_rank=5 | type=content | page=29
+[04] CE=0.697580 | logit=0.835802 | RRF=0.01492537 | previous_rank=6 | type=content | page=95
+[05] CE=0.579555 | logit=0.320946 | RRF=0.01562500 | previous_rank=3 | type=content | page=1
+[06] CE=0.534988 | logit=0.140182 | RRF=0.01428571 | previous_rank=7 | type=content | page=ii
+[07] CE=0.081290 | logit=-2.424952 | RRF=0.01428571 | previous_rank=8 | type=content | page=1
+[08] CE=0.000508 | logit=-7.584043 | RRF=0.01369863 | previous_rank=10 | type=content | page=153
+[09] CE=0.000015 | logit=-11.093878 | RRF=0.01639344 | previous_rank=2 | type=content | page=120
+[10] CE=0.000014 | logit=-11.171206 | RRF=0.01562500 | previous_rank=4 | type=content | page=52
+Selected top 5 content candidates.
+----------------------------------------------------------------------
+
+Overview candidates (hybrid): 3 -> reranked to 2
+Content candidates (hybrid): 10 -> reranked to 5
+
+------------------------------------------------------------
+DOCUMENT 1
+Cross-encoder relevance score: 0.9971490502357483
+2026-08-31 21:09:06,448 | INFO | RETRIEVAL | query='what is a large language model and what are its main characteristics and applications' | scores=[0.9971, 0.9959, 0.9923, 0.9382, 0.8269, 
+0.6976, 0.5796] | top=0.9971 | second=0.9959 | gap=0.0013 | mean=0.8611 | top/mean=1.1580 | gap_ratio=0.0013
+Metadata: {'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'type': 'overview', '_retrieval_rrf_score': 0.032266458495966696, '_cross_encoder_logit': 5.8572492599487305, '_cross_encoder_score': 0.9971490502357483}
+
+Content preview:
+The document titled "Foundations of Large Language Models," authored by Tong Xiao and Jingbo Zhu, provides a comprehensive overview of the foundational concepts and methodologies related to large language models (LLMs) in the context of natural language processing (NLP). It is structured into four main chapters: the first chapter focuses on pre-training techniques and architectures essential for LLMs; the second chapter explores generative models, detailing their construction, scaling, and train
+
+------------------------------------------------------------
+DOCUMENT 2
+Cross-encoder relevance score: 0.9958631992340088
+Metadata: {'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'type': 'overview', '_retrieval_rrf_score': 0.03225806451612903, '_cross_encoder_logit': 5.483700752258301, '_cross_encoder_score': 0.9958631992340088}
+
+Content preview:
+The document titled "Foundations of Large Language Models" by Tong Xiao and Jingbo Zhu provides an in-depth exploration of the fundamental concepts and techniques behind large language models (LLMs) in artificial intelligence, particularly in natural language processing (NLP). It is structured into four main chapters: the first focuses on pre-training methods and model architectures; the second covers generative models and their scaling; the third discusses various prompting strategies for LLMs;
+
+------------------------------------------------------------
+DOCUMENT 3
+Cross-encoder relevance score: 0.9923030138015747
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 2.0, 'page_label': 'ii', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.01639344262295082, '_cross_encoder_logit': 4.859204292297363, '_cross_encoder_score': 0.9923030138015747}
+
+Content preview:
+Preface Large language models originated from natural language pro cessing, but they have undoubtedly become one of the most revolutionary technological advance ments in the ∩¼üeld of arti∩¼ücial intelli- gence in recent years. An important insight brought by large language models is that knowledge of the world and languages can be acquired through large-sca le language modeling tasks, and in this way, we can create a universal model that handles dive rse problems. This discovery has profoundly impa
+
+------------------------------------------------------------
+DOCUMENT 4
+Cross-encoder relevance score: 0.9382155537605286
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 42.0, 'page_label': '36', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.0136986301369863, '_cross_encoder_logit': 2.7203280925750732, '_cross_encoder_score': 0.9382155537605286}
+
+Content preview:
+CHAPTER 2 Generative Models One of the most signi∩¼ücant advances in NLP in recent years mig ht be the development of large language models (LLMs). This has helped create systems that can understand and generate nat- ural languages like humans. These systems have even been fou nd to be able to reason, which is considered a very challenging AI problem. With these achi evements, NLP made big strides and entered a new era of research in which dif∩¼ücult problems a re being solved, such as building conv
+
+------------------------------------------------------------
+DOCUMENT 5
+Cross-encoder relevance score: 0.8269081115722656
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 35.0, 'page_label': '29', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.014925373134328358, '_cross_encoder_logit': 1.563870906829834, '_cross_encoder_score': 0.8269081115722656}
+
+Content preview:
+centage) of samples in each language, the size of the model, a nd so on. Conneau et al. [2020] point out several interesting issues regarding large-scal e multi-lingual pre-training for XLM-like models. First, as the number of supported languages increas es, a larger model is needed to handle these languages. Second, a larger shared vocabulary is help ful for modeling the increased diver- sity in languages. Third, low-resource languages more easi ly bene∩¼üt from cross-lingual transfer from high-r
+
+------------------------------------------------------------
+2026-08-31 21:09:06,449 | INFO | [route_after_retrieval_assessment] retrieval_decision='grade' | decision='grade_documents'
+DOCUMENT 6
+Cross-encoder relevance score: 0.6975802779197693
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 101.0, 'page_label': '95', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.014925373134328358, '_cross_encoder_logit': 0.8358018398284912, '_cross_encoder_score': 0.6975802779197693}
+
+Content preview:
+2.4 Summary 95 A general view is that, by repeating this token prediction ta sk a large number of times, LLMs can acquire some knowledge of the world and language, which can t hen be applied to new tasks. As a result, LLMs can be prompted to perform any task by framing it as a task of predicting subsequent tokens given prompts. This emergent ability in language mod els comes from several dimensions, such as scaling up training, model size, and context size. It is undeniable that scaling laws are
+
+------------------------------------------------------------
+DOCUMENT 7
+Cross-encoder relevance score: 0.5795546770095825
+Metadata: {'author': '', 'creationdate': '2025-01-16T20:13:48-05:00', 'creator': 'LaTeX with hyperref', 'document_id': '8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a', 'filename': 'Foundation_of_LLMS_TongXiao.pdf', 'keywords': '', 'moddate': '2025-01-16T20:13:48-05:00', 'page': 0.0, 'page_label': '1', 'producer': 'GPL Ghostscript 10.01.2', 'source': 'Foundation_of_LLMS_TongXiao.pdf', 'subject': '', 'title': '', 'total_pages': 231.0, 'type': 'content', '_retrieval_rrf_score': 0.015625, '_cross_encoder_logit': 0.32094553112983704, '_cross_encoder_score': 0.5795546770095825}
+
+Content preview:
+arXiv:2501.09223v1  [cs.CL]  16 Jan 2025 Foundations of Large Language Models Tong Xiao and Jingbo Zhu January 17, 2025 NLP Lab, Northeastern University & NiuTrans Research
+
+======================================================================
+3. RETRIEVAL ASSESSMENT
+======================================================================
+Top score: 0.997149
+Second score: 0.995863
+Mean score: 0.861082
+Score gap: 0.001286
+Top/mean ratio: 1.1580
+Gap ratio: 0.0013
+Top document type: overview
+Score interpretation: cross-encoder ranking signal, not calibrated probability
+Evidence strength: ambiguous
+Retrieval decision: grade
+Decision reason: top_candidates_too_close
+
+======================================================================
+GRAPH ROUTER: AFTER RETRIEVAL ASSESSMENT
+======================================================================
+Retrieval decision: grade
+ROUTE -> grade_documents
+
+======================================================================
+4. DOCUMENT RELEVANCE GRADING
+======================================================================
+INFO:     127.0.0.1:62365 - "POST /query HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 422, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 63, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\applications.py", line 1163, in __call__
+    await super().__call__(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 2734, in app
+    await route.handle(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 1281, in handle
+    await super().handle(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 158, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 144, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 706, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\fastapi\routing.py", line 354, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\starlette\concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\anyio\to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\anyio\_backends\_asyncio.py", line 2641, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\anyio\_backends\_asyncio.py", line 1033, in run
+    result = context.run(func, *args)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\src\agentic_rag\api\main.py", line 88, in query
+    result = http_request.app.state.rag_graph.invoke(
+        {
+    ...<3 lines>...
+        config=config,
+    )
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\pregel\main.py", line 3913, in invoke
+    for chunk in self.stream(
+                 ~~~~~~~~~~~^
+        input,
+        ^^^^^^
+    ...<11 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    ):
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\pregel\main.py", line 2967, in stream
+    for _ in runner.tick(
+             ~~~~~~~~~~~^
+        [t for t in loop.tasks.values() if not t.writes],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        schedule_task=loop.accept_push,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\pregel\_runner.py", line 207, in tick
+    run_with_retry(
+    ~~~~~~~~~~~~~~^
+        t,
+        ^^
+    ...<10 lines>...
+        },
+        ^^
+    )
+    ^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\pregel\_retry.py", line 617, in run_with_retry
+    return task.proc.invoke(task.input, config)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\_internal\_runnable.py", line 684, in invoke
+    input = context.run(step.invoke, input, config, **kwargs)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\.rag_project\Lib\site-packages\langgraph\_internal\_runnable.py", line 426, in invoke
+    ret = self.func(*args, **kwargs)
+  File "F:\Agentic_Project\branch\working\AgenticRAG\src\agentic_rag\graph\nodes.py", line 592, in grade_documents
+    candidates = list(zip(documents, scores))[:MAX_GRADING_CANDIDATES]
+                                               ^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'MAX_GRADING_CANDIDATES' is not defined
+During task with name 'grade_documents' and id 'd2641ead-82e8-15ee-3899-a0f6ffb943f4'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

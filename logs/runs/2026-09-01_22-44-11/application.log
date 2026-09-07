@@ -1,0 +1,3 @@
+2026-09-01 22:44:11,509 | INFO | agentic_rag.logging | Logging initialized | run_id=2026-09-01_22-44-11
+2026-09-01 22:44:11,510 | INFO | agentic_rag.logging | Run artifacts directory | F:\Agentic_Project\branch\working\AgenticRAG\logs\runs\2026-09-01_22-44-11
+2026-09-01 22:44:33,829 | INFO | agentic_rag.trace | [route_after_contextualization] query_intent='new_question' | decision='retrieve'

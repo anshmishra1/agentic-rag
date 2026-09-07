@@ -1,0 +1,4 @@
+2026-09-02 12:52:10,269 | INFO | agentic_rag.logging | logging.py:1148 | configure_logging() | Logging initialized | run_id=2026-09-02_12-52-10
+2026-09-02 12:52:10,269 | INFO | agentic_rag.logging | logging.py:1155 | configure_logging() | Run artifacts directory | F:\Agentic_Project\branch\working\AgenticRAG\logs\runs\2026-09-02_12-52-10
+2026-09-02 12:54:47,305 | INFO | agentic_rag.trace | trace.py:21 | log_stage() | [route_after_contextualization] query_intent='new_question' | decision='retrieve'
+2026-09-02 12:54:47,604 | INFO | agentic_rag.graph.nodes | logging.py:594 | log_retrieval() | Retrieval completed | query=query_representation | dense=1 | sparse=%d | documents=1

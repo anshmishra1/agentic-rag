@@ -1,0 +1,15 @@
+{
+    "run_id": "2026-09-02_13-00-46",
+    "event_count": 1,
+    "events": [
+        {
+            "timestamp": "2026-09-02T07:30:46.081548+00:00",
+            "run_id": "2026-09-02_13-00-46",
+            "event_type": "run_started",
+            "level": "INFO",
+            "logger": "agentic_rag.logging",
+            "debug": true,
+            "file_logging": true
+        }
+    ]
+}

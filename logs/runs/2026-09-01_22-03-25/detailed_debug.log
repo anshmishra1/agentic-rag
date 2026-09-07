@@ -1,0 +1,3 @@
+2026-09-01 22:03:25,212 | INFO | agentic_rag.logging | logging.py:1109 | configure_logging() | Logging initialized | run_id=2026-09-01_22-03-25
+2026-09-01 22:03:25,213 | INFO | agentic_rag.logging | logging.py:1116 | configure_logging() | Run artifacts directory | F:\Agentic_Project\branch\working\AgenticRAG\logs\runs\2026-09-01_22-03-25
+2026-09-01 22:05:09,611 | INFO | agentic_rag.trace | trace.py:21 | log_stage() | [route_after_contextualization] query_intent='new_question' | decision='retrieve'
