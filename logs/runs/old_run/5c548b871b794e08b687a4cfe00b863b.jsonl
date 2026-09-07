@@ -1,3 +1,0 @@
-{"timestamp":"2026-09-01T16:35:09.593127+00:00","run_id":"5c548b871b794e08b687a4cfe00b863b","event":"run_started","question":"What are Scaling Laws","session_id":"fdbb6c49-d7da-4d3a-837b-41036e273132","document_id":"8b8f659beda18f55ab82191bde2d0d8090ae73925b2c7ea3e8d9171857cc506a"}
-{"timestamp":"2026-09-01T16:35:09.803337+00:00","run_id":"5c548b871b794e08b687a4cfe00b863b","event":"run_failed","error_type":"TypeError","error":"log_retrieval() takes 1 positional argument but 3 were given"}
-{"timestamp":"2026-09-01T16:35:09.803368+00:00","run_id":"5c548b871b794e08b687a4cfe00b863b","event":"performance","stages":{"contextualize_question":{"calls":1,"total_time":0.0003},"retrieve":{"calls":1,"total_time":0.1881}},"total_time":0.1884,"bottleneck":"retrieve"}

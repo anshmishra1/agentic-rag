@@ -1,4 +1,0 @@
-{"timestamp": "2026-09-02T13:01:36.329712+05:30", "event": "retrieval", "message": "query_representation | dense=1 | sparse=1"}
-{"timestamp": "2026-09-02T13:01:39.422896+05:30", "event": "retrieval", "message": "query='What is Alignment?' | candidates=7 | top=0.9965 | second=0.8739 | gap=0.1226 | mean=0.4265 | top/mean=2.3363 | gap_ratio=0.1230"}
-{"timestamp": "2026-09-02T13:02:00.767969+05:30", "event": "retrieval", "message": "query_representation | dense=1 | sparse=1"}
-{"timestamp": "2026-09-02T13:02:02.484822+05:30", "event": "retrieval", "message": "query=\"is it different for LLM's and Agents\" | candidates=7 | top=0.9573 | second=0.6788 | gap=0.2785 | mean=0.3540 | top/mean=2.7043 | gap_ratio=0.2909"}
