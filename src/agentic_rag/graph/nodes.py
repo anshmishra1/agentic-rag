@@ -211,13 +211,23 @@ def contextualize_question(state: RAGState) -> dict:
         # -----------------------------------------------------
         # New standalone question
         # -----------------------------------------------------
-
         if intent == "new_question":
             return {
                 "query_intent": "new_question",
                 "query_is_control": False,
                 "contextualization_used": False,
                 "retrieval_query": question,
+                "documents": [],
+                "generation": "",
+                "retrieval_decision": None,
+                "retrieval_evidence_strength": None,
+                "retrieval_decision_reason": None,
+                "relevance_grade": None,
+                "hallucination_grade": None,
+                "hallucination_retry_count": 0,
+                "correction_attempted": False,
+                "verification_exhausted": False,
+                "retry_count": 0,
             }
 
         # -----------------------------------------------------
@@ -247,10 +257,10 @@ def contextualize_question(state: RAGState) -> dict:
         rewritten = result.content.strip()
         
     return {
-        "query_intent": "control",
-        "query_is_control": True,
-        "contextualization_used": False,
-        "retrieval_query": question,
+        "query_intent": "follow_up",
+        "query_is_control": False,
+        "contextualization_used": True,
+        "retrieval_query": rewritten,
 
         # Reset fields which belong only to an actual RAG execution.
         "documents": [],

@@ -241,6 +241,8 @@ for message in st.session_state.chat_history:
                     "source after the available verification attempts. "
                     "Please double-check it against the document."
                 )
+            elif message.get("is_control"):
+                pass
             elif message.get("grounded"):
                 st.caption("Grounded in context")
             else:
@@ -316,6 +318,7 @@ if question:
                 answer = data["answer"]
                 grounded = data["grounded"]
                 verification_exhausted = data.get("verification_exhausted", False)
+                is_control = data.get("is_control", False)
 
             except requests.RequestException as exc:
 
@@ -326,6 +329,7 @@ if question:
 
                 grounded = False
                 verification_exhausted = False
+                is_control = False
 
                 st.error(str(exc))
 
@@ -342,6 +346,8 @@ if question:
                 "source after the available verification attempts. "
                 "Please double-check it against the document."
             )
+        elif is_control:
+            pass  # no grounding badge for conversational control turns
         elif grounded:
             st.caption("Grounded in context")
         else:
@@ -358,5 +364,6 @@ if question:
             "content": answer,
             "grounded": grounded,
             "verification_exhausted": verification_exhausted,
+            "is_control": is_control,
         }
     )

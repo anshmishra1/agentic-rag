@@ -62,6 +62,7 @@ class QueryResponse(BaseModel):
     answer: str
     grounded: bool
     verification_exhausted: bool = False
+    is_control: bool = False
 
 
 class IngestResult(BaseModel):
@@ -117,22 +118,20 @@ def query(
 
         status = "completed"
 
+        is_control = result.get("query_is_control", False)
+
         diagnostics.record(
             "run_completed",
             grounded=result.get("hallucination_grade") == "grounded",
-            verification_exhausted=result.get(
-                "verification_exhausted",
-                False,
-            ),
+            verification_exhausted=result.get("verification_exhausted", False),
+            is_control=is_control,
         )
 
         return QueryResponse(
             answer=result["generation"],
             grounded=result.get("hallucination_grade") == "grounded",
-            verification_exhausted=result.get(
-                "verification_exhausted",
-                False,
-            ),
+            verification_exhausted=result.get("verification_exhausted", False),
+            is_control=is_control,
         )
 
     except Exception as exc:
