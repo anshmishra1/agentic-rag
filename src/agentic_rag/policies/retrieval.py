@@ -80,7 +80,27 @@ def assess_retrieval_confidence(
             "evidence_strength": "weak",
             "reason": "no_usable_retrieval_evidence",
         }
+        # ---------------------------------------------------------
+    # 1b. Top score below meaningful floor
+    #
+    # Ratios computed from near-zero scores are numerically
+    # unstable and can look "strong" by pure noise. Require a
+    # minimum absolute top score before trusting the relative
+    # distribution shape at all.
+    # ---------------------------------------------------------
+    if top_score < settings.retrieval_min_top_score:
+        if retry_count >= settings.max_retries:
+            return {
+                "decision": "grade",
+                "evidence_strength": "weak",
+                "reason": "top_score_below_floor_retries_exhausted",
+            }
 
+        return {
+            "decision": "rewrite_query",
+            "evidence_strength": "weak",
+            "reason": "top_score_below_floor",
+        }
     # ---------------------------------------------------------
     # 2. Very weak distribution
     #

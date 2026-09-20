@@ -68,6 +68,33 @@ def _stable_chunk_id(doc_id: str, chunk_type: str, text: str) -> str:
     content_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
     return f"{doc_id}-{chunk_type}-{content_hash}"
 
+def delete_document_vectors(document_id: str) -> int:
+    """Delete every vector belonging to one document from Pinecone.
+
+    Serverless Pinecone indexes (see scripts/create_index.py) don't support
+    delete(filter=...) - metadata-filtered deletes are pod-based-index only.
+    Chunk IDs are deterministic and prefixed with document_id (see
+    _stable_chunk_id above: f"{doc_id}-{chunk_type}-{content_hash}"), so
+    index.list(prefix=...) finds every vector for this document by ID alone,
+    with no query vector needed. Returns the number of vectors deleted.
+    """
+    index = get_pinecone_index()
+    prefix = f"{document_id}-"
+
+    ids_to_delete: list[str] = []
+    for id_batch in index.list(prefix=prefix):
+        ids_to_delete.extend(id_batch)
+
+    if not ids_to_delete:
+        return 0
+
+    # Pinecone delete() has a per-call ID limit; batch defensively the same
+    # way upsert_hybrid batches upserts.
+    batch_size = 1000
+    for start in range(0, len(ids_to_delete), batch_size):
+        index.delete(ids=ids_to_delete[start:start + batch_size])
+
+    return len(ids_to_delete)
 
 def upsert_hybrid(chunks: list[Document], bm25_encoder) -> None:
     index = get_pinecone_index()
@@ -101,8 +128,8 @@ def _match_to_document(match: Any) -> tuple[str, Document, float]:
     return vector_id, Document(page_content=text, metadata=metadata), float(match["score"])
 
 
-def _rrf_fuse(dense_matches, sparse_matches, rrf_k: int):
-    """Fuse two ranked lists with Reciprocal Rank Fusion.
+def _rrf_fuse(dense_matches, sparse_matches, rrf_k: int, alpha: float):
+    """Fuse two ranked lists with weighted Reciprocal Rank Fusion.
 
     With deterministic vector IDs (see _stable_chunk_id above), the same
     chunk hit by both dense and sparse retrieval now correctly shares one
@@ -112,6 +139,12 @@ def _rrf_fuse(dense_matches, sparse_matches, rrf_k: int):
     any duplicate vectors already sitting in the index from before this fix
     (old random-UUID uploads), which would still have distinct IDs for
     identical text and would otherwise fuse as separate candidates.
+
+    alpha controls the dense/sparse balance: 1.0 = pure dense, 0.0 = pure
+    sparse, 0.5 = equal weight (standard unweighted RRF). Applied as a
+    linear weight on each signal's own rank-based RRF term, so alpha keeps
+    its documented meaning (settings.hybrid_alpha) instead of being
+    computed and logged but never actually affecting fusion.
     """
     fused: dict[str, dict] = {}
 
@@ -138,13 +171,13 @@ def _rrf_fuse(dense_matches, sparse_matches, rrf_k: int):
         fused[vector_id]["bm25_rank"] = rank
         fused[vector_id]["bm25_score"] = score
 
-    diagnostics = []
+        diagnostics = []
     for item in fused.values():
         rrf_score = 0.0
         if item["dense_rank"] is not None:
-            rrf_score += 1.0 / (rrf_k + item["dense_rank"])
+            rrf_score += alpha * (1.0 / (rrf_k + item["dense_rank"]))
         if item["bm25_rank"] is not None:
-            rrf_score += 1.0 / (rrf_k + item["bm25_rank"])
+            rrf_score += (1.0 - alpha) * (1.0 / (rrf_k + item["bm25_rank"]))
         item["rrf_score"] = rrf_score
         diagnostics.append(item)
 
@@ -215,6 +248,7 @@ def retrieve_hybrid_with_scores(
     index = get_pinecone_index()
     representation = query_representation or build_query_representation(query, bm25_encoder)
     dense_query = representation.dense
+    effective_alpha = alpha if alpha is not None else settings.hybrid_alpha
 
     print("\n" + "=" * 70)
     print("HYBRID RETRIEVAL: DENSE + BM25 + RRF")
@@ -222,6 +256,7 @@ def retrieve_hybrid_with_scores(
     print(f"Query: {query}")
     print(f"Candidate k per retriever: {k}")
     print(f"RRF k: {settings.rrf_k}")
+    print(f"Hybrid alpha: {effective_alpha} (1.0=pure dense, 0.0=pure sparse)")
     print(f"Document filter: {filter}")
 
     dense_result = index.query(
@@ -254,7 +289,7 @@ def retrieve_hybrid_with_scores(
         print("SKIPPED - no document-specific BM25 encoder available.")
 
     if bm25_encoder is not None and representation.sparse is not None:
-        fused_results, rrf_diagnostics = _rrf_fuse(dense_matches, sparse_matches, settings.rrf_k)
+        fused_results, rrf_diagnostics = _rrf_fuse(dense_matches, sparse_matches, settings.rrf_k, effective_alpha)
     else:
         seen_text: set[str] = set()
         fused_results = []
@@ -289,7 +324,7 @@ def retrieve_hybrid_with_scores(
         "query": query,
         "candidate_k": k,
         "rrf_k": settings.rrf_k,
-        "hybrid_alpha": alpha if alpha is not None else settings.hybrid_alpha,
+        "hybrid_alpha": effective_alpha,
         "dense_count": len(dense_matches),
         "bm25_count": len(sparse_matches),
         "rrf_count": len(fused_results),

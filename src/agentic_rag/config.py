@@ -52,8 +52,11 @@ class Settings(BaseSettings):
 
     # RAG / pipeline
     embedding_model: str = "all-MiniLM-L6-v2"
-    chunk_size: int = 1500
-    chunk_overlap: int = 300
+    # NOTE: units are TOKENS (per the embedding model's own tokenizer), not
+    # characters - see ingestion/chunking.py. all-MiniLM-L6-v2's max sequence
+    # length is 256 tokens; 240 leaves headroom for any tokenizer rounding.
+    chunk_size: int = 240
+    chunk_overlap: int = 40
     max_retries: int = 2
 
     # Conversation / generation optimization

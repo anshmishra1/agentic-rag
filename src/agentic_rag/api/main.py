@@ -31,6 +31,8 @@ from agentic_rag.retrieval.reranker import warmup_cross_encoder
 from agentic_rag.core.diagnostic import DiagnosticCollector
 from agentic_rag.core.logging import configure_logging, get_run_directory,  get_run_id, get_logger
 from agentic_rag.core.timing import PerformanceTracker, reset_current_tracker, set_current_tracker
+from agentic_rag.ingestion.registry import delete_document_record, list_documents
+from agentic_rag.retrieval.vectorstore import delete_document_vectors
 
 logger = logging.getLogger(__name__)
 
@@ -227,6 +229,23 @@ def documents() -> list[dict]:
 
     return list_documents()
 
+@app.delete("/documents/{document_id}")
+def delete_document(document_id: str) -> dict:
+    """Removes a document from both Pinecone and the registry - use this
+    before re-ingesting a document whose chunking/embedding pipeline changed,
+    since chunk IDs are content-hash-derived and won't overwrite in place
+    once chunk boundaries differ."""
+    vectors_deleted = delete_document_vectors(document_id)
+    rows_deleted = delete_document_record(document_id)
+
+    if vectors_deleted == 0 and rows_deleted == 0:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    return {
+        "document_id": document_id,
+        "vectors_deleted": vectors_deleted,
+        "registry_rows_deleted": rows_deleted,
+    }
 
 @app.get("/health")
 def health() -> dict:

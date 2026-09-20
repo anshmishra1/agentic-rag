@@ -108,3 +108,17 @@ def list_documents() -> list[dict]:
         }
         for r in rows
     ]
+
+def delete_document_record(document_id: str) -> int:
+    """Removes a document's row(s) from the registry. Returns rows deleted.
+
+    Doesn't touch Pinecone - see retrieval.vectorstore.delete_document_vectors
+    for that half. Callers needing a full removal should call both.
+    """
+    with _connect() as conn:
+        _ensure_table(conn)
+        result = conn.execute(
+            "DELETE FROM ingested_documents WHERE document_id = %s",
+            (document_id,),
+        )
+        return result.rowcount
