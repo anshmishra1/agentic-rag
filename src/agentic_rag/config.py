@@ -2,7 +2,6 @@
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 class Settings(BaseSettings):
     """Runtime configuration for the PDF RAG application."""
 
@@ -15,16 +14,16 @@ class Settings(BaseSettings):
     hf_token: str = ""
 
     # Primary provider models
-    groq_model: str = "llama-3.3-70b-versatile"
+    groq_model: str = "openai/gpt-oss-120b"
     cerebras_model: str = "gpt-oss-120b"
-    nvidia_model: str = "meta/llama-3.1-70b-instruct"
+    nvidia_model: str = "nvidia/nemotron-3.5-lightning-30b-a3b"
     openrouter_model: str = "openai/gpt-4o-mini"
     bedrock_model: str = "meta.llama3-3-70b-instruct-v1:0"
 
     # Fast-tier models
-    groq_fast_model: str = "llama-3.1-8b-instant"
+    groq_fast_model: str = "openai/gpt-oss-120b"
     cerebras_fast_model: str = "llama3.1-8b"
-    nvidia_fast_model: str = "meta/llama-3.1-8b-instruct"
+    nvidia_fast_model: str = "nvidia/nemotron-3.5-lightning-30b-a3b"
     openrouter_fast_model: str = "qwen/qwen-2.5-7b-instruct"
     bedrock_fast_model: str = "us.meta.llama3-1-8b-instruct-v1:0"
 
@@ -101,6 +100,9 @@ class Settings(BaseSettings):
     llm_logs: bool = True
     performance_logs: bool = True
     graph_logs: bool = False
+
+    llm_max_retries_per_provider: int = 3
+    llm_retry_base_delay_seconds: float = 2.0
     
     model_config = SettingsConfigDict(
         env_file=".env",

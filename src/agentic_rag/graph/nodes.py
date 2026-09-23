@@ -169,6 +169,29 @@ def classify_query_intent(
 # Contextualize Question
 # =============================================================
 
+def _fresh_turn_state() -> dict:
+    """Baseline state fields for any turn that starts a new graph pass.
+
+    contextualize_question's three branches (control / new_question /
+    follow_up) each need to reset the same set of run-scoped fields before
+    handing off to the rest of the graph - previously hand-listed
+    separately in each branch, which is exactly how the control branch
+    drifted out of sync and skipped resetting most of these fields.
+    """
+    return {
+        "documents": [],
+        "generation": "",
+        "retrieval_decision": None,
+        "retrieval_evidence_strength": None,
+        "retrieval_decision_reason": None,
+        "relevance_grade": None,
+        "hallucination_grade": None,
+        "hallucination_retry_count": 0,
+        "correction_attempted": False,
+        "verification_exhausted": False,
+        "retry_count": 0,
+    }
+
 def contextualize_question(state: RAGState) -> dict:
     """
     Determine whether the incoming query is new, a follow-up, or a
@@ -188,9 +211,7 @@ def contextualize_question(state: RAGState) -> dict:
             history,
         )
 
-        # print("\n" + "=" * 70)
         print("QUERY INTENT")
-        # print("=" * 70)
         print(f"Question: {question}")
         print(f"Intent: {intent}")
         print(f"Control query: {is_control}")
@@ -199,36 +220,26 @@ def contextualize_question(state: RAGState) -> dict:
         # Control message
         # -----------------------------------------------------
 
-        if intent == 'control':
+        if intent == "control":
             return {
+                **_fresh_turn_state(),
                 "query_intent": "control",
                 "query_is_control": True,
                 "contextualization_used": False,
                 "retrieval_query": question,
-                "hallucination_retry_count": 0,
-                "correction_attempted": False,
             }
 
         # -----------------------------------------------------
         # New standalone question
         # -----------------------------------------------------
+
         if intent == "new_question":
             return {
+                **_fresh_turn_state(),
                 "query_intent": "new_question",
                 "query_is_control": False,
                 "contextualization_used": False,
                 "retrieval_query": question,
-                "documents": [],
-                "generation": "",
-                "retrieval_decision": None,
-                "retrieval_evidence_strength": None,
-                "retrieval_decision_reason": None,
-                "relevance_grade": None,
-                "hallucination_grade": None,
-                "hallucination_retry_count": 0,
-                "correction_attempted": False,
-                "verification_exhausted": False,
-                "retry_count": 0,
             }
 
         # -----------------------------------------------------
@@ -256,25 +267,13 @@ def contextualize_question(state: RAGState) -> dict:
         result = fast_provider_chain.invoke(prompt)
 
         rewritten = result.content.strip()
-        
+
     return {
+        **_fresh_turn_state(),
         "query_intent": "follow_up",
         "query_is_control": False,
         "contextualization_used": True,
         "retrieval_query": rewritten,
-
-        # Reset fields which belong only to an actual RAG execution.
-        "documents": [],
-        "generation": "",
-        "retrieval_decision": None,
-        "retrieval_evidence_strength": None,
-        "retrieval_decision_reason": None,
-        "relevance_grade": None,
-        "hallucination_grade": None,
-        "hallucination_retry_count": 0,
-        "correction_attempted": False,
-        "verification_exhausted": False,
-        "retry_count": 0,
     }
 
 

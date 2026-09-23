@@ -204,6 +204,20 @@ if documents:
         st.caption(
             f"Document ID: {st.session_state.active_document_id}"
         )
+
+        if st.button("🗑️ Delete this document", type="secondary"):
+            with st.spinner("Deleting document..."):
+                delete_response = http.delete(
+                    f"{API_URL}/documents/{st.session_state.active_document_id}"
+                )
+                delete_response.raise_for_status()
+
+            st.session_state.active_document_id = None
+            st.session_state.session_id = str(uuid.uuid4())
+            st.session_state.chat_history = []
+            st.session_state.documents = load_documents()
+            st.rerun()
+            
     else:
         st.warning(
             "The registry contains documents without document IDs. "

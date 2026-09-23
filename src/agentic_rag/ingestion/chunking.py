@@ -20,17 +20,29 @@ from transformers import AutoTokenizer
 from agentic_rag.config import settings
 
 
+# AutoTokenizer requires the fully-qualified Hub repo id and has no
+# shorthand resolution - unlike SentenceTransformer, which silently expands
+# bare canonical names like "all-MiniLM-L6-v2" to their real location under
+# the sentence-transformers org. Mapping known shorthands here keeps
+# settings.embedding_model usable as-is everywhere else in the codebase.
+_TOKENIZER_REPO_OVERRIDES = {
+    "all-MiniLM-L6-v2": "sentence-transformers/all-MiniLM-L6-v2",
+}
+
+
 @lru_cache(maxsize=1)
 def _get_splitter() -> RecursiveCharacterTextSplitter:
     """Built once and cached - loading a tokenizer per call would be wasteful
     given chunk_documents may be invoked once per ingested file."""
-    tokenizer = AutoTokenizer.from_pretrained(settings.embedding_model)
+    tokenizer_repo = _TOKENIZER_REPO_OVERRIDES.get(
+        settings.embedding_model, settings.embedding_model
+    )
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_repo)
     return RecursiveCharacterTextSplitter.from_huggingface_tokenizer(
         tokenizer,
         chunk_size=settings.chunk_size,
         chunk_overlap=settings.chunk_overlap,
     )
-
 
 def chunk_documents(
     docs: list[Document],

@@ -65,6 +65,7 @@ class QueryResponse(BaseModel):
     grounded: bool
     verification_exhausted: bool = False
     is_control: bool = False
+    contexts: list[str] = []
 
 
 class IngestResult(BaseModel):
@@ -129,12 +130,15 @@ def query(
             is_control=is_control,
         )
 
+        contexts = [doc.page_content for doc in result.get("documents", [])]
+
         return QueryResponse(
             answer=result["generation"],
             grounded=result.get("hallucination_grade") == "grounded",
             verification_exhausted=result.get("verification_exhausted", False),
             is_control=is_control,
-        )
+            contexts=contexts,
+    )
 
     except Exception as exc:
         diagnostics.record(

@@ -35,6 +35,30 @@ _MODELS: dict[str, dict[str, str]] = {
 }
 
 
+def _is_rate_limit_error(exc: Exception) -> bool:
+    """Detect rate-limit-shaped errors across heterogeneous provider SDKs.
+
+    Groq, Cerebras, OpenRouter (via ChatOpenAI), and Bedrock each raise
+    different exception types under the hood, so we check for the common
+    signatures (HTTP 429, or the phrase in the message) rather than
+    importing every provider's specific exception class.
+
+    Module-level, not a method - this is a pure function with no need for
+    instance state, and stays independently testable/importable that way.
+    """
+    status_code = getattr(exc, "status_code", None) or getattr(
+        getattr(exc, "response", None), "status_code", None
+    )
+    if status_code == 429:
+        return True
+
+    message = str(exc).lower()
+    return any(
+        marker in message
+        for marker in ("rate limit", "too many requests", "429", "quota")
+    )
+
+
 class ProviderChain:
     """Configurable LLM provider chain with automatic fallback."""
 
@@ -175,48 +199,76 @@ class ProviderChain:
         )
 
     def invoke(self, prompt: Any):
-        """Invoke providers in configured order until one succeeds."""
+        """Invoke providers in configured order until one succeeds.
+
+        Rate-limit-shaped errors get a few retries with exponential backoff
+        on the SAME provider before moving on - a 429 usually means "wait a
+        moment," not "this provider is broken." Other errors (dead model,
+        bad auth, timeout) fall through to the next provider immediately,
+        since retrying those wastes time without a realistic chance of
+        succeeding.
+        """
         last_error: Exception | None = None
+        max_attempts = settings.llm_max_retries_per_provider
 
         for index, (name, llm) in enumerate(self._providers, start=1):
-            try:
-                logger.info(
-                    "[LLM:%s] Attempt %d/%d → %s",
-                    self.tier,
-                    index,
-                    len(self._providers),
-                    name,
-                )
-
+            for attempt in range(1, max_attempts + 1):
                 started = time.perf_counter()
 
-                response = llm.invoke(prompt)
+                try:
+                    logger.info(
+                        "[LLM:%s] Attempt %d/%d → %s (try %d/%d)",
+                        self.tier,
+                        index,
+                        len(self._providers),
+                        name,
+                        attempt,
+                        max_attempts,
+                    )
 
-                elapsed = time.perf_counter() - started
+                    response = llm.invoke(prompt)
+                    elapsed = time.perf_counter() - started
 
-                self._last_provider = name
+                    self._last_provider = name
 
-                logger.info(
-                    "[LLM:%s] %s → SUCCESS in %.2fs",
-                    self.tier,
-                    name,
-                    elapsed,
-                )
+                    logger.info(
+                        "[LLM:%s] %s → SUCCESS in %.2fs",
+                        self.tier,
+                        name,
+                        elapsed,
+                    )
 
-                return response
+                    return response
 
-            except Exception as exc:
-                elapsed = time.perf_counter() - started
+                except Exception as exc:
+                    elapsed = time.perf_counter() - started
+                    last_error = exc
 
-                logger.warning(
-                    "[LLM:%s] %s → FAILED after %.2fs: %s",
-                    self.tier,
-                    name,
-                    elapsed,
-                    exc,
-                )
+                    rate_limited = _is_rate_limit_error(exc)
 
-                last_error = exc
+                    logger.warning(
+                        "[LLM:%s] %s → FAILED after %.2fs (rate_limited=%s): %s",
+                        self.tier,
+                        name,
+                        elapsed,
+                        rate_limited,
+                        exc,
+                    )
+
+                    if rate_limited and attempt < max_attempts:
+                        backoff = settings.llm_retry_base_delay_seconds * (2 ** (attempt - 1))
+                        logger.info(
+                            "[LLM:%s] %s rate-limited, retrying in %.1fs...",
+                            self.tier,
+                            name,
+                            backoff,
+                        )
+                        time.sleep(backoff)
+                        continue
+
+                    # Not a rate limit, or retries exhausted for this provider -
+                    # move on to the next provider in the chain.
+                    break
 
         raise RuntimeError(
             f"All configured LLM providers failed for {self.tier} tier. "

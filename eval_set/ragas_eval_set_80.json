@@ -1,0 +1,642 @@
+[
+  {
+    "user_input": "What is the purpose of an explanation produced by an Explainable AI method?",
+    "reference": "It gives insight into a model's behavior as the model arrived at a prediction, helping a person understand why a particular outcome happened and what influenced the model.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "5-6",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is a counterfactual explanation in the context of Explainable AI?",
+    "reference": "A counterfactual describes a plausible opposing scenario that helps explain why the original outcome did not occur, or what would have been different under an alternative situation.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "6",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "Why does the book caution against treating an explainability result as proof of causality?",
+    "reference": "Because establishing causal relationships from data-focused explanations is extremely difficult, and the book notes that practical explainability techniques do not provide a high guarantee of causal analysis.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "6",
+    "question_type": "limitation",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "How can explanations differ for a technical practitioner versus a non-technical user?",
+    "reference": "The needs differ by audience: a practitioner may need detailed information for understanding and debugging model behavior, while a non-technical user may need an explanation that helps them understand the circumstances of a prediction without requiring technical knowledge.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "6",
+    "question_type": "comparison",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "Why did modern explainability become a distinct field again in the mid-2010s?",
+    "reference": "The book describes its revival as a response to the persistent question of how highly effective but increasingly complex machine-learning models actually work.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "5",
+    "question_type": "historical",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "Why can the terms explainability and interpretability cause confusion?",
+    "reference": "They are sometimes used interchangeably even though the book treats them as having different focuses, and organizations can use the terms with conflicting definitions.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "5",
+    "question_type": "terminology",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What does a practitioner gain by considering the consumer of an explanation?",
+    "reference": "They can select or design an explanation technique that matches the audience's needs and level of technical understanding.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "6",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "Why might a pure explanation be unsatisfactory to a user?",
+    "reference": "People often want more than an account of what influenced a prediction; they may also want a plausible counterfactual showing what could have changed the outcome.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "6",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "According to the book, what question is an explanation fundamentally trying to answer?",
+    "reference": "It is fundamentally trying to answer 'why did X happen?' in relation to a model prediction.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "6",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What distinction should be preserved between a model explanation and a causal claim?",
+    "reference": "An explanation of model behavior should not automatically be interpreted as a causal relationship; causal claims require causal modeling or other appropriate causal analysis.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "6",
+    "question_type": "hallucination_trap",
+    "difficulty": "hard"
+  },
+  {
+    "user_input": "What paradigm shift in NLP does the Foundations of Large Language Models describe?",
+    "reference": "It describes a shift from training specialized systems from scratch with large amounts of labeled data toward large-scale pre-training that produces foundation models which can then be fine-tuned, aligned, and prompted.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf",
+    "source_pages": "3",
+    "question_type": "concept",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What are the four main chapters of the Foundations of Large Language Models?",
+    "reference": "They cover pre-training, generative models, prompting methods, and alignment methods.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf",
+    "source_pages": "3",
+    "question_type": "structure",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What does decoder-only pre-training model?",
+    "reference": "It trains a model to generate or predict tokens autoregressively using the preceding context, forming the basis of common generative language models.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf",
+    "source_pages": "Contents; Chapter 1",
+    "question_type": "definition",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What is the role of prompting in the LLM workflow described by the book?",
+    "reference": "Prompting is a way of directing a pre-trained language model toward a desired task or behavior without necessarily changing the model's parameters.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf",
+    "source_pages": "3; Chapter 2",
+    "question_type": "definition",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What are instruction fine-tuning and human-feedback alignment used for?",
+    "reference": "They are alignment approaches intended to make language models better follow instructions and behave in ways consistent with desired human preferences.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf",
+    "source_pages": "3",
+    "question_type": "definition",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "How does the book distinguish pre-training from fine-tuning?",
+    "reference": "Pre-training learns broad capabilities from large-scale language-modeling objectives, while fine-tuning adapts an already pre-trained model to a more specific objective or behavior.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf",
+    "source_pages": "3; Chapters 1-2",
+    "question_type": "comparison",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "Why does the book describe foundation models as reusable?",
+    "reference": "Because large-scale pre-training creates a general model that can subsequently be adapted through fine-tuning, alignment, or prompting for diverse downstream problems.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf",
+    "source_pages": "3",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What does the notation Pr(a|b) represent in the book?",
+    "reference": "It represents the conditional probability of a given b.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf",
+    "source_pages": "4",
+    "question_type": "notation",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What are Q, K, and V in the book's notation?",
+    "reference": "They denote the query, key, and value matrices used in attention mechanisms.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf",
+    "source_pages": "4",
+    "question_type": "notation",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is the scope limitation the authors state for this book?",
+    "reference": "The book focuses on foundational aspects of large language models rather than attempting comprehensive coverage of every cutting-edge method.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf",
+    "source_pages": "3",
+    "question_type": "scope",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What is supervised learning according to the ML eBook?",
+    "reference": "Supervised learning trains an algorithm on labeled input-output pairs so that it learns a mapping from inputs to outputs.",
+    "source_document": "ML_eBook.pdf",
+    "source_pages": "2",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is the difference between regression and classification?",
+    "reference": "Regression predicts a continuous numerical target, whereas classification predicts a class or category.",
+    "source_document": "ML_eBook.pdf",
+    "source_pages": "2",
+    "question_type": "comparison",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is the basic equation for simple linear regression given in the document?",
+    "reference": "The document gives Y = wx + b, where w is the slope, x is the input feature, and b is the y-intercept.",
+    "source_document": "ML_eBook.pdf",
+    "source_pages": "3",
+    "question_type": "formula",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What problem does underfitting describe?",
+    "reference": "Underfitting occurs when a model is too simple to capture the underlying patterns in the data, leading to poor performance on both training and unseen data.",
+    "source_document": "ML_eBook.pdf",
+    "source_pages": "4",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What problem does overfitting describe?",
+    "reference": "Overfitting occurs when a model is excessively complex and fits noise in the training data rather than learning patterns that generalize.",
+    "source_document": "ML_eBook.pdf",
+    "source_pages": "4",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "How does regularization help reduce overfitting?",
+    "reference": "It adds a penalty term to the loss function, discouraging the model from fitting the training data too closely and encouraging a simpler, more generalizable solution.",
+    "source_document": "ML_eBook.pdf",
+    "source_pages": "5",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "How do L1 and L2 regularization differ?",
+    "reference": "L1 adds the absolute values of model parameters to the loss and is useful for feature selection; L2 adds squared parameter values and is used to reduce model complexity when features may all be relevant.",
+    "source_document": "ML_eBook.pdf",
+    "source_pages": "5",
+    "question_type": "comparison",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What is the purpose of a validation set?",
+    "reference": "It is a held-out portion used during model development to assess performance, detect overfitting or underfitting, and guide choices such as hyperparameters before final evaluation on the test set.",
+    "source_document": "ML_eBook.pdf",
+    "source_pages": "6",
+    "question_type": "definition",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What can happen if the learning rate is too small or too large?",
+    "reference": "A very small learning rate can make convergence slow, while a very large learning rate can prevent convergence to a solution.",
+    "source_document": "ML_eBook.pdf",
+    "source_pages": "5-6",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "Why is feature engineering presented as a remedy for underfitting?",
+    "reference": "Creating informative features from existing inputs can give a model additional useful information and allow it to represent relationships that the original feature set did not capture.",
+    "source_document": "ML_eBook.pdf",
+    "source_pages": "4",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "How does Hands-On Large Language Models distinguish representation models from generative models?",
+    "reference": "Representation models produce useful representations rather than generating text and are commonly used for task-specific applications such as classification; generative models generate text, such as GPT-style models.",
+    "source_document": "oreilly_HandsOnLLM.pdf",
+    "source_pages": "8-9",
+    "question_type": "comparison",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What role do embeddings play in language-model applications?",
+    "reference": "Embeddings represent text as vectors that capture useful semantic information, enabling applications such as semantic search and similarity-based retrieval.",
+    "source_document": "oreilly_HandsOnLLM.pdf",
+    "source_pages": "11-13",
+    "question_type": "definition",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What is semantic search?",
+    "reference": "Semantic search retrieves information based on the meaning represented by embeddings rather than relying only on exact keyword overlap.",
+    "source_document": "oreilly_HandsOnLLM.pdf",
+    "source_pages": "13; Chapter 6",
+    "question_type": "definition",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "Why are vector representations useful for retrieval?",
+    "reference": "They allow text items and queries to be compared in an embedding space, making it possible to retrieve semantically similar content.",
+    "source_document": "oreilly_HandsOnLLM.pdf",
+    "source_pages": "13; Chapter 6",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What are the main practical areas covered in Part II of the book?",
+    "reference": "Part II covers supervised classification, text clustering and topic modeling, semantic search using embedding models, text generation, and extending generation to the visual domain.",
+    "source_document": "oreilly_HandsOnLLM.pdf",
+    "source_pages": "13",
+    "question_type": "structure",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "Why does the book emphasize an intuition-first approach?",
+    "reference": "The authors aim to make the fundamentals of language models easier to understand through intuitive explanations and visual language rather than focusing only on rapidly changing technologies.",
+    "source_document": "oreilly_HandsOnLLM.pdf",
+    "source_pages": "8",
+    "question_type": "author_intent",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What is the role of tokenization in an LLM pipeline?",
+    "reference": "Tokenization converts text into discrete tokens that a language model can process as sequences of model inputs.",
+    "source_document": "oreilly_HandsOnLLM.pdf",
+    "source_pages": "11; Chapter 2",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is the purpose of fine-tuning a language model?",
+    "reference": "Fine-tuning adapts a pre-trained language model to a particular task, domain, or behavior rather than requiring the model to learn everything from scratch.",
+    "source_document": "oreilly_HandsOnLLM.pdf",
+    "source_pages": "14; Part III",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "Why does the book use both open-source and proprietary models in its examples?",
+    "reference": "The examples are intended to demonstrate the advantages and disadvantages of both types of models in practical applications.",
+    "source_document": "oreilly_HandsOnLLM.pdf",
+    "source_pages": "15",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What hardware constraint does the book mention for running generative models?",
+    "reference": "Running generative models is generally compute-intensive and benefits from a strong GPU; the examples are therefore designed to run on Google Colab, which provides access to GPUs.",
+    "source_document": "oreilly_HandsOnLLM.pdf",
+    "source_pages": "14",
+    "question_type": "practical",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What troubleshooting principle does the book recommend instead of immediately rebooting a problematic server?",
+    "reference": "It recommends resisting the urge to reboot and instead systematically investigate the problem using structured troubleshooting practices.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "source_pages": "8; Chapter 1",
+    "question_type": "best_practice",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "Why should troubleshooting favor quick, simple tests?",
+    "reference": "Quick, simple tests can narrow the problem space faster and with less cost or disruption than slow, complex tests.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "source_pages": "8; Chapter 1",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What are the major resource areas discussed when diagnosing a slow Linux server?",
+    "reference": "The book focuses on CPU, RAM, and disk I/O, using system load and tools such as top and sysstat to investigate resource pressure.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "source_pages": "8-9; Chapter 2",
+    "question_type": "diagnosis",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is system load used for in Linux troubleshooting?",
+    "reference": "System load provides an indicator of work waiting for or using system resources and can help identify resource-related performance problems.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "source_pages": "8; Chapter 2",
+    "question_type": "definition",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What sequence of checks does the book use when Server A cannot talk to Server B?",
+    "reference": "It moves through checks such as whether the interface is up, whether the host is on the local network, whether DNS works, whether routing reaches the remote host, and whether the remote port is open.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "source_pages": "10; Chapter 5",
+    "question_type": "procedure",
+    "difficulty": "hard"
+  },
+  {
+    "user_input": "What is the purpose of traceroute in network troubleshooting?",
+    "reference": "It helps identify where along the network path a slowdown or routing problem occurs.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "source_pages": "10; Chapter 5",
+    "question_type": "tool",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What does tcpdump provide during network troubleshooting?",
+    "reference": "It provides packet-level captures that can be inspected to understand network communication and diagnose problems.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "source_pages": "10; Chapter 5",
+    "question_type": "tool",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What are common causes considered when a Linux system cannot write to disk?",
+    "reference": "The book discusses full disks, reserved blocks, running out of inodes, read-only file systems, and corrupted file systems.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "source_pages": "9; Chapter 4",
+    "question_type": "diagnosis",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What stages of the Linux boot process are highlighted in the troubleshooting workflow?",
+    "reference": "The book walks through the BIOS, GRUB or other boot loader, the kernel and initrd, and /sbin/init, then discusses failure modes at these stages.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "source_pages": "9; Chapter 3",
+    "question_type": "procedure",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "How can curl be used in web-server troubleshooting?",
+    "reference": "It can be used from the command line to test a web server and inspect whether the server responds as expected.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "source_pages": "11; Chapter 8",
+    "question_type": "tool",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is the basic purpose of Retrieval-Augmented Generation (RAG) described in the AI Engineering book?",
+    "reference": "RAG combines retrieval of relevant external information with language-model generation so the model can use retrieved context when producing an answer.",
+    "source_document": "AI_Engineering_2025Book.pdf",
+    "source_pages": "105-113",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "Why are vector databases used in RAG?",
+    "reference": "They store vector representations and support similarity-based retrieval so relevant chunks can be found from a query.",
+    "source_document": "AI_Engineering_2025Book.pdf",
+    "source_pages": "107-109",
+    "question_type": "reasoning",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is the role of chunking in a RAG pipeline?",
+    "reference": "Chunking divides source documents into retrievable units so relevant pieces can be indexed and supplied as context to the generation step.",
+    "source_document": "AI_Engineering_2025Book.pdf",
+    "source_pages": "118",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "Why can chunking strategy affect RAG quality?",
+    "reference": "Different chunking strategies change what information is kept together and what can be retrieved as a unit, which directly affects the relevance and completeness of the context supplied to the model.",
+    "source_document": "AI_Engineering_2025Book.pdf",
+    "source_pages": "118",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "How does HyDE differ from traditional RAG at a high level?",
+    "reference": "Traditional RAG retrieves using the user's query, whereas HyDE first uses the language model to generate a hypothetical document or answer-like representation that is then used to improve retrieval.",
+    "source_document": "AI_Engineering_2025Book.pdf",
+    "source_pages": "131",
+    "question_type": "comparison",
+    "difficulty": "hard"
+  },
+  {
+    "user_input": "What is the distinction between traditional RAG and Agentic RAG?",
+    "reference": "Traditional RAG follows a more fixed retrieval-and-generation workflow, while Agentic RAG introduces agent-like decision making so the system can determine how or when to retrieve information and potentially perform multiple retrieval actions.",
+    "source_document": "AI_Engineering_2025Book.pdf",
+    "source_pages": "126-128",
+    "question_type": "comparison",
+    "difficulty": "hard"
+  },
+  {
+    "user_input": "What is context engineering?",
+    "reference": "It is the deliberate design and management of the context supplied to an AI system so that the model or agent receives the information needed to perform the task effectively.",
+    "source_document": "AI_Engineering_2025Book.pdf",
+    "source_pages": "146-158",
+    "question_type": "definition",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "Why does the AI Engineering book separate RAG from fine-tuning?",
+    "reference": "RAG changes the information available at inference time by retrieving external context, whereas fine-tuning changes model parameters to adapt model behavior.",
+    "source_document": "AI_Engineering_2025Book.pdf",
+    "source_pages": "124; 134",
+    "question_type": "comparison",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What are component-level evaluations useful for in LLM applications?",
+    "reference": "They evaluate individual parts of an LLM application rather than treating the whole application as a single black box, helping isolate where quality or reliability problems occur.",
+    "source_document": "AI_Engineering_2025Book.pdf",
+    "source_pages": "348",
+    "question_type": "evaluation",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What is the purpose of red teaming LLM applications?",
+    "reference": "Red teaming deliberately probes an LLM application for weaknesses and failure modes so that problematic behavior can be identified and addressed.",
+    "source_document": "AI_Engineering_2025Book.pdf",
+    "source_pages": "352",
+    "question_type": "evaluation",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What major learning paradigms are included in the CS229 course?",
+    "reference": "The course covers supervised learning, learning theory, unsupervised learning, and reinforcement learning and control.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "2; 6",
+    "question_type": "structure",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is the bias-variance tradeoff discussed in CS229 concerned with?",
+    "reference": "It concerns balancing errors associated with an overly restrictive model against errors associated with a model that is too flexible, with the goal of obtaining good generalization.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "6; Learning Theory",
+    "question_type": "concept",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What is logistic regression used for in the CS229 curriculum?",
+    "reference": "It is presented as a supervised-learning method for classification, alongside the supervised learning setup and related models such as the perceptron and SVMs.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "6",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What problem does an SVM address?",
+    "reference": "Support vector machines are supervised-learning models that use the idea of large margins to separate classes and are included in the course's supervised-learning material.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "2; 6",
+    "question_type": "definition",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What is K-means in the CS229 curriculum?",
+    "reference": "K-means is an unsupervised clustering algorithm included in the course's unsupervised-learning material.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "6",
+    "question_type": "definition",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is PCA used for?",
+    "reference": "Principal component analysis is presented as an unsupervised dimensionality-reduction method for representing data in a lower-dimensional space.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "6",
+    "question_type": "definition",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What topics are grouped under reinforcement learning and control in CS229?",
+    "reference": "They include MDPs, Bellman equations, value and policy iteration, LQR/LQG, Q-learning, value-function approximation, policy search, REINFORCE, and POMDPs.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "6",
+    "question_type": "structure",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "Why does CS229 require probability and linear algebra as prerequisites?",
+    "reference": "The course expects students to have enough mathematical background to understand and work with machine-learning models, including the probability and linear-algebra concepts used throughout the curriculum.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "3",
+    "question_type": "reasoning",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What ensemble methods are listed in the CS229 supervised-learning schedule?",
+    "reference": "The schedule lists bagging, boosting, and ECOC as ensemble methods.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "6",
+    "question_type": "recall",
+    "difficulty": "easy"
+  },
+  {
+    "user_input": "What is the difference between supervised and unsupervised learning in the CS229 course outline?",
+    "reference": "Supervised learning is presented around labeled prediction problems and includes methods such as logistic regression and SVMs; unsupervised learning includes discovering structure without labeled targets, with methods such as K-means, mixture models, and PCA.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "2; 6",
+    "question_type": "comparison",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "How do the uploaded ML materials and the AI Engineering book differ in what they treat as the main source of information for a prediction or answer?",
+    "reference": "The ML materials focus primarily on learning a mapping or structure from data during model training, while the AI Engineering book describes RAG as bringing relevant external information into the generation process at inference time.",
+    "source_document": "ML_eBook.pdf + AI_Engineering_2025Book.pdf",
+    "source_pages": "2; 105-113",
+    "question_type": "cross_document_comparison",
+    "difficulty": "hard"
+  },
+  {
+    "user_input": "How do the Foundations of LLMs and Hands-On LLMs differ in emphasis?",
+    "reference": "Foundations of Large Language Models emphasizes foundational mechanisms such as pre-training, generative modeling, prompting, and alignment, while Hands-On Large Language Models emphasizes intuition, practical applications, embeddings, semantic search, generation, and hands-on use of pretrained and fine-tuned models.",
+    "source_document": "Foundation_of_LLMS_TongXiao(1).pdf + oreilly_HandsOnLLM.pdf",
+    "source_pages": "3; 8-14",
+    "question_type": "cross_document_comparison",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What common idea connects Explainable AI and RAG evaluation?",
+    "reference": "Both require examining what information or reasoning supports an output rather than treating the output alone as sufficient: Explainable AI seeks insight into why a model produced a prediction, while RAG evaluation examines whether generated answers are supported by retrieved context.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf + AI_Engineering_2025Book.pdf",
+    "source_pages": "6; 331-352",
+    "question_type": "cross_document_synthesis",
+    "difficulty": "hard"
+  },
+  {
+    "user_input": "How do the two uploaded ML resources describe unsupervised learning?",
+    "reference": "The ML eBook lists unsupervised learning as a major type of machine learning, while CS229 gives concrete unsupervised methods including clustering, K-means, mixture models, factor analysis, PCA, MDS, and ICA.",
+    "source_document": "ML_eBook.pdf + CS229_Stanford_ML_AndrewNg.pdf",
+    "source_pages": "1-2; 6",
+    "question_type": "cross_document_synthesis",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "What similarity exists between regularization in the ML eBook and fine-tuning or LoRA in the AI/LLM materials?",
+    "reference": "They solve different problems, but all are mechanisms for controlling or adapting model behavior: regularization constrains learning to improve generalization, while fine-tuning and LoRA adapt pretrained models to desired tasks or behaviors.",
+    "source_document": "ML_eBook.pdf + AI_Engineering_2025Book.pdf + oreilly_HandsOnLLM.pdf",
+    "source_pages": "5; 66-82; 134",
+    "question_type": "cross_document_comparison",
+    "difficulty": "hard"
+  },
+  {
+    "user_input": "How could the DevOps troubleshooting workflow and an LLM application's component-level evaluation complement each other?",
+    "reference": "The DevOps book advocates isolating a problem through systematic, simple tests and dividing the problem space; component-level LLM evaluation similarly isolates individual application components to identify where failures originate.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf + AI_Engineering_2025Book.pdf",
+    "source_pages": "8; 348",
+    "question_type": "cross_document_synthesis",
+    "difficulty": "hard"
+  },
+  {
+    "user_input": "What distinction do the Explainable AI and LLM materials make between understanding behavior and establishing causality?",
+    "reference": "The Explainable AI book explicitly warns that an explanation of model behavior does not guarantee a causal relationship, while the LLM books primarily describe mechanisms and behaviors such as pre-training, prompting, retrieval, and generation rather than claiming that an observed explanation is automatically causal.",
+    "source_document": "Explainable-AI-for-Practitioners.pdf + Foundation_of_LLMS_TongXiao(1).pdf + oreilly_HandsOnLLM.pdf",
+    "source_pages": "6; 3; 8-14",
+    "question_type": "cross_document_synthesis",
+    "difficulty": "hard"
+  },
+  {
+    "user_input": "If a RAG system retrieves the wrong Linux troubleshooting section, which uploaded source provides the domain knowledge and which provides the RAG architecture concepts needed to diagnose the retrieval issue?",
+    "reference": "The DevOps Troubleshooting book provides the Linux troubleshooting domain knowledge, while the AI Engineering book provides RAG concepts such as vector databases, workflow design, and chunking that can be used to reason about retrieval behavior.",
+    "source_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf + AI_Engineering_2025Book.pdf",
+    "source_pages": "8-10; 105-124",
+    "question_type": "cross_document_application",
+    "difficulty": "hard"
+  },
+  {
+    "user_input": "How do semantic search in Hands-On LLMs and vector databases in AI Engineering relate?",
+    "reference": "Semantic search uses vector representations to retrieve meaningfully similar content, while vector databases provide the storage and similarity-retrieval infrastructure that can support this type of search in systems such as RAG.",
+    "source_document": "oreilly_HandsOnLLM.pdf + AI_Engineering_2025Book.pdf",
+    "source_pages": "13; 107-113",
+    "question_type": "cross_document_synthesis",
+    "difficulty": "medium"
+  },
+  {
+    "user_input": "Which uploaded documents would you consult for (1) PCA, (2) RAG chunking, (3) Linux DNS troubleshooting, and (4) explainability consumers?",
+    "reference": "PCA: CS229 Machine Learning and the ML eBook; RAG chunking: AI Engineering; Linux DNS troubleshooting: DevOps Troubleshooting; explainability consumers: Explainable AI for Practitioners.",
+    "source_document": "CS229_Stanford_ML_AndrewNg.pdf + ML_eBook.pdf + AI_Engineering_2025Book.pdf + Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf + Explainable-AI-for-Practitioners.pdf",
+    "source_pages": "6; 118; 10; 6",
+    "question_type": "cross_document_routing",
+    "difficulty": "hard"
+  }
+]
