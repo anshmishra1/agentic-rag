@@ -145,8 +145,14 @@ class GroundingState(TypedDict, total=False):
     hallucination_grade: (
         Literal["grounded", "hallucinated", "uncertain"] | str
     )
-    grounding_diagnosis: str
+    grounding_diagnosis: Literal[
+        "grounded",
+        "insufficient_evidence",
+        "unsupported",
+        "abstained",
+    ] | str
     unsupported_claims: list[str]
+    parse_success: bool
 
 
 class AnswerState(TypedDict, total=False):
@@ -158,6 +164,7 @@ class AnswerState(TypedDict, total=False):
         "insufficient_evidence",
         "unsupported",
         "verification_uncertain",
+        "control",
     ] | str
     grounding: GroundingState
     citations: list[str]
@@ -236,7 +243,9 @@ class RAGState(
     hallucination_retry_count: int
     grounding_diagnosis: str
     grounding_unsupported_claims: list[str]
+    grounding_parse_success: bool
     correction_attempted: bool
+    verification_exhausted: bool
     retry_count: int
 
 
@@ -257,4 +266,6 @@ class GraphOutput(TypedDict, total=False):
 
     generation: str
     answer_status: str
+    grounding_diagnosis: str
+    verification_exhausted: bool
     citations: list[str]

@@ -257,6 +257,8 @@ for message in st.session_state.chat_history:
                 )
             elif message.get("is_control"):
                 pass
+            elif message.get("answer_status") == "insufficient_evidence":
+                st.caption("Not enough evidence in the selected document")
             elif message.get("grounded"):
                 st.caption("Grounded in context")
             else:
@@ -331,6 +333,7 @@ if question:
 
                 answer = data["answer"]
                 grounded = data["grounded"]
+                answer_status = data.get("answer_status", "verification_uncertain")
                 verification_exhausted = data.get("verification_exhausted", False)
                 is_control = data.get("is_control", False)
 
@@ -342,6 +345,7 @@ if question:
                 )
 
                 grounded = False
+                answer_status = "request_failed"
                 verification_exhausted = False
                 is_control = False
 
@@ -362,6 +366,8 @@ if question:
             )
         elif is_control:
             pass  # no grounding badge for conversational control turns
+        elif answer_status == "insufficient_evidence":
+            st.caption("Not enough evidence in the selected document")
         elif grounded:
             st.caption("Grounded in context")
         else:
@@ -377,6 +383,7 @@ if question:
             "role": "assistant",
             "content": answer,
             "grounded": grounded,
+            "answer_status": answer_status,
             "verification_exhausted": verification_exhausted,
             "is_control": is_control,
         }

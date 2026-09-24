@@ -59,6 +59,26 @@ def test_insufficient_evidence_retries_retrieval(
     ) == "rewrite_query"
 
 
+def test_insufficient_evidence_abstains_after_retry_budget(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr("agentic_rag.graph.edges.settings.max_retries", 2)
+
+    assert route_after_hallucination_check(
+        {
+            "grounding_diagnosis": "insufficient_evidence",
+            "retry_count": 2,
+            "correction_attempted": False,
+        }
+    ) == "abstain"
+
+
+def test_existing_abstention_ends() -> None:
+    assert route_after_hallucination_check(
+        {"grounding_diagnosis": "abstained"}
+    ) == "end"
+
+
 def test_unsupported_answer_uses_single_correction() -> None:
     assert route_after_hallucination_check(
         {

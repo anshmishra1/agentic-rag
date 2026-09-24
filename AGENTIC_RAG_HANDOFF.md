@@ -15,7 +15,7 @@ retrieve → assess_retrieval (3-way: generate | grade_documents | rewrite_query
 grade_documents → (relevant → generate) | (irrelevant → rewrite_query, capped by max_retries)
 rewrite_query → retrieve (loop)
 generate → check_hallucination
-check_hallucination → grounded→END | insufficient_evidence→rewrite_query | unsupported→correct_generation
+check_hallucination → grounded→END | insufficient_evidence→rewrite_query (or abstain when retries are exhausted) | unsupported→correct_generation
 correct_generation → check_hallucination (one more pass, single correction budget)
 ```
 - **Retrieval:** Pinecone (dotproduct metric index, required for hybrid), dense + BM25 sparse retrieved separately, fused via RRF, then cross-encoder reranked (ms-marco-MiniLM, CUDA-accelerated). Overview chunks (whole-doc summaries generated at ingest) retrieved separately from content chunks for structural questions.
@@ -23,6 +23,7 @@ correct_generation → check_hallucination (one more pass, single correction bud
 - **Retrieval confidence gate** (`policies/retrieval.py`): absolute score floor + relative shape (top/mean ratio, gap ratio) + overview-dominance special case → decides whether to skip the LLM grader entirely.
 - **LLM providers:** tiered fallback chain (fast tier for classification/grading/rewriting, primary tier for final generation only), across Groq/Cerebras/NVIDIA/OpenRouter/Bedrock(optional), configurable order.
 - **Conversation memory:** LangGraph Postgres checkpointer (Neon), thread_id-scoped.
+- **Grounding verification:** structured JSON verdicts distinguish grounded answers, insufficient evidence, and unsupported generation. Unsupported-claim text is passed into one constrained correction; exhausted evidence retries produce a deterministic abstention rather than speculative generation.
 - **Observability:** fixed — no more unbounded `trace` accumulation in checkpointed state (was growing forever, printing the whole session's history every turn); now logger-based, with per-request + session-level PerformanceTracker via contextvars (not a module global anymore).
 
 ## Key files
