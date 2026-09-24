@@ -20,6 +20,7 @@ correct_generation → check_hallucination (one more pass, single correction bud
 ```
 - **Retrieval:** Pinecone (dotproduct metric index, required for hybrid), dense + BM25 sparse retrieved separately, fused via RRF, then cross-encoder reranked (ms-marco-MiniLM, CUDA-accelerated). Overview chunks (whole-doc summaries generated at ingest) retrieved separately from content chunks for structural questions.
 - **Document scoping:** every doc gets a SHA-256 content-hash `document_id`; retrieval/BM25/vectors are scoped to it; re-ingestion overwrites rather than duplicates (deterministic vector IDs, content-hash based).
+- **Citations:** generation context uses deterministic per-answer labels (`[S1]`, `[S2]`, ...); valid labels referenced by the final answer are returned by the API and displayed in Streamlit with filename/page or chunk-type provenance.
 - **Retrieval confidence gate** (`policies/retrieval.py`): absolute score floor + relative shape (top/mean ratio, gap ratio) + overview-dominance special case → decides whether to skip the LLM grader entirely.
 - **LLM providers:** tiered fallback chain (fast tier for classification/grading/rewriting, primary tier for final generation only), across Groq/Cerebras/NVIDIA/OpenRouter/Bedrock(optional), configurable order.
 - **Conversation memory:** LangGraph Postgres checkpointer (Neon), thread_id-scoped.

@@ -153,7 +153,7 @@ Retrieval thresholds are calibrated empirically — see `scripts/calibrate_retri
 
 ## API
 
-- `POST /query` — `{question, session_id, document_id}` → `{answer, grounded, answer_status, grounding_diagnosis, verification_exhausted, contexts}`
+- `POST /query` — `{question, session_id, document_id}` → `{answer, grounded, answer_status, grounding_diagnosis, verification_exhausted, citations, contexts}`
 - `POST /ingest` — multipart file upload → `{filename, document_id, chunks_indexed}` per file
 - `GET /documents` — list of ingested documents and their metadata
 - `GET /health` — liveness check

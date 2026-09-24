@@ -246,6 +246,11 @@ for message in st.session_state.chat_history:
 
         st.markdown(message["content"])
 
+        if message.get("citations"):
+            with st.expander("Sources"):
+                for citation in message["citations"]:
+                    st.markdown(f"- {citation}")
+
         # Show grounding information only for assistant messages
         if message["role"] == "assistant":
 
@@ -336,6 +341,7 @@ if question:
                 answer_status = data.get("answer_status", "verification_uncertain")
                 verification_exhausted = data.get("verification_exhausted", False)
                 is_control = data.get("is_control", False)
+                citations = data.get("citations", [])
 
             except requests.RequestException as exc:
 
@@ -348,6 +354,7 @@ if question:
                 answer_status = "request_failed"
                 verification_exhausted = False
                 is_control = False
+                citations = []
 
                 st.error(str(exc))
 
@@ -357,6 +364,11 @@ if question:
         # ----------------------------------------------------
 
         st.markdown(answer)
+
+        if citations:
+            with st.expander("Sources"):
+                for citation in citations:
+                    st.markdown(f"- {citation}")
 
         if verification_exhausted:
             st.warning(
@@ -386,5 +398,6 @@ if question:
             "answer_status": answer_status,
             "verification_exhausted": verification_exhausted,
             "is_control": is_control,
+            "citations": citations,
         }
     )
