@@ -42,6 +42,7 @@ from agentic_rag.policies.generation import apply_generation_limits, is_refusal_
 from agentic_rag.core.timing import get_current_tracker#, set_current_tracker, reset_current_tracker
 from agentic_rag.policies.grounding import ABSTENTION_RESPONSE, grounding_result
 from agentic_rag.policies.conversation import classify_query_intent
+from agentic_rag.observability.trace import log_stage
 
 logger = get_logger(__name__)
 # tracker = get_current_tracker()
@@ -874,6 +875,16 @@ def record_turn(state: RAGState) -> dict:
         print("Hallucination check    : skipped")
         print(f"Final answer length    : {len(control_response)} chars")
 
+        log_stage(
+            "record_turn",
+            final_route="end",
+            query_intent="control",
+            query_is_control=True,
+            retrieval_skipped=True,
+            generation_skipped=True,
+            hallucination_check_skipped=True,
+        )
+
         return {
             # IMPORTANT:
             # Explicitly replace the stale generation from the previous
@@ -901,17 +912,6 @@ def record_turn(state: RAGState) -> dict:
                 AIMessage(content=control_response),
             ],
 
-            "trace": [
-                {
-                    "stage": "record_turn",
-                    "final_route": "end",
-                    "query_intent": "control",
-                    "query_is_control": True,
-                    "retrieval_skipped": True,
-                    "generation_skipped": True,
-                    "hallucination_check_skipped": True,
-                }
-            ],
         }
 
     # ---------------------------------------------------------
@@ -949,36 +949,24 @@ def record_turn(state: RAGState) -> dict:
 
         generation = _UNVERIFIED_DISCLAIMER + generation
 
-    final_entry = {
-        "stage": "record_turn",
-        "final_route": "end",
-        "query_intent": state.get("query_intent"),
-        "query_is_control": False,
-        "retry_count": state.get("retry_count", 0),
-        "retrieval_decision": state.get("retrieval_decision"),
-        "retrieval_evidence_strength": state.get(
+    log_stage(
+        "record_turn",
+        final_route="end",
+        query_intent=state.get("query_intent"),
+        query_is_control=False,
+        retry_count=state.get("retry_count", 0),
+        retrieval_decision=state.get("retrieval_decision"),
+        retrieval_evidence_strength=state.get(
             "retrieval_evidence_strength"
         ),
-        "retrieval_decision_reason": state.get(
+        retrieval_decision_reason=state.get(
             "retrieval_decision_reason"
         ),
-        "hallucination_final_grade": hallucination_grade,
-        "hallucination_retry_count": hallucination_retry_count,
-        "grounding_diagnosis": state.get("grounding_diagnosis"),
-        "answer_status": answer_status,
-        "answer_verified": answer_verified,
-    }
-
-    full_trace = state.get("trace", []) + [final_entry]
-
-    _separator("STRUCTURED TRACE SUMMARY (full request, end to end)")
-
-    print(
-        json.dumps(
-            full_trace,
-            indent=2,
-            default=str,
-        )
+        hallucination_final_grade=hallucination_grade,
+        hallucination_retry_count=hallucination_retry_count,
+        grounding_diagnosis=state.get("grounding_diagnosis"),
+        answer_status=answer_status,
+        answer_verified=answer_verified,
     )
 
     return {
@@ -989,6 +977,4 @@ def record_turn(state: RAGState) -> dict:
             HumanMessage(content=state["question"]),
             AIMessage(content=generation),
         ],
-
-        "trace": [final_entry],
     }
