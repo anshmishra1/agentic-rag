@@ -34,6 +34,35 @@ ALTER TABLE ingested_documents
 ADD COLUMN IF NOT EXISTS bm25_params TEXT;
 """
 
+_DEDUPLICATE_DOCUMENT_IDS = """
+WITH ranked_documents AS (
+    SELECT
+        id,
+        ROW_NUMBER() OVER (
+            PARTITION BY document_id
+            ORDER BY ingested_at DESC, id DESC
+        ) AS row_number
+    FROM ingested_documents
+    WHERE document_id IS NOT NULL
+)
+DELETE FROM ingested_documents
+WHERE id IN (
+    SELECT id
+    FROM ranked_documents
+    WHERE row_number > 1
+);
+"""
+
+_CREATE_DOCUMENT_ID_UNIQUE_INDEX = """
+CREATE UNIQUE INDEX IF NOT EXISTS ingested_documents_document_id_unique
+ON ingested_documents (document_id)
+WHERE document_id IS NOT NULL;
+"""
+
+_GET_DOCUMENT_ID_UNIQUE_INDEX = """
+SELECT to_regclass('ingested_documents_document_id_unique');
+"""
+
 
 def _connect():
     return psycopg.connect(settings.postgres_url, autocommit=True)
@@ -43,6 +72,11 @@ def _ensure_table(conn) -> None:
     conn.execute(_CREATE_TABLE)
     conn.execute(_MIGRATE_DOCUMENT_ID)
     conn.execute(_MIGRATE_BM25_PARAMS)
+
+    index_row = conn.execute(_GET_DOCUMENT_ID_UNIQUE_INDEX).fetchone()
+    if not index_row or index_row[0] is None:
+        conn.execute(_DEDUPLICATE_DOCUMENT_IDS)
+        conn.execute(_CREATE_DOCUMENT_ID_UNIQUE_INDEX)
 
 
 def record_ingestion(
@@ -58,6 +92,12 @@ def record_ingestion(
             INSERT INTO ingested_documents
                 (document_id, filename, chunk_count, ingested_at, bm25_params)
             VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (document_id) WHERE document_id IS NOT NULL
+            DO UPDATE SET
+                filename = EXCLUDED.filename,
+                chunk_count = EXCLUDED.chunk_count,
+                ingested_at = EXCLUDED.ingested_at,
+                bm25_params = EXCLUDED.bm25_params
             """,
             (
                 document_id,
