@@ -56,3 +56,11 @@ torch = { index = "pytorch-cu130" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+addopts = ["-q", "-ra", "--strict-markers"]
+markers = [
+    "integration: requires explicitly provisioned local infrastructure or cached models",
+    "live: contacts an external service or model registry",
+]
