@@ -28,6 +28,8 @@ _CONTROL_PATTERNS = (
     r"^\s*no further questions[\s.!]*$",
     r"^\s*nothing else[\s.!]*$",
     r"^\s*thank(?:s| you)[\s.!]*$",
+    r"^\s*stop[\s.!]*$",
+    r"^\s*end this[\s.!]*$",
     r"^\s*goodbye[\s.!]*$",
     r"^\s*bye[\s.!]*$",
 )
