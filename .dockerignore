@@ -1,0 +1,17 @@
+.git
+.gitignore
+.venv
+.env
+.env.*
+!.env.example
+.pytest_cache
+__pycache__
+*.py[cod]
+*.log
+logs/
+PDF/
+eval_set/
+tests/
+docs/
+.agents/
+.codex/

@@ -112,14 +112,13 @@ app/
   streamlit_app.py               Frontend: upload, document selection, chat
 scripts/
   create_hybrid_index.py         One-time Pinecone index setup (dotproduct metric)
-  calibrate_retrieval.py         Retrieval threshold calibration runner
 ```
 
 ## Setup
 
 ```bash
 cp .env.example .env   # fill in provider keys, Pinecone key, Postgres URL
-pip install -r requirements.txt
+uv sync --frozen
 ```
 
 Create the Pinecone index (must use `dotproduct` metric for hybrid search to work):
@@ -131,9 +130,26 @@ python scripts/create_hybrid_index.py
 ## Running locally
 
 ```bash
-uvicorn agentic_rag.api.main:app --reload      # backend, :8000
-streamlit run app/streamlit_app.py              # frontend, :8501
+uv run uvicorn agentic_rag.api.main:app --reload      # backend, :8000
+uv run streamlit run app/streamlit_app.py              # frontend, :8501
 ```
+
+On Windows, `scripts/run_server.ps1` starts the backend with the project
+virtual environment and writes versioned logs under `logs/`.
+
+## Running with Docker Compose
+
+After creating `.env`, build and start the API, Streamlit frontend, and local
+PostgreSQL service:
+
+```bash
+docker compose up --build
+```
+
+The frontend is available on port 8501, the API on port 8000, and PostgreSQL
+is exposed to the host on port 5442. API startup warms the cross-encoder model,
+so its first health check can take several minutes when the model cache is
+empty.
 
 ## Configuration
 
@@ -149,7 +165,7 @@ Key environment variables (see `.env.example` for the full list):
 | `MAX_RETRIES` | Cap on rewrite/retry loop iterations |
 | `DEBUG` | Verbose logging (candidate-level retrieval/rerank tables) |
 
-Retrieval thresholds are calibrated empirically — see `scripts/calibrate_retrieval.py` — rather than chosen arbitrarily; they should be re-run whenever the retrieval or reranking mechanism changes, since the calibration is specific to whatever scoring signal is currently in use.
+Retrieval thresholds are calibrated empirically with `uv run python -m agentic_rag.policies.calibrate_retrieval` rather than chosen arbitrarily; they should be re-run whenever the retrieval or reranking mechanism changes, since the calibration is specific to whatever scoring signal is currently in use.
 
 ## API
 
