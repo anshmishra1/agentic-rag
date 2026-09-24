@@ -40,7 +40,7 @@ from agentic_rag.ingestion.registry import get_bm25_params
 from agentic_rag.policies.retrieval import assess_retrieval_confidence
 from agentic_rag.policies.generation import apply_generation_limits, is_refusal_answer
 from agentic_rag.core.timing import get_current_tracker#, set_current_tracker, reset_current_tracker
-from agentic_rag.policies.grounding import parse_grounding_response, GROUNDING_VERDICTS
+from agentic_rag.policies.grounding import ABSTENTION_RESPONSE, grounding_result
 from agentic_rag.policies.conversation import classify_query_intent
 
 logger = get_logger(__name__)
@@ -187,6 +187,10 @@ def _fresh_turn_state() -> dict:
         "relevance_grade": None,
         "hallucination_grade": None,
         "hallucination_retry_count": 0,
+        "grounding_diagnosis": None,
+        "grounding_unsupported_claims": [],
+        "grounding_parse_success": None,
+        "answer_status": None,
         "correction_attempted": False,
         "verification_exhausted": False,
         "retry_count": 0,
@@ -799,54 +803,56 @@ def check_hallucination(state: RAGState) -> dict:
         if is_refusal_answer(generation):
             print("Answer is a refusal ('I don't know' or similar) - skipping")
             print("the hallucination check entirely. A refusal makes no")
-            print("factual claim, so there's nothing to verify as grounded.")
+            print("factual claim, so the turn ends as an explicit abstention.")
             return {
-                "hallucination_grade": "grounded",
+                "hallucination_grade": "not_applicable",
                 "hallucination_retry_count": state.get("hallucination_retry_count", 0),
+                "grounding_diagnosis": "abstained",
+                "grounding_unsupported_claims": [],
+                "grounding_parse_success": True,
+                "answer_status": "insufficient_evidence",
                 "verification_exhausted": False,
             }
 
         documents = state.get("documents", [])
-        context = "\n\n".join(d.page_content for d in documents)
+        context, _ = apply_generation_limits(documents, [])
 
         prompt = (
-            "Is the following answer fully supported by the context below? "
-            "Answer with exactly one word: 'grounded' or 'hallucinated'.\n\n"
+            "Classify how well the answer is supported by the retrieved "
+            "context. Return JSON only, with this exact schema:\n"
+            '{"verdict":"grounded|insufficient_evidence|unsupported",'
+            '"unsupported_claims":["claim text"]}\n\n'
+            "Use 'grounded' only when every factual claim is directly "
+            "supported by the context. Use 'insufficient_evidence' when the "
+            "context itself does not contain enough information to answer the "
+            "question reliably. Use 'unsupported' when the context is adequate "
+            "but the answer adds, changes, or overstates factual claims. List "
+            "each unsupported claim verbatim; otherwise return an empty list.\n\n"
+            f"Question:\n{state['question']}\n\n"
             f"Context:\n{context}\n\n"
             f"Answer:\n{generation}"
         )
 
         result = fast_provider_chain.invoke(prompt)
-        raw_grade = result.content.strip().lower()
-        grade = (
-            "grounded"
-            if "grounded" in raw_grade and "hallucinated" not in raw_grade
-            else "hallucinated"
+        raw_grade = result.content.strip()
+        outcome = grounding_result(
+            raw_grade,
+            correction_attempted=state.get("correction_attempted", False),
         )
 
         hallucination_retry_count = state.get("hallucination_retry_count", 0)
-        if grade == "hallucinated":
+        if outcome["hallucination_grade"] != "grounded":
             hallucination_retry_count += 1
 
-        # Distinguishes "still hallucinated, but a retry will happen" from
-        # "still hallucinated, retries exhausted, this is what gets served."
-        # Routing (edges.py) already decides retry-vs-end based on this same
-        # comparison; this just makes the outcome explicit in state instead
-        # of leaving grounded=False as the only (easy-to-miss) signal.
-        verification_exhausted = (
-            grade == "hallucinated"
-            and hallucination_retry_count >= settings.max_retries
-        )
-
         print(f"Raw hallucination grader response: {raw_grade}")
-        print(f"Normalized grade: {grade}")
-        print(f"Hallucination retry count: {hallucination_retry_count} / {settings.max_retries}")
-        print(f"Verification exhausted: {verification_exhausted}")
+        print(f"Grounding diagnosis: {outcome['grounding_diagnosis']}")
+        print(f"Unsupported claims: {outcome['grounding_unsupported_claims']}")
+        print(f"Response parsed: {outcome['grounding_parse_success']}")
+        print(f"Verification exhausted: {outcome['verification_exhausted']}")
 
         return {
-            "hallucination_grade": grade,
+            **outcome,
             "hallucination_retry_count": hallucination_retry_count,
-            "verification_exhausted": verification_exhausted,
         }
 
 
@@ -908,9 +914,27 @@ def correct_generation(state: RAGState) -> dict:
             "correction_attempted": True,
         }
 
+
 # =============================================================
-# Record Turn
+# Explicit abstention
 # =============================================================
+
+def abstain(state: RAGState) -> dict:
+    """Return a deterministic safe response after evidence retries fail."""
+    with get_current_tracker().measure("abstain"):
+        _separator("7b. ABSTAIN: INSUFFICIENT EVIDENCE")
+        print("Retrieval attempts did not produce enough supporting evidence.")
+
+        return {
+            "generation": ABSTENTION_RESPONSE,
+            "hallucination_grade": "not_applicable",
+            "grounding_diagnosis": "abstained",
+            "grounding_unsupported_claims": [],
+            "grounding_parse_success": True,
+            "answer_status": "insufficient_evidence",
+            "verification_exhausted": False,
+        }
+
 
 # =============================================================
 # Record Turn
@@ -967,6 +991,10 @@ def record_turn(state: RAGState) -> dict:
             "relevance_grade": None,
             "hallucination_grade": None,
             "hallucination_retry_count": 0,
+            "grounding_diagnosis": None,
+            "grounding_unsupported_claims": [],
+            "grounding_parse_success": None,
+            "answer_status": "control",
             "correction_attempted": False,
             "verification_exhausted": False,
 
@@ -1000,10 +1028,22 @@ def record_turn(state: RAGState) -> dict:
     )
 
     answer_verified = hallucination_grade == "grounded"
+    answer_status = state.get("answer_status")
 
     generation = state.get("generation", "")
 
-    if not answer_verified and hallucination_grade is not None:
+    should_disclaim = (
+        not answer_verified
+        and (
+            answer_status in {"unsupported", "verification_uncertain"}
+            or (
+                answer_status is None
+                and hallucination_grade not in {None, "not_applicable"}
+            )
+        )
+    )
+
+    if should_disclaim:
         print(
             "\nWARNING: answer reached record_turn without passing "
             "the hallucination check (exhausted retries). "
@@ -1027,6 +1067,8 @@ def record_turn(state: RAGState) -> dict:
         ),
         "hallucination_final_grade": hallucination_grade,
         "hallucination_retry_count": hallucination_retry_count,
+        "grounding_diagnosis": state.get("grounding_diagnosis"),
+        "answer_status": answer_status,
         "answer_verified": answer_verified,
     }
 
@@ -1044,6 +1086,7 @@ def record_turn(state: RAGState) -> dict:
 
     return {
         "generation": generation,
+        "answer_status": answer_status,
 
         "messages": [
             HumanMessage(content=state["question"]),

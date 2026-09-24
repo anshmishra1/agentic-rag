@@ -22,10 +22,11 @@ from agentic_rag.graph.edges import (
 )
 
 from agentic_rag.graph.nodes import (
+    abstain,
     assess_retrieval,
     contextualize_question,
     check_hallucination,
-    correct_generation,      # NEW
+    correct_generation,
     generate,
     grade_documents,
     record_turn,
@@ -51,7 +52,8 @@ def build_graph(checkpointer: BaseCheckpointSaver):
     graph.add_node("generate", generate)
     graph.add_node("check_hallucination", check_hallucination)
     graph.add_node("record_turn", record_turn)
-    graph.add_node("correct_generation", correct_generation)   
+    graph.add_node("correct_generation", correct_generation)
+    graph.add_node("abstain", abstain)
 
     # ---------------------------------------------------------
     # Entry point
@@ -133,6 +135,7 @@ def build_graph(checkpointer: BaseCheckpointSaver):
         {
             "rewrite_query": "rewrite_query",           # insufficient_evidence -> retrieval problem
             "correct_generation": "correct_generation",  # unsupported -> generation problem
+            "abstain": "abstain",                       # evidence retries exhausted
             "end": "record_turn",
         },
     )
@@ -144,6 +147,11 @@ def build_graph(checkpointer: BaseCheckpointSaver):
     graph.add_edge(
         "correct_generation",
         "check_hallucination",
+    )
+
+    graph.add_edge(
+        "abstain",
+        "record_turn",
     )
     
     # ---------------------------------------------------------

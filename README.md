@@ -33,16 +33,17 @@ strong   ambiguous            weak                              |
         v
   check_hallucination
         |
-   +----+------------------+------------------+
-   |                        |                  |
-grounded            insufficient_evidence   unsupported
-   |                (retries left)              |
-   v                        |                   v
-record_turn -> END    rewrite_query      correct_generation
-                                                 |
-                                                 v
-                                        check_hallucination
-                                          (one verification pass)
+   +------------+------------------------------+
+   |            |                              |
+grounded   insufficient_evidence           unsupported
+   |         |                 |                |
+   v    retries left     retries exhausted      v
+record_turn     |                 |       correct_generation
+   |            v                 v              |
+  END      rewrite_query       abstain           v
+               |                 |       check_hallucination
+               v                 v        (one final pass)
+            retrieve        record_turn -> END
 ```
 
 **The core idea:** every routing decision is made by the cheapest mechanism that can be trusted for that decision — a deterministic check where the signal is reliable, a fast-tier LLM call where judgment is needed but cheaply, a full LLM call only where quality genuinely matters (final answer generation).
@@ -53,7 +54,7 @@ record_turn -> END    rewrite_query      correct_generation
 - **Hybrid retrieval** — dense (embedding) and sparse (BM25) retrieval run independently and are fused via Reciprocal Rank Fusion, then reranked with a cross-encoder for final relevance scoring. BM25 is fit per document at ingestion time, not globally, matching the document-scoped retrieval model.
 - **Document-scoped retrieval** — every document gets a stable, content-derived ID (a hash of its bytes), so retrieval, BM25 encoding, and vector storage are all scoped to a specific document rather than the whole corpus. Re-ingesting a document overwrites its existing vectors instead of duplicating them.
 - **Whole-document overview chunks** — a summary generated at ingestion time and retrieved separately from content chunks, so structural questions ("what does this document cover") aren't left to chunk-level semantic search, which is the wrong granularity for that kind of question.
-- **Corrective hallucination handling** — a failed grounding check is diagnosed as either an *evidence problem* (routes back to retrieval) or a *generation problem* (routes to a constrained regeneration pass), rather than blindly retrying the same step. A single correction budget prevents infinite loops, and an explicit `verification_exhausted` flag is surfaced to the caller rather than silently serving an unverified answer as if it were fine.
+- **Corrective grounding handling** — a structured verifier distinguishes a grounded answer, insufficient evidence, and unsupported generation. Evidence problems route back to retrieval and end in an explicit abstention when retries are exhausted; generation problems receive one constrained correction using the verifier's unsupported-claim list. Malformed verifier output fails closed instead of silently approving an answer.
 - **Multi-provider LLM fallback** — requests fall through a configurable provider chain (Groq, Cerebras, NVIDIA NIM, OpenRouter, optionally AWS Bedrock), split into a "primary" tier (used only for final answer generation) and a "fast" tier (used for classification-style calls: grading, rewriting, hallucination checking) to control cost and rate-limit pressure.
 - **Conversation memory** — multi-turn context via a LangGraph Postgres checkpointer, with a per-turn query classifier distinguishing new questions, follow-ups, and control utterances (e.g. "thanks", "stop").
 - **GPU-accelerated local reranking** — the cross-encoder and embedding model run locally (auto-detecting CUDA if available), so reranking adds no external API cost or quota pressure.
@@ -152,7 +153,7 @@ Retrieval thresholds are calibrated empirically — see `scripts/calibrate_retri
 
 ## API
 
-- `POST /query` — `{question, session_id, document_id}` → `{answer, grounded, verification_exhausted}`
+- `POST /query` — `{question, session_id, document_id}` → `{answer, grounded, answer_status, grounding_diagnosis, verification_exhausted, contexts}`
 - `POST /ingest` — multipart file upload → `{filename, document_id, chunks_indexed}` per file
 - `GET /documents` — list of ingested documents and their metadata
 - `GET /health` — liveness check

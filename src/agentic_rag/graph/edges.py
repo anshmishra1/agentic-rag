@@ -91,8 +91,10 @@ def route_after_contextualization(state: RAGState) -> str:
     )
 
     return decision
+
+
 def route_after_hallucination_check(state: RAGState) -> str:
-    diagnosis = state.get("grounding_diagnosis", state.get("hallucination_grade"))
+    diagnosis = state.get("grounding_diagnosis")
     correction_attempted = state.get("correction_attempted", False)
     retry_count = state.get("retry_count", 0)
 
@@ -103,32 +105,37 @@ def route_after_hallucination_check(state: RAGState) -> str:
     print(f"Correction already attempted: {correction_attempted}")
     print(f"Retrieval retry count: {retry_count} / {settings.max_retries}")
 
-    if diagnosis == "grounded":
+    if diagnosis in {"grounded", "abstained"}:
         decision = "end"
         print("ROUTE -> record_turn")
+        log_stage("route_after_hallucination_check", grounding_diagnosis=diagnosis, correction_attempted=correction_attempted, decision=decision)
+        return decision
+
+    if diagnosis == "insufficient_evidence":
+        if retry_count < settings.max_retries and not correction_attempted:
+            decision = "rewrite_query"
+            print(f"ROUTE -> {decision}")
+            print("Reason: evidence is thin, not a generation error - retrieve again.")
+        else:
+            decision = "abstain"
+            print(f"ROUTE -> {decision}")
+            print("Reason: available retrieval attempts did not find enough evidence.")
+
         log_stage("route_after_hallucination_check", grounding_diagnosis=diagnosis, correction_attempted=correction_attempted, decision=decision)
         return decision
 
     if correction_attempted:
-        # One correction already spent - do not loop again regardless of
-        # diagnosis. record_turn's disclaimer covers a still-unverified answer.
+        # One generation correction has already been spent. record_turn adds
+        # an explicit disclaimer to a still-unverified answer.
         decision = "end"
         print("ROUTE -> record_turn")
-        print("Reason: single correction budget already spent.")
+        print("Reason: single generation-correction budget already spent.")
         log_stage("route_after_hallucination_check", grounding_diagnosis=diagnosis, correction_attempted=correction_attempted, decision=decision)
         return decision
 
-    if diagnosis == "insufficient_evidence" and retry_count < settings.max_retries:
-        decision = "rewrite_query"
-        print(f"ROUTE -> {decision}")
-        print("Reason: evidence is thin, not a generation error - retrieve again.")
-        log_stage("route_after_hallucination_check", grounding_diagnosis=diagnosis, correction_attempted=correction_attempted, decision=decision)
-        return decision
-
-    # unsupported, or insufficient_evidence with retrieval retries exhausted
+    # Unsupported claims, including malformed verifier output that failed
+    # closed, get one constrained regeneration attempt.
     decision = "correct_generation"
     print(f"ROUTE -> {decision}")
-    if diagnosis == "insufficient_evidence":
-        print("Reason: insufficient evidence but retrieval retries exhausted - falling back to constrained regeneration.")
     log_stage("route_after_hallucination_check", grounding_diagnosis=diagnosis, correction_attempted=correction_attempted, decision=decision)
     return decision

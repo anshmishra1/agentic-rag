@@ -63,6 +63,8 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     answer: str
     grounded: bool
+    answer_status: str
+    grounding_diagnosis: str | None = None
     verification_exhausted: bool = False
     is_control: bool = False
     contexts: list[str] = []
@@ -126,6 +128,8 @@ def query(
         diagnostics.record(
             "run_completed",
             grounded=result.get("hallucination_grade") == "grounded",
+            answer_status=result.get("answer_status"),
+            grounding_diagnosis=result.get("grounding_diagnosis"),
             verification_exhausted=result.get("verification_exhausted", False),
             is_control=is_control,
         )
@@ -135,6 +139,8 @@ def query(
         return QueryResponse(
             answer=result["generation"],
             grounded=result.get("hallucination_grade") == "grounded",
+            answer_status=result.get("answer_status", "verification_uncertain"),
+            grounding_diagnosis=result.get("grounding_diagnosis"),
             verification_exhausted=result.get("verification_exhausted", False),
             is_control=is_control,
             contexts=contexts,
