@@ -20,7 +20,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from langgraph.checkpoint.postgres import PostgresSaver
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from agentic_rag.config import settings
 from agentic_rag.graph.builder import build_graph
@@ -67,7 +67,8 @@ class QueryResponse(BaseModel):
     grounding_diagnosis: str | None = None
     verification_exhausted: bool = False
     is_control: bool = False
-    contexts: list[str] = []
+    citations: list[str] = Field(default_factory=list)
+    contexts: list[str] = Field(default_factory=list)
 
 
 class IngestResult(BaseModel):
@@ -143,6 +144,7 @@ def query(
             grounding_diagnosis=result.get("grounding_diagnosis"),
             verification_exhausted=result.get("verification_exhausted", False),
             is_control=is_control,
+            citations=result.get("citations", []),
             contexts=contexts,
     )
 

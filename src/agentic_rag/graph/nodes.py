@@ -38,7 +38,11 @@ from agentic_rag.retrieval.reranker import rerank_many
 from agentic_rag.retrieval.sparse import load_bm25_json
 from agentic_rag.ingestion.registry import get_bm25_params
 from agentic_rag.policies.retrieval import assess_retrieval_confidence
-from agentic_rag.policies.generation import apply_generation_limits, is_refusal_answer
+from agentic_rag.policies.generation import (
+    apply_citation_generation_limits,
+    is_refusal_answer,
+)
+from agentic_rag.policies.citations import extract_used_citations
 from agentic_rag.core.timing import get_current_tracker#, set_current_tracker, reset_current_tracker
 from agentic_rag.policies.grounding import ABSTENTION_RESPONSE, grounding_result
 from agentic_rag.policies.conversation import classify_query_intent
@@ -89,6 +93,7 @@ def _fresh_turn_state() -> dict:
         "grounding_unsupported_claims": [],
         "grounding_parse_success": None,
         "answer_status": None,
+        "citations": [],
         "correction_attempted": False,
         "verification_exhausted": False,
         "retry_count": 0,
@@ -630,7 +635,10 @@ def generate(state: RAGState) -> dict:
         documents = state.get("documents", [])
         history = state.get("messages", [])
 
-        context, history = apply_generation_limits(documents, history)
+        context, history, citation_catalog = apply_citation_generation_limits(
+            documents,
+            history,
+        )
 
         history_text = (
             "\n".join(
@@ -651,6 +659,8 @@ def generate(state: RAGState) -> dict:
             "If the user asks for a concise answer, keep it concise. "
             "If the answer isn't supported by the context, say you "
             "don't know. "
+            "Cite every factual claim with one or more source labels exactly "
+            "as written in the context, such as [S1]. Never invent a label. "
             "Do not omit important details needed to properly answer "
             "the question.\n\n"
             f"Prior conversation:\n{history_text}\n\n"
@@ -686,6 +696,10 @@ def generate(state: RAGState) -> dict:
 
         return {
             "generation": generation,
+            "citations": extract_used_citations(
+                generation,
+                citation_catalog,
+            ),
         }
 
 # =============================================================
@@ -710,10 +724,11 @@ def check_hallucination(state: RAGState) -> dict:
                 "grounding_parse_success": True,
                 "answer_status": "insufficient_evidence",
                 "verification_exhausted": False,
+                "citations": [],
             }
 
         documents = state.get("documents", [])
-        context, _ = apply_generation_limits(documents, [])
+        context, _, _ = apply_citation_generation_limits(documents, [])
 
         prompt = (
             "Classify how well the answer is supported by the retrieved "
@@ -724,8 +739,10 @@ def check_hallucination(state: RAGState) -> dict:
             "supported by the context. Use 'insufficient_evidence' when the "
             "context itself does not contain enough information to answer the "
             "question reliably. Use 'unsupported' when the context is adequate "
-            "but the answer adds, changes, or overstates factual claims. List "
-            "each unsupported claim verbatim; otherwise return an empty list.\n\n"
+            "but the answer adds, changes, or overstates factual claims. "
+            "Treat a missing, invented, or mismatched [S#] citation as an "
+            "unsupported claim. List each unsupported claim verbatim; "
+            "otherwise return an empty list.\n\n"
             f"Question:\n{state['question']}\n\n"
             f"Context:\n{context}\n\n"
             f"Answer:\n{generation}"
@@ -773,7 +790,10 @@ def correct_generation(state: RAGState) -> dict:
         previous_generation = state.get("generation", "")
         unsupported_claims = state.get("grounding_unsupported_claims", [])
 
-        context, history = apply_generation_limits(documents, history)
+        context, history, citation_catalog = apply_citation_generation_limits(
+            documents,
+            history,
+        )
 
         history_text = (
             "\n".join(f"{m.type}: {m.content}" for m in history)
@@ -794,7 +814,9 @@ def correct_generation(state: RAGState) -> dict:
             "context below. If the context does not establish something, "
             "explicitly say the document does not cover it rather than "
             "omitting it silently. Preserve the user's requested level of "
-            "detail and formatting where the context allows it.\n\n"
+            "detail and formatting where the context allows it. Cite every "
+            "factual claim with the provided [S#] labels and never invent a "
+            "label.\n\n"
             f"Prior conversation:\n{history_text}\n\n"
             f"Context:\n{context}\n\n"
             f"Question: {state['question']}\n\n"
@@ -809,6 +831,10 @@ def correct_generation(state: RAGState) -> dict:
 
         return {
             "generation": generation,
+            "citations": extract_used_citations(
+                generation,
+                citation_catalog,
+            ),
             "correction_attempted": True,
         }
 
@@ -831,6 +857,7 @@ def abstain(state: RAGState) -> dict:
             "grounding_parse_success": True,
             "answer_status": "insufficient_evidence",
             "verification_exhausted": False,
+            "citations": [],
         }
 
 
@@ -903,6 +930,7 @@ def record_turn(state: RAGState) -> dict:
             "grounding_unsupported_claims": [],
             "grounding_parse_success": None,
             "answer_status": "control",
+            "citations": [],
             "correction_attempted": False,
             "verification_exhausted": False,
 

@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 
 from agentic_rag.config import settings
+from agentic_rag.policies.citations import build_citation_context
 
 # A genuine refusal is short and opens with a hedge. A long, substantive
 # answer that happens to start with "I'm not sure, but..." before giving real
@@ -50,3 +51,19 @@ def apply_generation_limits(documents: list, history_messages: list) -> tuple[st
 
     limited_history = history_messages[-settings.max_history_messages_for_generation:]
     return context, limited_history
+
+
+def apply_citation_generation_limits(
+    documents: list,
+    history_messages: list,
+) -> tuple[str, list, list[str]]:
+    """Apply generation limits while adding deterministic source labels."""
+    context, catalog = build_citation_context(
+        documents,
+        max_documents=settings.max_generation_context_documents,
+        max_chars=settings.max_generation_context_chars,
+    )
+    limited_history = history_messages[
+        -settings.max_history_messages_for_generation:
+    ]
+    return context, limited_history, catalog
