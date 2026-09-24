@@ -1,11 +1,21 @@
-version: "3.9"
-
 services:
   api:
     build: .
     ports:
       - "8000:8000"
-    env_file: .env
+    env_file:
+      - .env
+    environment:
+      POSTGRES_URL: postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 300s
 
   frontend:
     build: .
@@ -16,18 +26,24 @@ services:
       - RAG_API_URL=http://api:8000
     env_file: .env
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
   postgres:
     image: postgres:16
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: pgadmin@12
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
     ports:
-      - "5432:5432"
+      - "5442:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   postgres_data:

@@ -6,14 +6,15 @@ param (
 )
 
 # 1. Ensure working directory is always the project root
-Set-Location $PSScriptRoot
+$projectRoot = Split-Path -Parent $PSScriptRoot
+Set-Location $projectRoot
 
 # 2. Set environment variables for UTF-8 and unbuffered output
 $env:PYTHONIOENCODING = "utf-8"
 $env:PYTHONUNBUFFERED = "1"
 
 # 3. Ensure the logs directory exists
-$logDir = Join-Path $PSScriptRoot "logs"
+$logDir = Join-Path $projectRoot "logs"
 if (-not (Test-Path $logDir)) {
     New-Item -ItemType Directory -Path $logDir -Force | Out-Null
 }
@@ -36,7 +37,12 @@ $logFileName = "app_run_log_v$nextVersion.md"
 $logFile = Join-Path $logDir $logFileName
 
 # 5. Build Uvicorn command arguments
-$uvicornArgs = @("-u", "-m", "uvicorn", "src.agentic_rag.api.main:app", "--host", $HostIP, "--port", $Port)
+$pythonExe = Join-Path $projectRoot ".venv\Scripts\python.exe"
+if (-not (Test-Path -LiteralPath $pythonExe)) {
+    throw "Project virtual environment not found: $pythonExe"
+}
+
+$uvicornArgs = @("-u", "-m", "uvicorn", "agentic_rag.api.main:app", "--host", $HostIP, "--port", $Port)
 if (-not $NoReload) {
     $uvicornArgs += "--reload"
 }
@@ -49,4 +55,4 @@ Write-Host " Reload Mode     : $(-not $NoReload)" -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Green
 
 # 6. Execute Python and stream output to console & new log file
-python @uvicornArgs *>&1 | Tee-Object -FilePath $logFile -Encoding utf8
+& $pythonExe @uvicornArgs *>&1 | Tee-Object -FilePath $logFile -Encoding utf8
