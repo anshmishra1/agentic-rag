@@ -165,7 +165,36 @@ Key environment variables (see `.env.example` for the full list):
 | `MAX_RETRIES` | Cap on rewrite/retry loop iterations |
 | `DEBUG` | Verbose logging (candidate-level retrieval/rerank tables) |
 
-Retrieval thresholds are calibrated empirically with `uv run python -m agentic_rag.policies.calibrate_retrieval` rather than chosen arbitrarily; they should be re-run whenever the retrieval or reranking mechanism changes, since the calibration is specific to whatever scoring signal is currently in use.
+Retrieval thresholds in `config.py` are provisional. The calibration command
+requires reviewed positive and negative query/document pairs; it no longer
+uses the old hard-coded document ID.
+
+To audit the available evaluation questions and source files without loading
+models or contacting providers, run:
+
+```bash
+python -m agentic_rag.evaluation.dataset_audit --pdf-dir PDF
+```
+
+The 80-question set contains 70 single-document questions and 10
+cross-document questions. It has answer references but no verified relevant
+chunk IDs or negative query/document labels, so it cannot yet measure
+retrieval hit rates or justify score thresholds. Add those labels and collect
+scores from the current hybrid retrieval path before changing thresholds.
+
+The calibration input is a JSON list with `query`, 64-character `document_id`,
+and boolean `should_match` on every row. Offline rows also need `top_score`.
+After indexing the reviewed source documents, collect scores explicitly:
+
+```bash
+python -m agentic_rag.policies.calibrate_retrieval labeled_pairs.json --live --scores-output scores.json
+python -m agentic_rag.policies.calibrate_retrieval scores.json
+```
+
+The first command reads PostgreSQL and queries Pinecone but does not call an
+LLM; the second analyzes saved scores offline. It reports a candidate score
+floor only when at least five examples in each class separate cleanly.
+Validate any candidate on a separate holdout set before changing configuration.
 
 ## API
 

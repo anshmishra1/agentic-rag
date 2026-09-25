@@ -1,96 +1,82 @@
-"""Calibrates retrieval_min_top_score / retrieval_strong_top_score against
-real, labeled query/document pairs - not a guess, not RAGAS (which measures
-generation quality, not retrieval score separation).
+"""Analyze labeled retrieval scores, with optional explicit live collection.
 
-IMPORTANT: after the hybrid search + cross-encoder reranking change, the
-score this script measures is a cross-encoder relevance score (sigmoid-
-activated), NOT raw Pinecone cosine similarity. Re-run this against your
-labeled set before trusting the config.py defaults - the old cosine-based
-numbers (and even the previous calibration run's numbers) no longer apply,
-since the score source itself changed.
-
-Usage:
-    1. Ingest the documents you want to calibrate against, as usual (through
-       the hybrid-capable index - see scripts/create_hybrid_index.py).
-    2. Fill in LABELED_QUERIES below with real questions, the document_id
-       each is scoped to, and whether that pairing SHOULD match (True) or
-       is a deliberate mismatch (False).
-    3. Run: python -m agentic_rag.policies.calibrate_retrieval
-    4. It prints the top-score distribution for "should match" vs "should
-       not match" pairs, and suggests where the two thresholds should sit
-       given the actual gap between the two clusters.
-
-Add more rows over time as you find new failure cases - this script becomes
-more trustworthy the more real examples it has, the same way any eval set does.
+Input is a JSON list of objects with ``query``, ``document_id``, and boolean
+``should_match``. Offline analysis also requires ``top_score`` in each row.
+``--live`` runs the same retrieval node as the API to collect top scores from
+already-ingested documents; it queries Pinecone and PostgreSQL, but does not
+invoke an LLM or change the index. Never use an unlabeled score sample as a
+threshold recommendation.
 """
+
 from __future__ import annotations
 
-from agentic_rag.graph.nodes import calculate_retrieval_metrics
-from agentic_rag.ingestion.registry import get_bm25_params
-from agentic_rag.retrieval.reranker import rerank
-from agentic_rag.retrieval.sparse import load_bm25_json
-from agentic_rag.retrieval.vectorstore import retrieve_hybrid_with_scores
-from agentic_rag.config import settings
+import argparse
+import io
+import json
+import re
+from contextlib import redirect_stdout
+from pathlib import Path
+from typing import Any
 
-# Fill these in with real (query, document_id, should_match) rows from your
-# own ingested documents. document_id comes from GET /documents.
-LABELED_QUERIES: list[tuple[str, str, bool]] = [
-    # True matches (Strong retrieval score distribution & grounded answer generated)
-    ("What problems does the RAG solve", "8354069b86193aa9d4c6f88b576443523f00ad68b9637711ad9f801869ffa1b2", True),
-    ("How are LLM's built", "8354069b86193aa9d4c6f88b576443523f00ad68b9637711ad9f801869ffa1b2", True),
-    ("What are the issues with traditional Fine Tuning", "8354069b86193aa9d4c6f88b576443523f00ad68b9637711ad9f801869ffa1b2", True),
-    ("Why do we still need context engineering if we already have RAG to solve these problems?", "8354069b86193aa9d4c6f88b576443523f00ad68b9637711ad9f801869ffa1b2", True),
-
-    # False matches (Failed semantic document grading / graded as irrelevant for this document)
-    ("How to generate the dataset that will be used for fine tuning", "8354069b86193aa9d4c6f88b576443523f00ad68b9637711ad9f801869ffa1b2", False),
-    ("How to create a dataset for fine-tuningmodeloos", "8354069b86193aa9d4c6f88b576443523f00ad68b9637711ad9f801869ffa1b2", False),
-]
+from agentic_rag.evaluation.score_calibration import analyze_labeled_scores
 
 
-def _top_score(query: str, document_id: str) -> float:
-    content_filter = {"$and": [{"document_id": {"$eq": document_id}}, {"type": {"$eq": "content"}}]}
+DOCUMENT_ID = re.compile(r"[0-9a-f]{64}\Z")
 
-    bm25_params = get_bm25_params(document_id)
-    bm25_encoder = load_bm25_json(bm25_params) if bm25_params else None
 
-    # retrieve_hybrid_with_scores now returns (fused_results, diagnostics) -
-    # the diagnostics dict carries per-signal dense/bm25/rrf breakdowns, not
-    # needed here, so it's discarded.
-    candidates, _diagnostics = retrieve_hybrid_with_scores(
-        query=query,
-        bm25_encoder=bm25_encoder,
-        k=settings.hybrid_candidate_k,
-        filter=content_filter,
+def collect_live_scores(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Run the API's retrieval node without generation or durable trace data."""
+    for index, row in enumerate(rows, start=1):
+        if not isinstance(row, dict) or type(row.get("should_match")) is not bool:
+            raise ValueError(f"Row {index} needs a boolean should_match label")
+        query = row.get("query")
+        document_id = row.get("document_id")
+        if not isinstance(query, str) or not query.strip():
+            raise ValueError(f"Row {index} needs a nonempty query")
+        if not isinstance(document_id, str) or not DOCUMENT_ID.fullmatch(document_id):
+            raise ValueError(f"Row {index} needs a 64-character document_id")
+
+    from agentic_rag.core.timing import (
+        PerformanceTracker,
+        reset_current_tracker,
+        set_current_tracker,
     )
-    reranked = rerank(query, candidates, top_k=settings.rerank_top_k_content)
-    scores = [score for _, score in reranked]
-    return calculate_retrieval_metrics(scores)["top_score"]
+    from agentic_rag.graph.nodes import retrieve
+
+    scored = []
+    for row in rows:
+        query = row["query"]
+        document_id = row["document_id"]
+        tracker_token = set_current_tracker(PerformanceTracker())
+        try:
+            # The retrieval node prints document previews. Do not emit source
+            # text or query contents in a calibration report.
+            with redirect_stdout(io.StringIO()):
+                result = retrieve({"question": query, "document_id": document_id})
+        finally:
+            reset_current_tracker(tracker_token)
+        scored.append({**row, "top_score": float(result["retrieval_top_score"])})
+    return scored
 
 
 def main() -> None:
-    if not LABELED_QUERIES:
-        print("LABELED_QUERIES is empty. Add real (query, document_id, should_match)")
-        print("rows at the top of this script before running.")
-        return
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("input", type=Path, help="JSON labeled score rows or query/document pairs")
+    parser.add_argument("--live", action="store_true", help="query PostgreSQL and Pinecone for current scores")
+    parser.add_argument("--scores-output", type=Path, help="save collected rows for offline review")
+    parser.add_argument("--minimum-per-class", type=int, default=5)
+    args = parser.parse_args()
 
-    matches, mismatches = [], []
-    for query, document_id, should_match in LABELED_QUERIES:
-        score = _top_score(query, document_id)
-        (matches if should_match else mismatches).append(score)
-        print(f"{'MATCH   ' if should_match else 'MISMATCH'} top_score={score:.4f}  {query!r}")
+    rows = json.loads(args.input.read_text(encoding="utf-8"))
+    if not isinstance(rows, list):
+        parser.error("input must be a JSON list")
+    if args.live:
+        rows = collect_live_scores(rows)
+    report = analyze_labeled_scores(rows, minimum_per_class=args.minimum_per_class)
 
-    print()
-    if matches:
-        print(f"Match scores:    min={min(matches):.4f}  max={max(matches):.4f}  mean={sum(matches)/len(matches):.4f}")
-    if mismatches:
-        print(f"Mismatch scores: min={min(mismatches):.4f}  max={max(mismatches):.4f}  mean={sum(mismatches)/len(mismatches):.4f}")
-
-    if matches and mismatches:
-        floor = (max(mismatches) + min(matches)) / 2
-        print(f"\nSuggested retrieval_min_top_score: ~{floor:.2f} (midpoint between the two clusters)")
-        print(f"Suggested retrieval_strong_top_score: ~{min(matches):.2f} (lowest observed genuine match)")
-    else:
-        print("\nNeed at least one match AND one mismatch example to suggest thresholds.")
+    if args.scores_output:
+        args.scores_output.write_text(json.dumps(rows, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(report, indent=2))
 
 
 if __name__ == "__main__":

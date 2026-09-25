@@ -71,7 +71,7 @@ class Settings(BaseSettings):
     # similarity) - the numbers below are a reasonable placeholder for the new
     # scale (genuine matches from a cross-encoder+sigmoid typically land
     # well above 0.5; clear mismatches well below 0.2), NOT a real
-    # calibration. Re-run scripts/calibrate_retrieval.py against the new
+    # calibration. Re-run policies/calibrate_retrieval.py against the new
     # retrieval path before trusting these for anything but initial testing.
     retrieval_min_top_score: float = 0.30
     retrieval_strong_top_score: float = 0.60
