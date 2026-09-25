@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 from agentic_rag.config import settings
 from agentic_rag.graph.builder import build_graph
 from agentic_rag.ingestion.pipeline import _document_id, ingest_file
+from agentic_rag.llm.provider import ProviderUnavailableError
 from agentic_rag.ingestion.registry import list_documents
 
 from agentic_rag.retrieval.reranker import warmup_cross_encoder
@@ -222,6 +223,16 @@ async def ingest(
                     chunks_indexed=chunk_count,
                 )
             )
+
+        except ProviderUnavailableError as exc:
+            logger.warning("Document ingestion could not generate an overview: %s", exc)
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Document ingestion needs an available LLM provider to generate "
+                    "its overview. Check provider credits, model access, and connectivity."
+                ),
+            ) from exc
 
         except (ValueError, NotImplementedError) as exc:
             raise HTTPException(

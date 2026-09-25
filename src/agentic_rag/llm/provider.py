@@ -49,6 +49,8 @@ def _is_rate_limit_error(exc: Exception) -> bool:
     status_code = getattr(exc, "status_code", None) or getattr(
         getattr(exc, "response", None), "status_code", None
     )
+    if status_code in (401, 402, 403):
+        return False
     if status_code == 429:
         return True
 
@@ -57,6 +59,10 @@ def _is_rate_limit_error(exc: Exception) -> bool:
         marker in message
         for marker in ("rate limit", "too many requests", "429", "quota")
     )
+
+
+class ProviderUnavailableError(RuntimeError):
+    """Every configured provider failed to answer a request."""
 
 
 class ProviderChain:
@@ -198,7 +204,7 @@ class ProviderChain:
             model=_MODELS[self.tier]["bedrock"],
         )
 
-    def invoke(self, prompt: Any):
+    def invoke(self, prompt: Any, *, max_tokens: int | None = None):
         """Invoke providers in configured order until one succeeds.
 
         Rate-limit-shaped errors get a few retries with exponential backoff
@@ -226,7 +232,13 @@ class ProviderChain:
                         max_attempts,
                     )
 
-                    response = llm.invoke(prompt)
+                    output_limit = max_tokens if max_tokens is not None else (
+                        settings.fast_llm_max_tokens
+                        if self.tier == "fast"
+                        else settings.primary_llm_max_tokens
+                    )
+                    request_llm = llm.bind(max_tokens=output_limit)
+                    response = request_llm.invoke(prompt)
                     elapsed = time.perf_counter() - started
 
                     self._last_provider = name
@@ -270,7 +282,7 @@ class ProviderChain:
                     # move on to the next provider in the chain.
                     break
 
-        raise RuntimeError(
+        raise ProviderUnavailableError(
             f"All configured LLM providers failed for {self.tier} tier. "
             f"Last error: {last_error}"
         )

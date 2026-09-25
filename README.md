@@ -146,6 +146,12 @@ PostgreSQL service:
 docker compose up --build
 ```
 
+The first command builds the images. For later runs with unchanged code, use
+`docker compose start` to restart the same containers, or `docker compose up -d`
+if they have not been created yet. Use `docker compose stop` when finished so
+the containers and their downloaded model cache remain available. Rebuild with
+`docker compose up --build` only after changing code or dependencies.
+
 The frontend is available on port 8501, the API on port 8000, and PostgreSQL
 is exposed to the host on port 5442. API startup warms the cross-encoder model,
 so its first health check can take several minutes when the model cache is
@@ -158,6 +164,7 @@ Key environment variables (see `.env.example` for the full list):
 | Variable | Purpose |
 |---|---|
 | `PROVIDER_ORDER` | Fallback order across LLM providers, e.g. `cerebras,groq,nvidia,openrouter` |
+| `PRIMARY_LLM_MAX_TOKENS`, `FAST_LLM_MAX_TOKENS` | Output caps for primary and fast model calls (defaults: 4096 and 1024) |
 | `PINECONE_API_KEY`, `PINECONE_INDEX_NAME` | Vector store connection |
 | `POSTGRES_URL` | Conversation checkpointing + document registry |
 | `RETRIEVAL_MIN_TOP_SCORE`, `RETRIEVAL_STRONG_TOP_SCORE` | Absolute score gates for the retrieval confidence policy |

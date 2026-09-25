@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     # LLM request timeouts
     fast_llm_timeout: float = 15.0
     primary_llm_timeout: float = 45.0
+    fast_llm_max_tokens: int = 1024
+    primary_llm_max_tokens: int = 4096
 
     # Bedrock
     bedrock_enabled: bool = False

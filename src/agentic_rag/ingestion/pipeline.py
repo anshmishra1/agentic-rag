@@ -54,7 +54,7 @@ def _build_overview(
         "sections if visible in the excerpt.\n\n"
         f"Document excerpt:\n{sample}"
     )
-    summary = provider_chain.invoke(prompt).content
+    summary = provider_chain.invoke(prompt, max_tokens=512).content
     return Document(
         page_content=summary,
         metadata={
