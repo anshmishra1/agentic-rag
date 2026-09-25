@@ -123,7 +123,17 @@ if uploaded_files and st.button("Ingest"):
             timeout=300,
         )
 
-        response.raise_for_status()
+        if not response.ok:
+            try:
+                detail = response.json().get("detail")
+            except (ValueError, AttributeError):
+                detail = None
+            st.error(
+                detail
+                if isinstance(detail, str)
+                else f"Ingestion failed (HTTP {response.status_code})."
+            )
+            st.stop()
 
     ingestion_results = response.json()
 
