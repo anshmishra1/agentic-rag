@@ -6,6 +6,7 @@ services:
     env_file:
       - .env
     environment:
+      DEBUG: "false"
       POSTGRES_URL: postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
     depends_on:
       postgres:
