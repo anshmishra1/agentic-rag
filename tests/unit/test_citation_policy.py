@@ -4,6 +4,7 @@ from agentic_rag.policies.citations import (
     build_citation_context,
     citation_description,
     extract_used_citations,
+    normalize_citation_markers,
 )
 
 
@@ -79,6 +80,19 @@ def test_only_valid_answer_citations_are_returned() -> None:
     )
 
     assert citations == [
+        "[S2] guide.pdf, page 2",
+        "[S1] guide.pdf, page 1",
+    ]
+
+
+def test_alternate_source_brackets_are_normalized_before_extraction() -> None:
+    catalog = ["[S1] guide.pdf, page 1", "[S2] guide.pdf, page 2"]
+    answer = "First claim 【S2】. Second claim [S1]. Repeat 【S2】; ignore 【S9】."
+
+    normalized = normalize_citation_markers(answer)
+
+    assert normalized == "First claim [S2]. Second claim [S1]. Repeat [S2]; ignore [S9]."
+    assert extract_used_citations(normalized, catalog) == [
         "[S2] guide.pdf, page 2",
         "[S1] guide.pdf, page 1",
     ]
