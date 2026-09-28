@@ -7,6 +7,15 @@ from collections.abc import Sequence
 
 
 _CITATION_PATTERN = re.compile(r"\[S(\d+)\]")
+_ALTERNATE_CITATION_PATTERN = re.compile(r"【S(\d+)】")
+
+
+def normalize_citation_markers(answer: str) -> str:
+    """Convert the observed alternate source brackets to canonical labels."""
+    return _ALTERNATE_CITATION_PATTERN.sub(
+        lambda match: f"[S{match.group(1)}]",
+        answer,
+    )
 
 
 def _source_name(document) -> str:

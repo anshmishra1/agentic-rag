@@ -42,7 +42,10 @@ from agentic_rag.policies.generation import (
     apply_citation_generation_limits,
     is_refusal_answer,
 )
-from agentic_rag.policies.citations import extract_used_citations
+from agentic_rag.policies.citations import (
+    extract_used_citations,
+    normalize_citation_markers,
+)
 from agentic_rag.core.timing import get_current_tracker#, set_current_tracker, reset_current_tracker
 from agentic_rag.policies.grounding import ABSTENTION_RESPONSE, grounding_result
 from agentic_rag.policies.conversation import classify_query_intent
@@ -688,7 +691,7 @@ def generate(state: RAGState) -> dict:
 
         result = provider_chain.invoke(prompt)
 
-        generation = result.content.strip()
+        generation = normalize_citation_markers(result.content.strip())
 
         output_chars = len(generation)
 
@@ -824,7 +827,7 @@ def correct_generation(state: RAGState) -> dict:
         )
 
         result = provider_chain.invoke(prompt)
-        generation = result.content.strip()
+        generation = normalize_citation_markers(result.content.strip())
 
         print(f"Unsupported claims addressed: {unsupported_claims}")
         print(f"Corrected answer characters: {len(generation)}")
