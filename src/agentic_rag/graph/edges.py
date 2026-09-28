@@ -11,6 +11,17 @@ from agentic_rag.graph.state import RAGState
 from agentic_rag.observability.trace import log_stage
 
 
+def route_after_rewrite(state: RAGState) -> str:
+    """Avoid another search when the rewrite did not change the query."""
+    decision = "abstain" if state.get("rewrite_stalled") else "retrieve"
+    log_stage(
+        "route_after_rewrite",
+        rewrite_stalled=state.get("rewrite_stalled", False),
+        decision=decision,
+    )
+    return decision
+
+
 def route_after_retrieval_assessment(state: RAGState) -> str:
     """Route on the three-way decision from assess_retrieval:
     generate (strong) | grade_documents (ambiguous) | rewrite_query (weak)."""

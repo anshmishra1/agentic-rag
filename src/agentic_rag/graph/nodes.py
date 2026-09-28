@@ -37,7 +37,11 @@ from agentic_rag.retrieval.vectorstore import (
 from agentic_rag.retrieval.reranker import rerank_many
 from agentic_rag.retrieval.sparse import load_bm25_json
 from agentic_rag.ingestion.registry import get_bm25_params
-from agentic_rag.policies.retrieval import assess_retrieval_confidence
+from agentic_rag.policies.retrieval import (
+    assess_retrieval_confidence,
+    build_rewrite_prompt,
+    is_repeated_rewrite,
+)
 from agentic_rag.policies.generation import (
     apply_citation_generation_limits,
     is_refusal_answer,
@@ -100,6 +104,7 @@ def _fresh_turn_state() -> dict:
         "correction_attempted": False,
         "verification_exhausted": False,
         "retry_count": 0,
+        "rewrite_stalled": False,
     }
 
 def contextualize_question(state: RAGState) -> dict:
@@ -597,33 +602,30 @@ def rewrite_query(state: RAGState) -> dict:
         current = state.get("retrieval_query") or state["question"]
         original_question = state["question"]
         retry_count = state.get("retry_count", 0)
+        retrieval_reason = state.get("retrieval_decision_reason") or "no clear evidence"
+        relevance_grade = state.get("relevance_grade") or "not graded"
 
-        prompt = (
-            "Rewrite the search query below to be clearer and better suited "
-            "for semantic search. The most recent search attempt is shown "
-            "for context, but your rewrite must address EVERY part of the "
-            "user's original question - not just whichever part the most "
-            "recent attempt focused on. If the original question has "
-            "multiple parts (e.g. asks for both a definition AND benefits, "
-            "or both what and why), make sure your rewrite still covers "
-            "all of them, even if the most recent attempt dropped one.\n\n"
-            f"Original question: {original_question}\n\n"
-            f"Most recent search attempt: {current}\n\n"
-            "Return only the rewritten query, nothing else."
+        prompt = build_rewrite_prompt(
+            original_question, current, retrieval_reason, relevance_grade
         )
 
         result = fast_provider_chain.invoke(prompt)
         rewritten_query = result.content.strip()
         new_retry_count = retry_count + 1
+        rewrite_stalled = is_repeated_rewrite(
+            rewritten_query, original_question, current
+        )
 
         print(f"Original question: {original_question}")
         print(f"Previous attempt  : {current}")
         print(f"Rewritten query   : {rewritten_query}")
         print(f"Retry count       : {new_retry_count}")
+        print(f"Rewrite stalled   : {rewrite_stalled}")
 
         return {
-            "retrieval_query": rewritten_query,
+            "retrieval_query": current if rewrite_stalled else rewritten_query,
             "retry_count": new_retry_count,
+            "rewrite_stalled": rewrite_stalled,
         }
 
 

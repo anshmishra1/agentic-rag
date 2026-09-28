@@ -87,6 +87,7 @@ class ControlState(TypedDict, total=False):
     """Counters and explicit control decisions."""
 
     retry_count: int
+    rewrite_stalled: bool
     hallucination_retry_count: int
     correction_attempted: bool
 

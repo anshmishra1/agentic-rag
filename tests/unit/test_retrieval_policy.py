@@ -1,6 +1,34 @@
 from agentic_rag.policies import retrieval
 
 
+def test_repeated_rewrite_rejects_empty_and_equivalent_queries() -> None:
+    assert retrieval.is_repeated_rewrite("   ", "What is alignment?", "alignment")
+    assert retrieval.is_repeated_rewrite(
+        "WHAT is alignment!", "What is alignment?", "alignment in LLMs"
+    )
+    assert retrieval.is_repeated_rewrite(
+        "Alignment in LLMs.", "What is alignment?", "alignment in LLMs"
+    )
+    assert not retrieval.is_repeated_rewrite(
+        "How do authors define alignment?", "What is alignment?", "alignment in LLMs"
+    )
+
+
+def test_rewrite_prompt_uses_failure_reason_without_dropping_original_question() -> None:
+    prompt = retrieval.build_rewrite_prompt(
+        "Define alignment and explain why it matters",
+        "alignment definition",
+        "top_score_below_floor",
+        "irrelevant",
+    )
+
+    assert "Define alignment and explain why it matters" in prompt
+    assert "alignment definition" in prompt
+    assert "top_score_below_floor" in prompt
+    assert "retrieved passages were judged irrelevant" in prompt
+    assert "Do not repeat" in prompt
+
+
 def _configure_thresholds(monkeypatch) -> None:
     monkeypatch.setattr(retrieval.settings, "max_retries", 2)
     monkeypatch.setattr(retrieval.settings, "retrieval_min_top_score", 0.30)

@@ -26,7 +26,54 @@ thresholds as valid for the new cross-encoder score distribution.
 
 from __future__ import annotations
 
+import re
+
 from agentic_rag.config import settings
+
+
+def is_repeated_rewrite(candidate: str, original: str, previous: str) -> bool:
+    """Reject empty or unchanged queries before repeating a retrieval call."""
+    normalized = " ".join(re.findall(r"\w+", candidate.casefold()))
+    if not normalized:
+        return True
+    return normalized in {
+        " ".join(re.findall(r"\w+", query.casefold()))
+        for query in (original, previous)
+    }
+
+
+def build_rewrite_prompt(
+    original: str, previous: str, reason: str, relevance_grade: str | None
+) -> str:
+    """Give the rewrite model the failure signal and a distinct next strategy."""
+    if relevance_grade == "irrelevant":
+        guidance = (
+            "The retrieved passages were judged irrelevant; "
+            "search a different aspect or section."
+        )
+    elif reason.startswith("top_score_below_floor"):
+        guidance = (
+            "The match was weak; correct wording or use more specific "
+            "terms from the question."
+        )
+    elif reason.startswith("weak_distribution"):
+        guidance = (
+            "Candidates were similarly ranked; focus on the question's "
+            "distinguishing terms."
+        )
+    else:
+        guidance = "Try a different search angle while preserving every part of the question."
+
+    return (
+        "Rewrite the search query for this document. Keep every part of the "
+        "original question, and do not add facts the user did not ask about.\n\n"
+        f"Original question: {original}\n"
+        f"Most recent search attempt: {previous}\n"
+        f"Retrieval failure: {reason}; relevance grade: {relevance_grade or 'not graded'}.\n"
+        f"Next strategy: {guidance}\n"
+        "Return one different search query. Do not repeat the original or "
+        "most recent attempt. Return only the query."
+    )
 
 
 def assess_retrieval_confidence(
