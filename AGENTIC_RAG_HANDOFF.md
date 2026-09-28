@@ -13,7 +13,7 @@ A separately-maintained `PROJECT.md` handoff doc (written for local-Ollama/other
 contextualize_question → (control? → record_turn/END) → retrieve
 retrieve → assess_retrieval (3-way: generate | grade_documents | rewrite_query)
 grade_documents → (relevant → generate) | (irrelevant → rewrite_query while retries remain, then abstain)
-rewrite_query → retrieve (loop)
+rewrite_query → retrieve when novel | abstain when empty or repeated
 generate → check_hallucination
 check_hallucination → grounded→END | insufficient_evidence→rewrite_query (or abstain when retries are exhausted) | unsupported→correct_generation
 correct_generation → check_hallucination (one more pass, single correction budget)

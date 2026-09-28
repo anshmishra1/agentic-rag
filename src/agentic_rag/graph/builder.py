@@ -16,6 +16,7 @@ from langgraph.graph import END, StateGraph
 
 from agentic_rag.graph.edges import (
     route_after_grading,
+    route_after_rewrite,
     route_after_hallucination_check,
     route_after_retrieval_assessment,
     route_after_contextualization,
@@ -112,9 +113,10 @@ def build_graph(checkpointer: BaseCheckpointSaver):
     # Corrective retrieval loop
     # ---------------------------------------------------------
 
-    graph.add_edge(
+    graph.add_conditional_edges(
         "rewrite_query",
-        "retrieve",
+        route_after_rewrite,
+        {"retrieve": "retrieve", "abstain": "abstain"},
     )
 
     # ---------------------------------------------------------

@@ -1,6 +1,7 @@
 from agentic_rag.graph.edges import (
     route_after_contextualization,
     route_after_grading,
+    route_after_rewrite,
     route_after_hallucination_check,
     route_after_retrieval_assessment,
 )
@@ -18,6 +19,11 @@ def test_retrieval_assessment_preserves_known_decisions() -> None:
     assert route_after_retrieval_assessment({"retrieval_decision": "generate"}) == "generate"
     assert route_after_retrieval_assessment({"retrieval_decision": "rewrite_query"}) == "rewrite_query"
     assert route_after_retrieval_assessment({"retrieval_decision": "grade"}) == "grade_documents"
+
+
+def test_rewrite_routes_only_novel_queries_to_retrieval() -> None:
+    assert route_after_rewrite({"rewrite_stalled": False}) == "retrieve"
+    assert route_after_rewrite({"rewrite_stalled": True}) == "abstain"
 
 
 def test_relevant_documents_generate() -> None:

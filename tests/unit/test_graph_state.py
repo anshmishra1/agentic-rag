@@ -35,6 +35,7 @@ EXPECTED_STATE_FIELDS = {
     "verification_exhausted",
     "citations",
     "retry_count",
+    "rewrite_stalled",
     "hallucination_retry_count",
     "correction_attempted",
 }
