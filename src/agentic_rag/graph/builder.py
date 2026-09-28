@@ -104,6 +104,7 @@ def build_graph(checkpointer: BaseCheckpointSaver):
         {
             "rewrite_query": "rewrite_query",
             "generate": "generate",
+            "abstain": "abstain",
         },
     )
 
