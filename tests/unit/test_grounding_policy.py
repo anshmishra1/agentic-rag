@@ -2,7 +2,11 @@ import json
 
 import pytest
 
-from agentic_rag.policies.grounding import grounding_result, parse_grounding_response
+from agentic_rag.policies.grounding import (
+    citation_issue_result,
+    grounding_result,
+    parse_grounding_response,
+)
 
 
 @pytest.mark.parametrize(
@@ -96,3 +100,15 @@ def test_malformed_verdict_fails_closed_and_exhausts_after_correction() -> None:
     assert result["grounding_parse_success"] is False
     assert result["answer_status"] == "verification_uncertain"
     assert result["verification_exhausted"] is True
+
+
+def test_citation_failure_routes_to_correction_then_exhausts() -> None:
+    issues = ["List item lacks a source citation: unsupported example"]
+
+    first = citation_issue_result(issues, correction_attempted=False)
+    second = citation_issue_result(issues, correction_attempted=True)
+
+    assert first["grounding_diagnosis"] == "unsupported"
+    assert first["grounding_unsupported_claims"] == issues
+    assert first["verification_exhausted"] is False
+    assert second["verification_exhausted"] is True
