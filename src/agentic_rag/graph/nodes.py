@@ -47,11 +47,16 @@ from agentic_rag.policies.generation import (
     is_refusal_answer,
 )
 from agentic_rag.policies.citations import (
+    cited_verification_context,
     extract_used_citations,
     normalize_citation_markers,
 )
 from agentic_rag.core.timing import get_current_tracker#, set_current_tracker, reset_current_tracker
-from agentic_rag.policies.grounding import ABSTENTION_RESPONSE, grounding_result
+from agentic_rag.policies.grounding import (
+    ABSTENTION_RESPONSE,
+    citation_issue_result,
+    grounding_result,
+)
 from agentic_rag.policies.conversation import classify_query_intent
 from agentic_rag.observability.trace import log_stage
 
@@ -665,7 +670,9 @@ def generate(state: RAGState) -> dict:
             "If the answer isn't supported by the context, say you "
             "don't know. "
             "Cite every factual claim with one or more source labels exactly "
-            "as written in the context, such as [S1]. Never invent a label. "
+            "as written in the context, such as [S1]. Place a citation on "
+            "each factual sentence and list item, not just at the end of "
+            "the whole answer. Never invent a label. "
             "Do not omit important details needed to properly answer "
             "the question.\n\n"
             f"Prior conversation:\n{history_text}\n\n"
@@ -733,15 +740,35 @@ def check_hallucination(state: RAGState) -> dict:
             }
 
         documents = state.get("documents", [])
-        context, _, _ = apply_citation_generation_limits(documents, [])
+        context, citation_issues = cited_verification_context(
+            documents,
+            generation,
+            max_documents=settings.max_generation_context_documents,
+            max_chars=settings.max_generation_context_chars,
+        )
+        if citation_issues:
+            outcome = citation_issue_result(
+                citation_issues,
+                correction_attempted=state.get("correction_attempted", False),
+            )
+            print(f"Citation verification issues: {citation_issues}")
+            return {
+                **outcome,
+                "hallucination_retry_count": state.get("hallucination_retry_count", 0) + 1,
+            }
 
         prompt = (
             "Classify how well the answer is supported by the retrieved "
             "context. Return JSON only, with this exact schema:\n"
             '{"verdict":"grounded|insufficient_evidence|unsupported",'
             '"unsupported_claims":["claim text"]}\n\n'
-            "Use 'grounded' only when every factual claim is directly "
-            "supported by the context. Use 'insufficient_evidence' when the "
+            "The context below contains only sources cited in the answer. "
+            "Check each factual clause and example against its own cited "
+            "source label. Do not borrow support from another source or "
+            "from general knowledge. Use 'grounded' only when every factual "
+            "claim is directly supported by its cited passage. Treat examples "
+            "introduced by phrases such as 'such as' as separate claims. "
+            "Use 'insufficient_evidence' when the "
             "context itself does not contain enough information to answer the "
             "question reliably. Use 'unsupported' when the context is adequate "
             "but the answer adds, changes, or overstates factual claims. "
@@ -820,7 +847,8 @@ def correct_generation(state: RAGState) -> dict:
             "explicitly say the document does not cover it rather than "
             "omitting it silently. Preserve the user's requested level of "
             "detail and formatting where the context allows it. Cite every "
-            "factual claim with the provided [S#] labels and never invent a "
+            "factual sentence and list item with the provided [S#] labels, "
+            "and never invent a "
             "label.\n\n"
             f"Prior conversation:\n{history_text}\n\n"
             f"Context:\n{context}\n\n"

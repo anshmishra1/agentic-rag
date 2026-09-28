@@ -94,3 +94,11 @@ def grounding_result(raw: str, *, correction_attempted: bool) -> dict:
         "answer_status": answer_status,
         "verification_exhausted": verification_exhausted,
     }
+
+
+def citation_issue_result(issues: list[str], *, correction_attempted: bool) -> dict:
+    """Route deterministic citation failures through normal correction."""
+    return grounding_result(
+        json.dumps({"verdict": "unsupported", "unsupported_claims": issues}),
+        correction_attempted=correction_attempted,
+    )
