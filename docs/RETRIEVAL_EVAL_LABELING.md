@@ -95,3 +95,54 @@ The current ratio-and-gap rule treated that close group as weak evidence.
 The development sample contains only three positives and three negatives,
 so the analyzer correctly made no threshold recommendation. This identifies
 a case to test across more documents, not a justified new numeric setting.
+
+## Six-document retrieval pilot (2026-09-28)
+
+With approval to ingest the five remaining exact PDFs, each generated one
+Groq overview and was indexed sequentially. Their content-chunk counts were
+384 (AI Engineering), 699 (CS229), 79 (ML eBook), 600 (DevOps
+Troubleshooting), and 932 (Hands-On LLM). The previously indexed Explainable
+AI PDF was skipped. No answer-generation queries were made. PostgreSQL was
+stopped after scoring without removing its volume.
+
+Retrieval-only collection completed the remaining 38 reviewed pairs, and the
+saved first-pilot results supplied the other eight. The ignored snapshot is
+`logs/evaluation/20260928T092147Z/`; it contains query text and document IDs
+and should stay local. Among 35 development pairs, the lowest positive top
+score was 0.1313 and the highest negative was 0.0080. The analyzer's
+development-only midpoint candidate floor is 0.069635; at that fixed floor,
+the 11 holdout pairs were 6 true positives and 5 true negatives. This is a
+small document-level pilot, not a calibrated probability or a verified
+chunk-level relevance result.
+
+Before the focused rule change, all 21 negatives routed to rewrite, while
+four of 25 positives also routed to rewrite. Three positives had very high top
+scores but close-ranked candidates (`q001-source`, `q031-source`, and holdout
+`q038-source`); `q033-other` scored 0.1313 but fell below the current 0.30
+floor. An offline, label-blind replay of sending rewrites with a top score at
+or above the development candidate floor to semantic grading changes exactly
+those four positives and no negatives in this set. This replay does not test
+the grader, subsequent retries, grounding, or final answers. Review the
+retrieved passages before acting on the apparent floor separation, and add
+chunk-level labels before claiming retrieval quality; keep the holdout
+separate from further tuning.
+
+## Passage review and focused routing change
+
+Read the indexed top passages for the four positive rewrites. The top passage
+for `q001-source` explains XAI behavior and the top passage for `q031-source`
+states the representation/generative model distinction. For holdout
+`q038-source`, the second ranked passage directly explains supervised
+fine-tuning; the top passage alone is less complete. In contrast, the top
+`q033-other` passage mentions semantic search strategies without defining
+semantic search. Its document-level positive label does not establish that
+the retrieved top passage can answer the question. This is why the candidate
+0.069635 floor was **not** adopted; the runtime floor remains 0.30.
+
+The policy now sends close-ranked candidates **above** the existing floor to
+the semantic relevance grader rather than immediately rewriting. Replaying
+all 46 saved cases through the changed policy moved `q001-source`,
+`q031-source`, and holdout `q038-source` from rewrite to grade. The 21
+negatives and `q033-other` still route to rewrite. This is a first-pass
+routing result only; no live grading, answer generation, or full retry path
+was exercised. Passage-level labels for the broader set remain pending.

@@ -146,3 +146,51 @@ def test_close_top_candidates_require_grading(monkeypatch) -> None:
         "evidence_strength": "ambiguous",
         "reason": "top_candidates_too_close",
     }
+
+
+def test_similarly_high_candidates_are_graded_without_rewrite(monkeypatch) -> None:
+    _configure_thresholds(monkeypatch)
+
+    result = retrieval.assess_retrieval_confidence(
+        metrics={
+            "top_score": 0.999,
+            "second_score": 0.995,
+            "mean_score": 0.993,
+            "top_to_mean_ratio": 1.006,
+            "gap_ratio": 0.004,
+        },
+        top_doc_type="content",
+        overview_top_score=0.994,
+        content_top_score=0.999,
+        retry_count=0,
+    )
+
+    assert result == {
+        "decision": "grade",
+        "evidence_strength": "ambiguous",
+        "reason": "weak_candidate_separation",
+    }
+
+
+def test_below_floor_still_rewrites_even_when_candidates_are_close(monkeypatch) -> None:
+    _configure_thresholds(monkeypatch)
+
+    result = retrieval.assess_retrieval_confidence(
+        metrics={
+            "top_score": 0.1313,
+            "second_score": 0.1139,
+            "mean_score": 0.0467,
+            "top_to_mean_ratio": 2.813,
+            "gap_ratio": 0.1325,
+        },
+        top_doc_type="content",
+        overview_top_score=0.0,
+        content_top_score=0.1313,
+        retry_count=0,
+    )
+
+    assert result == {
+        "decision": "rewrite_query",
+        "evidence_strength": "weak",
+        "reason": "top_score_below_floor",
+    }
