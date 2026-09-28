@@ -139,18 +139,25 @@ virtual environment and writes versioned logs under `logs/`.
 
 ## Running with Docker Compose
 
-After creating `.env`, build and start the API, Streamlit frontend, and local
-PostgreSQL service:
+After creating `.env`, use the local runner from PowerShell or Command Prompt:
 
-```bash
-docker compose up --build
+```powershell
+python scripts/local_docker.py start
+python scripts/local_docker.py status
+python scripts/local_docker.py stop
 ```
 
-The first command builds the images. For later runs with unchanged code, use
-`docker compose start` to restart the same containers, or `docker compose up -d`
-if they have not been created yet. Use `docker compose stop` when finished so
-the containers and their downloaded model cache remain available. Rebuild with
-`docker compose up --build` only after changing code or dependencies.
+`start` reuses existing images and containers. The runner creates a temporary
+Compose override to mount the existing host Hugging Face cache read-only and
+write API run files to `logs/runs/` on the host. It keeps provider settings in
+`.env` and does not read that file itself. Model downloads are disabled. For a
+quota-limited diagnostic run, use `start --bounded` (two graph retries, one
+attempt per LLM call). Rebuild only the service whose source changed, for
+example `python scripts/local_docker.py start --build api`. The runner's
+`stop` command retains containers and the PostgreSQL volume.
+
+For direct Compose use, `docker compose up -d --no-build` starts existing
+images, but it does not mount the host model cache or log folder.
 
 The frontend is available on port 8501, the API on port 8000, and PostgreSQL
 is exposed to the host on port 5442. API startup warms the cross-encoder model,
