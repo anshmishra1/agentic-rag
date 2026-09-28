@@ -149,10 +149,11 @@ def assess_retrieval_confidence(
             "reason": "top_score_below_floor",
         }
     # ---------------------------------------------------------
-    # 2. Very weak distribution
+    # 2. Close-ranked candidates need semantic grading
     #
-    # The top result is not sufficiently separated from the
-    # remaining candidates.
+    # Several relevant passages can all score highly, leaving the top result
+    # close to its peers. Once the minimum score floor is met, score shape
+    # alone is not evidence that a different query would retrieve better.
     # ---------------------------------------------------------
     weak_distribution = (
         top_to_mean < settings.retrieval_top_to_mean_ratio
@@ -160,16 +161,9 @@ def assess_retrieval_confidence(
     )
 
     if weak_distribution:
-        if retry_count >= settings.max_retries:
-            return {
-                "decision": "grade",
-                "evidence_strength": "weak",
-                "reason": "weak_distribution_retries_exhausted",
-            }
-
         return {
-            "decision": "rewrite_query",
-            "evidence_strength": "weak",
+            "decision": "grade",
+            "evidence_strength": "ambiguous",
             "reason": "weak_candidate_separation",
         }
 
