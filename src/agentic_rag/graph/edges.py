@@ -52,9 +52,9 @@ def route_after_grading(state: RAGState) -> str:
         return decision
 
     if retry_count >= settings.max_retries:
-        decision = "generate"
+        decision = "abstain"
         print(f"ROUTE -> {decision}")
-        print("Reason: maximum retrieval retries reached.")
+        print("Reason: no relevant evidence after maximum retrieval retries.")
         log_stage("route_after_grading", relevance_grade=grade, retry_count=retry_count, decision=decision)
         return decision
 

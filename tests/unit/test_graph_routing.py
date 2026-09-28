@@ -36,7 +36,15 @@ def test_irrelevant_documents_rewrite_until_budget_is_exhausted(
     ) == "rewrite_query"
     assert route_after_grading(
         {"relevance_grade": "irrelevant", "retry_count": 2}
-    ) == "generate"
+    ) == "abstain"
+
+
+def test_missing_relevance_grade_abstains_after_retry_budget(monkeypatch) -> None:
+    monkeypatch.setattr("agentic_rag.graph.edges.settings.max_retries", 2)
+
+    assert route_after_grading(
+        {"relevance_grade": None, "retry_count": 2}
+    ) == "abstain"
 
 
 def test_grounded_answer_ends() -> None:
