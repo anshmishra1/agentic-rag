@@ -191,7 +191,7 @@ Key environment variables (see `.env.example` for the full list):
 | `PRIMARY_LLM_MAX_TOKENS`, `FAST_LLM_MAX_TOKENS` | Output caps for primary and fast model calls (defaults: 4096 and 1024) |
 | `PINECONE_API_KEY`, `PINECONE_INDEX_NAME` | Vector store connection |
 | `POSTGRES_URL` | Conversation checkpointing + document registry |
-| `RETRIEVAL_MIN_TOP_SCORE`, `RETRIEVAL_STRONG_TOP_SCORE` | Absolute score gates for the retrieval confidence policy |
+| `RETRIEVAL_MIN_TOP_SCORE` | Provisional absolute score floor for retrieval routing (`RETRIEVAL_STRONG_TOP_SCORE` is currently unused) |
 | `CROSS_ENCODER_DEVICE` | `auto` (default), `cuda`, or `cpu` |
 | `MAX_RETRIES` | Cap on rewrite/retry loop iterations |
 | `DEBUG` | Verbose logging (candidate-level retrieval/rerank tables) |
@@ -212,6 +212,10 @@ cross-document questions. It has answer references but no verified relevant
 chunk IDs or negative query/document labels, so it cannot yet measure
 retrieval hit rates or justify score thresholds. Add those labels and collect
 scores from the current hybrid retrieval path before changing thresholds.
+The offline review set and instructions are in
+[`docs/RETRIEVAL_EVAL_LABELING.md`](docs/RETRIEVAL_EVAL_LABELING.md). A reviewed
+46-pair pilot is available for retrieval-only score collection; the original
+48 proposed pairs remain separate, and chunk-level labels are still pending.
 
 The calibration input is a JSON list with `query`, 64-character `document_id`,
 and boolean `should_match` on every row. Offline rows also need `top_score`.
@@ -223,9 +227,13 @@ python -m agentic_rag.policies.calibrate_retrieval scores.json
 ```
 
 The first command reads PostgreSQL and queries Pinecone but does not call an
-LLM; the second analyzes saved scores offline. It reports a candidate score
-floor only when at least five examples in each class separate cleanly.
-Validate any candidate on a separate holdout set before changing configuration.
+LLM; the second analyzes saved scores offline. The score snapshot also records
+the routing metrics and ranked chunk identities without document text. With
+development/holdout labels, only development rows can suggest a floor; the
+holdout rows report errors at that fixed candidate. The analyzer reports no
+candidate when either development class has fewer than five examples or their
+scores overlap. Ratio, gap, and overview settings need separate routing
+evaluation before changing configuration.
 
 ## API
 
