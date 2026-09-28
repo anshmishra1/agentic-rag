@@ -157,6 +157,23 @@ is exposed to the host on port 5442. API startup warms the cross-encoder model,
 so its first health check can take several minutes when the model cache is
 empty.
 
+The API reads provider settings from `.env`. For a Groq-only local run, set
+these values in your own `.env` (along with `GROQ_API_KEY` and Pinecone
+credentials):
+
+```dotenv
+PROVIDER_ORDER=groq
+GROQ_MODEL=openai/gpt-oss-120b
+GROQ_FAST_MODEL=openai/gpt-oss-20b
+PRIMARY_LLM_MAX_TOKENS=2048
+FAST_LLM_MAX_TOKENS=512
+DEBUG=false
+```
+
+These model IDs are hosted by Groq and use the Groq key, not a direct OpenAI
+API key. Groq free-tier rate limits still apply across requests. Changing only
+these settings requires recreating the API container, not rebuilding its image.
+
 ## Configuration
 
 Key environment variables (see `.env.example` for the full list):

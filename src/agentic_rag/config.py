@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     bedrock_model: str = "meta.llama3-3-70b-instruct-v1:0"
 
     # Fast-tier models
-    groq_fast_model: str = "openai/gpt-oss-120b"
+    groq_fast_model: str = "openai/gpt-oss-20b"
     cerebras_fast_model: str = "llama3.1-8b"
     nvidia_fast_model: str = "nvidia/nemotron-3.5-lightning-30b-a3b"
     openrouter_fast_model: str = "qwen/qwen-2.5-7b-instruct"
@@ -35,8 +35,8 @@ class Settings(BaseSettings):
     # LLM request timeouts
     fast_llm_timeout: float = 15.0
     primary_llm_timeout: float = 45.0
-    fast_llm_max_tokens: int = 1024
-    primary_llm_max_tokens: int = 4096
+    fast_llm_max_tokens: int = 512
+    primary_llm_max_tokens: int = 2048
 
     # Bedrock
     bedrock_enabled: bool = False
