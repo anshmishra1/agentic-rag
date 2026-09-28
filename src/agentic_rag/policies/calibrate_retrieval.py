@@ -18,10 +18,44 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from typing import Any
 
-from agentic_rag.evaluation.score_calibration import analyze_labeled_scores
+from agentic_rag.evaluation.score_calibration import analyze_scored_rows
 
 
 DOCUMENT_ID = re.compile(r"[0-9a-f]{64}\Z")
+
+
+def summarize_retrieval_result(result: dict[str, Any], document_id: str, chunk_id_fn) -> dict[str, Any]:
+    """Save policy inputs and ranked chunk identities, without document text."""
+    docs = result["documents"]
+    scores = result["retrieval_scores"]
+    if len(docs) != len(scores):
+        raise ValueError("Retrieval documents and scores have different lengths")
+    candidates = []
+    for doc, score in zip(docs, scores):
+        metadata = doc.metadata
+        candidates.append(
+            {
+                "chunk_id": chunk_id_fn(
+                    metadata.get("document_id") or document_id,
+                    metadata.get("type") or "content",
+                    doc.page_content,
+                ),
+                "score": float(score),
+                "type": metadata.get("type") or "content",
+                "page": metadata.get("page_label", metadata.get("page")),
+            }
+        )
+    return {
+        "top_score": float(result["retrieval_top_score"]),
+        "second_score": float(result["retrieval_second_score"]),
+        "mean_score": float(result["retrieval_mean_score"]),
+        "top_to_mean_ratio": float(result["retrieval_top_to_mean_ratio"]),
+        "gap_ratio": float(result["retrieval_gap_ratio"]),
+        "overview_top_score": result["retrieval_overview_top_score"],
+        "content_top_score": result["retrieval_content_top_score"],
+        "top_doc_type": candidates[0]["type"] if candidates else None,
+        "ranked_candidates": candidates,
+    }
 
 
 def collect_live_scores(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -42,6 +76,7 @@ def collect_live_scores(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         set_current_tracker,
     )
     from agentic_rag.graph.nodes import retrieve
+    from agentic_rag.retrieval.vectorstore import _stable_chunk_id
 
     scored = []
     for row in rows:
@@ -55,7 +90,7 @@ def collect_live_scores(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 result = retrieve({"question": query, "document_id": document_id})
         finally:
             reset_current_tracker(tracker_token)
-        scored.append({**row, "top_score": float(result["retrieval_top_score"])})
+        scored.append({**row, **summarize_retrieval_result(result, document_id, _stable_chunk_id)})
     return scored
 
 
@@ -72,7 +107,7 @@ def main() -> None:
         parser.error("input must be a JSON list")
     if args.live:
         rows = collect_live_scores(rows)
-    report = analyze_labeled_scores(rows, minimum_per_class=args.minimum_per_class)
+    report = analyze_scored_rows(rows, minimum_per_class=args.minimum_per_class)
 
     if args.scores_output:
         args.scores_output.write_text(json.dumps(rows, indent=2) + "\n", encoding="utf-8")
