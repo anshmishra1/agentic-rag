@@ -96,7 +96,31 @@ def delete_document_vectors(document_id: str) -> int:
 
     return len(ids_to_delete)
 
-def upsert_hybrid(chunks: list[Document], bm25_encoder) -> None:
+def prune_obsolete_document_vectors(document_id: str, keep_ids: set[str]) -> int:
+    """Remove prior vectors for this exact document after its new set is saved.
+
+    Re-ingestion can change chunk boundaries or overview text while retaining
+    the file-hash document ID. Upsert alone leaves those old IDs searchable.
+    The caller supplies only IDs from a completed upsert, so a failed write
+    cannot trigger deletion of the prior version.
+    """
+    prefix = f"{document_id}-"
+    if not keep_ids or any(not vector_id.startswith(prefix) for vector_id in keep_ids):
+        raise ValueError("keep_ids must contain IDs for the selected document")
+
+    index = get_pinecone_index()
+    obsolete = [
+        vector_id
+        for batch in index.list(prefix=prefix)
+        for vector_id in batch
+        if vector_id not in keep_ids
+    ]
+    for start in range(0, len(obsolete), 1000):
+        index.delete(ids=obsolete[start:start + 1000])
+    return len(obsolete)
+
+
+def upsert_hybrid(chunks: list[Document], bm25_encoder) -> set[str]:
     index = get_pinecone_index()
     texts = [c.page_content for c in chunks]
     dense_vectors = _embeddings.embed_documents(texts)
@@ -119,6 +143,8 @@ def upsert_hybrid(chunks: list[Document], bm25_encoder) -> None:
     batch_size = 100
     for start in range(0, len(vectors), batch_size):
         index.upsert(vectors=vectors[start:start + batch_size])
+
+    return {vector["id"] for vector in vectors}
 
 
 def _match_to_document(match: Any) -> tuple[str, Document, float]:

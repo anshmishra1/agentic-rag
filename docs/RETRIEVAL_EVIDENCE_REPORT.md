@@ -113,3 +113,15 @@ verifier returned no verdict, this run **did not exercise a live semantic
 rejection of uncited claims**. The offline regression probe remains the
 evidence for that specific new rule. One question cannot establish general
 answer accuracy, reranker quality, or token cost. No threshold changed.
+
+## Follow-up index audit
+
+The later read-only audit established that the unmatched content IDs are
+real indexed vectors, not merely IDs derived incorrectly by the score
+collector. All current content IDs are present, alongside 5,567 extra
+content IDs and 16 extra overview/legacy IDs across five of six PDFs.
+The ML eBook is clean. This contamination must be repaired before using
+these PDFs to judge reranker quality. See
+`docs/RETRIEVAL_EVALUATION_RATIONALE.md` for the per-document counts, test
+reasoning, dry-run cleanup plan, and remaining evaluation gate. No Pinecone
+vectors were deleted during the audit.
