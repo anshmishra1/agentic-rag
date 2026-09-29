@@ -1,0 +1,237 @@
+[
+  {
+    "case_id": "q051-source",
+    "split": "development",
+    "target_document": "AI_Engineering_2025Book.pdf",
+    "document_label_should_match": true,
+    "judgment": "support_found",
+    "confirmed_support": [
+      {
+        "rank": 3,
+        "chunk_id": "8354069b86193aa9d4c6f88b576443523f00ad68b9637711ad9f801869ffa1b2-content-e736b8ea597243c6",
+        "page": "182",
+        "score": 0.9915434122085571
+      }
+    ],
+    "reconstructed_content_count": 5,
+    "ranked_content_count": 5,
+    "review_note": "Page 182 states that RAG retrieves external documents and feeds them to the LLM before generation."
+  },
+  {
+    "case_id": "q001-source",
+    "split": "development",
+    "target_document": "Explainable-AI-for-Practitioners.pdf",
+    "document_label_should_match": true,
+    "judgment": "support_found",
+    "confirmed_support": [
+      {
+        "rank": 1,
+        "chunk_id": "92f92d40c9b94deefa0d98d0c384a0402755d69cf7485641513fc8bbeb968d21-content-3d645d71b218fa51",
+        "page": "6",
+        "score": 0.998955249786377
+      }
+    ],
+    "reconstructed_content_count": 4,
+    "ranked_content_count": 5,
+    "review_note": "Page 6 says the explanation gives insight into why a model made its prediction."
+  },
+  {
+    "case_id": "q021-source",
+    "split": "development",
+    "target_document": "ML_eBook.pdf",
+    "document_label_should_match": true,
+    "judgment": "support_found",
+    "confirmed_support": [
+      {
+        "rank": 1,
+        "chunk_id": "bfbf63679031c0286bd58985a06cba94c868ba46f13f5722dfe72265998ca0ec-content-661a08d0082e529f",
+        "page": "2",
+        "score": 0.3549731969833374
+      }
+    ],
+    "reconstructed_content_count": 5,
+    "ranked_content_count": 5,
+    "review_note": "Page 2 defines supervised learning as learning from labeled input-output pairs."
+  },
+  {
+    "case_id": "q026-source",
+    "split": "development",
+    "target_document": "ML_eBook.pdf",
+    "document_label_should_match": true,
+    "judgment": "support_found",
+    "confirmed_support": [
+      {
+        "rank": 1,
+        "chunk_id": "bfbf63679031c0286bd58985a06cba94c868ba46f13f5722dfe72265998ca0ec-content-0f900ba7ced5051a",
+        "page": "5",
+        "score": 0.9992844462394714
+      }
+    ],
+    "reconstructed_content_count": 5,
+    "ranked_content_count": 5,
+    "review_note": "Page 5 explains the penalty that discourages fitting noise and improves generalization."
+  },
+  {
+    "case_id": "q043-source",
+    "split": "development",
+    "target_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "document_label_should_match": true,
+    "judgment": "support_found",
+    "confirmed_support": [
+      {
+        "rank": 5,
+        "chunk_id": "dabda476b58ea363cff0a7d9f206b26024e8717f31bcdc4ef32fc79e4ca2b372-content-772f9e32d697af6a",
+        "page": "18",
+        "score": 0.16297587752342224
+      }
+    ],
+    "reconstructed_content_count": 3,
+    "ranked_content_count": 5,
+    "review_note": "Page 18 names CPU, RAM, disk I/O, and network as resource areas."
+  },
+  {
+    "case_id": "q046-source",
+    "split": "development",
+    "target_document": "Rankin K.-DevOps Troubleshooting  Linux Server Best Practices-Addison-Wesley (2012).pdf",
+    "document_label_should_match": true,
+    "judgment": "support_found",
+    "confirmed_support": [
+      {
+        "rank": 1,
+        "chunk_id": "dabda476b58ea363cff0a7d9f206b26024e8717f31bcdc4ef32fc79e4ca2b372-content-18963d5f2918500d",
+        "page": "80",
+        "score": 0.9965757727622986
+      }
+    ],
+    "reconstructed_content_count": 2,
+    "ranked_content_count": 5,
+    "review_note": "Page 80 explains using traceroute hop timings to locate a network slowdown."
+  },
+  {
+    "case_id": "q031-source",
+    "split": "development",
+    "target_document": "oreilly_HandsOnLLM.pdf",
+    "document_label_should_match": true,
+    "judgment": "support_found",
+    "confirmed_support": [
+      {
+        "rank": 1,
+        "chunk_id": "38a060d27f64f497018025a8f471974711d9504bf5ff2fc5e4d01a2fb7021a2f-content-2eb578636f84fd61",
+        "page": "9",
+        "score": 0.998526930809021
+      }
+    ],
+    "reconstructed_content_count": 3,
+    "ranked_content_count": 5,
+    "review_note": "Page 9 distinguishes task-oriented non-generating representation models from text-generating models."
+  },
+  {
+    "case_id": "q033-source",
+    "split": "development",
+    "target_document": "oreilly_HandsOnLLM.pdf",
+    "document_label_should_match": true,
+    "judgment": "support_found",
+    "confirmed_support": [
+      {
+        "rank": 2,
+        "chunk_id": "38a060d27f64f497018025a8f471974711d9504bf5ff2fc5e4d01a2fb7021a2f-content-0b2f5c849edd1a6a",
+        "page": "316",
+        "score": 0.9956269264221191
+      }
+    ],
+    "reconstructed_content_count": 4,
+    "ranked_content_count": 5,
+    "review_note": "Page 316 defines semantic search as search by meaning rather than keyword matching."
+  },
+  {
+    "case_id": "q038-source",
+    "split": "holdout",
+    "target_document": "oreilly_HandsOnLLM.pdf",
+    "document_label_should_match": true,
+    "judgment": "support_found",
+    "confirmed_support": [
+      {
+        "rank": 2,
+        "chunk_id": "38a060d27f64f497018025a8f471974711d9504bf5ff2fc5e4d01a2fb7021a2f-content-6eb3025a7884b888",
+        "page": "488",
+        "score": 0.9969659447669983
+      }
+    ],
+    "reconstructed_content_count": 4,
+    "ranked_content_count": 5,
+    "review_note": "Page 488 explains adapting a base model to follow instructions and target tasks."
+  },
+  {
+    "case_id": "q038-other",
+    "split": "holdout",
+    "target_document": "AI_Engineering_2025Book.pdf",
+    "document_label_should_match": true,
+    "judgment": "support_found",
+    "confirmed_support": [
+      {
+        "rank": 1,
+        "chunk_id": "8354069b86193aa9d4c6f88b576443523f00ad68b9637711ad9f801869ffa1b2-content-ccb7ebeaf9a5f5ef",
+        "page": "68",
+        "score": 0.9968228340148926
+      }
+    ],
+    "reconstructed_content_count": 4,
+    "ranked_content_count": 5,
+    "review_note": "Page 68 defines fine-tuning as adjusting pretrained weights for a task."
+  },
+  {
+    "case_id": "q001-other",
+    "split": "development",
+    "target_document": "ML_eBook.pdf",
+    "document_label_should_match": false,
+    "judgment": "no_support_in_inspected_content",
+    "confirmed_support": [],
+    "reconstructed_content_count": 5,
+    "ranked_content_count": 5,
+    "review_note": "All five reconstructed content passages discuss general ML topics, not explanations of a prediction."
+  },
+  {
+    "case_id": "q003-other",
+    "split": "development",
+    "target_document": "ML_eBook.pdf",
+    "document_label_should_match": false,
+    "judgment": "no_support_in_inspected_content",
+    "confirmed_support": [],
+    "reconstructed_content_count": 5,
+    "ranked_content_count": 5,
+    "review_note": "All five reconstructed content passages concern ML algorithms, not explainability and causality."
+  },
+  {
+    "case_id": "q033-other",
+    "split": "development",
+    "target_document": "AI_Engineering_2025Book.pdf",
+    "document_label_should_match": true,
+    "judgment": "unresolved",
+    "confirmed_support": [],
+    "reconstructed_content_count": 5,
+    "ranked_content_count": 5,
+    "review_note": "All five content passages were reconstructed. They mention semantic retrieval or embeddings, but do not clearly define semantic search in one passage."
+  },
+  {
+    "case_id": "q053-source",
+    "split": "development",
+    "target_document": "AI_Engineering_2025Book.pdf",
+    "document_label_should_match": true,
+    "judgment": "unresolved",
+    "confirmed_support": [],
+    "reconstructed_content_count": 4,
+    "ranked_content_count": 5,
+    "review_note": "Top content passage describes using retrieved chunks but not clearly why text is chunked; one of five content passages is unmatched."
+  },
+  {
+    "case_id": "q061-source",
+    "split": "development",
+    "target_document": "CS229_Stanford_ML_AndrewNg.pdf",
+    "document_label_should_match": true,
+    "judgment": "unresolved",
+    "confirmed_support": [],
+    "reconstructed_content_count": 2,
+    "ranked_content_count": 5,
+    "review_note": "Three of five content passages are unmatched, and two overview passages were not reconstructed."
+  }
+]
