@@ -52,7 +52,7 @@ record_turn     |                 |       correct_generation
 
 - **Retrieval confidence gating** — a three-way policy (`generate` / `grade` / `rewrite_query`) decides whether an LLM relevance grader is necessary, based on an absolute score floor plus the relative shape of the score distribution. Strong evidence skips grading; scores below the floor trigger a rewrite, while close-ranked candidates above the floor go to semantic grading. Rewrites receive the latest failure reason and stop with an abstention if they repeat an attempted query.
 - **Hybrid retrieval** — dense (embedding) and sparse (BM25) retrieval run independently and are fused via Reciprocal Rank Fusion, then reranked with a cross-encoder for final relevance scoring. BM25 is fit per document at ingestion time, not globally, matching the document-scoped retrieval model.
-- **Document-scoped retrieval** — every document gets a stable, content-derived ID (a hash of its bytes), so retrieval, BM25 encoding, and vector storage are all scoped to a specific document rather than the whole corpus. Re-ingesting a document overwrites its existing vectors instead of duplicating them.
+- **Document-scoped retrieval** — every document gets a stable, content-derived ID (a hash of its bytes), so retrieval, BM25 encoding, and vector storage are all scoped to a specific document rather than the whole corpus. Re-ingestion upserts the current vectors, updates the document's BM25 state, then removes obsolete vectors for that document.
 - **Whole-document overview chunks** — a summary generated at ingestion time and retrieved separately from content chunks, so structural questions ("what does this document cover") aren't left to chunk-level semantic search, which is the wrong granularity for that kind of question.
 - **Corrective grounding handling** — a structured verifier distinguishes a grounded answer, insufficient evidence, and unsupported generation. Verification sees only the passages cited by the answer; missing or unknown labels and uncited factual list items route to correction without an LLM verdict. Evidence problems route back to retrieval and end in an explicit abstention when retries are exhausted; a relevance grade of irrelevant also abstains after the retrieval retry budget. Generation problems receive one constrained correction using the verifier's unsupported-claim list. Malformed verifier output fails closed instead of silently approving an answer.
 - **Multi-provider LLM fallback** — requests fall through a configurable provider chain (Groq, Cerebras, NVIDIA NIM, OpenRouter, optionally AWS Bedrock), split into a "primary" tier (used only for final answer generation) and a "fast" tier (used for classification-style calls: grading, rewriting, hallucination checking) to control cost and rate-limit pressure.
@@ -234,6 +234,9 @@ holdout rows report errors at that fixed candidate. The analyzer reports no
 candidate when either development class has fewer than five examples or their
 scores overlap. Ratio, gap, and overview settings need separate routing
 evaluation before changing configuration.
+
+The evaluation history, index-consistency diagnosis, and cleanup safety gate
+are documented in [`docs/RETRIEVAL_EVALUATION_RATIONALE.md`](docs/RETRIEVAL_EVALUATION_RATIONALE.md).
 
 ## API
 

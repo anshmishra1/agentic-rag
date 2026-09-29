@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
+import pytest
 from fastapi.testclient import TestClient
 from langchain_core.documents import Document
 
@@ -110,6 +111,10 @@ def test_ingest_reports_provider_failure_and_cleans_upload(monkeypatch):
 
 
 def _pipeline(monkeypatch, invoke, writes):
+    def upsert(chunks, encoder):
+        writes.append(("vectors", chunks))
+        return {"document-content-current", "document-overview-current"}
+
     _module(
         monkeypatch,
         "agentic_rag.ingestion.chunking",
@@ -138,7 +143,10 @@ def _pipeline(monkeypatch, invoke, writes):
     _module(
         monkeypatch,
         "agentic_rag.retrieval.vectorstore",
-        upsert_hybrid=lambda chunks, encoder: writes.append(("vectors", chunks)),
+        upsert_hybrid=upsert,
+        prune_obsolete_document_vectors=lambda document_id, keep_ids: writes.append(
+            ("prune", (document_id, keep_ids))
+        ),
     )
     _module(
         monkeypatch,
@@ -170,9 +178,11 @@ def test_pipeline_indexes_only_after_overview_succeeds(monkeypatch, tmp_path):
     assert count == 1
     assert calls[0][1] == 512
     assert "Source fact" in calls[0][0]
-    assert [step for step, _ in writes] == ["vectors", "registry"]
+    assert [step for step, _ in writes] == ["vectors", "registry", "prune"]
     assert writes[0][1][-1].metadata["type"] == "overview"
     assert writes[1][1]["document_id"] == hashlib.sha256(b"synthetic PDF").hexdigest()
+    assert writes[2][1][0] == writes[1][1]["document_id"]
+    assert writes[2][1][1] == {"document-content-current", "document-overview-current"}
 
 
 def test_pipeline_does_not_write_when_overview_provider_fails(monkeypatch, tmp_path):
@@ -191,5 +201,45 @@ def test_pipeline_does_not_write_when_overview_provider_fails(monkeypatch, tmp_p
         pass
     else:
         raise AssertionError("Provider failure should stop ingestion")
+
+    assert writes == []
+
+
+def test_pipeline_preserves_old_vectors_if_registry_update_fails(monkeypatch, tmp_path):
+    writes = []
+    pipeline = _pipeline(
+        monkeypatch,
+        lambda prompt, *, max_tokens: SimpleNamespace(content="Document overview"),
+        writes,
+    )
+    source = tmp_path / "example.pdf"
+    source.write_bytes(b"synthetic PDF")
+
+    def fail_registry(*args, **kwargs):
+        raise RuntimeError("registry unavailable")
+
+    monkeypatch.setattr(sys.modules["agentic_rag.ingestion.registry"], "record_ingestion", fail_registry)
+    with pytest.raises(RuntimeError, match="registry unavailable"):
+        pipeline.ingest_file(source)
+
+    assert [step for step, _ in writes] == ["vectors"]
+
+
+def test_pipeline_does_not_prune_after_failed_vector_upsert(monkeypatch, tmp_path):
+    writes = []
+    pipeline = _pipeline(
+        monkeypatch,
+        lambda prompt, *, max_tokens: SimpleNamespace(content="Document overview"),
+        writes,
+    )
+    source = tmp_path / "example.pdf"
+    source.write_bytes(b"synthetic PDF")
+
+    def fail_upsert(chunks, encoder):
+        raise RuntimeError("vector write failed")
+
+    monkeypatch.setattr(pipeline, "upsert_hybrid", fail_upsert)
+    with pytest.raises(RuntimeError, match="vector write failed"):
+        pipeline.ingest_file(source)
 
     assert writes == []
