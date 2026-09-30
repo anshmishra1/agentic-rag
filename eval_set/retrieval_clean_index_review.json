@@ -1,0 +1,18 @@
+[
+  {
+    "case_id": "q053-source",
+    "judgment": "support_found_after_cleanup",
+    "chunk_id": "8354069b86193aa9d4c6f88b576443523f00ad68b9637711ad9f801869ffa1b2-content-49d2999bc0d006eb",
+    "page": "120",
+    "reason": "The passage explains that chunking divides large documents into manageable pieces so text fits the embedding model input.",
+    "label_timing": "Reviewed from current local PDF after seeing the clean-index candidate lists; diagnostic, not blind holdout."
+  },
+  {
+    "case_id": "q061-source",
+    "judgment": "support_found_after_cleanup",
+    "chunk_id": "42b01d6cded932f3b39175bfab8d29d80a23558e917467c47b56d23ce8a22456-content-8d95fd57e4b8ebcb",
+    "page": "2",
+    "reason": "The course description lists supervised learning, unsupervised learning, learning theory, and reinforcement learning/adaptive control.",
+    "label_timing": "Reviewed from current local PDF after seeing the clean-index candidate lists; diagnostic, not blind holdout."
+  }
+]
