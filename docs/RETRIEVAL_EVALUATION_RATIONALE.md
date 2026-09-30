@@ -104,7 +104,7 @@ plan is local and ignored by Git at
 `logs/evaluation/20260929T111320Z/cleanup_plan.json`; its SHA-256 is
 `4f43b0444cfc8621c64ac794f198d001c338af0e61064375974cd59091b78bc0`.
 The plan contains IDs but no passage text. Its default command is read-only.
-**No vectors have been deleted.** One NLTK tokenizer/stopword download
+**No vectors had been deleted at this audit checkpoint.** One NLTK tokenizer/stopword download
 occurred inside a disposable diagnostic container; there were no Groq calls
 or ingestion requests during this audit.
 
@@ -118,8 +118,26 @@ networking disabled and no private `.env` mount. The separate maintenance
 command checks exact PDF hashes,
 registry chunk counts, all current IDs, and a unique active overview. Its
 apply mode additionally requires the reviewed plan digest and recomputes
-the entire plan before any deletion. Apply remains pending review and
-specific authorization because it deletes 5,583 existing Pinecone IDs.
+the entire plan before any deletion.
+
+## Approved cleanup result (2026-09-29)
+
+After PR #21 merged, a fresh read-only preflight reproduced the exact plan
+SHA-256 above and the same six-document counts. Before deletion, all 5,583
+targeted vector payloads were fetched and verified against the plan IDs in
+the ignored local snapshot
+`logs/evaluation/20260929T111320Z/stale_vectors_backup.jsonl.gz` (17,721,190
+bytes; SHA-256
+`dcea2c81492bf7047fe99f37be96db3a657a9d96b447f5aae19a063109794b75`).
+This snapshot contains document passages and must be treated as sensitive.
+
+With explicit user approval, the hash-locked apply completed and reported
+5,583 deleted IDs. A separate Pinecone ID audit found exactly the 2,859
+planned keep IDs across all six PDFs: zero missing current IDs, zero
+remaining stale IDs, and zero unexpected IDs. Only PostgreSQL was started
+for the preflight/apply and was stopped afterward with its volume preserved.
+No ingestion, Groq call, app query, or reranker measurement was run. The
+disposable preflight/apply containers initialized NLTK tokenizer data.
 
 After cleanup, confirm one current overview and the expected current
 content IDs per document. Then make a small, independent passage-label set
