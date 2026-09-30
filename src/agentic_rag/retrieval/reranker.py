@@ -77,6 +77,31 @@ def _sigmoid(x: np.ndarray) -> np.ndarray:
     return 1.0 / (1.0 + np.exp(-x))
 
 
+def _select_with_rrf_reserve(items: list[dict], top_k: int, reserve: int) -> list[dict]:
+    """Keep the strongest RRF candidates without enlarging the CE context budget.
+
+    ``items`` are sorted by cross-encoder score and retain their incoming RRF
+    rank. Replacements remove the lowest CE item outside the reserved set.
+    Final order stays by CE score so downstream scoring remains unchanged.
+    """
+    selected = items[:top_k]
+    reserved = sorted(items, key=lambda item: item["original_rank"])[:min(reserve, top_k)]
+    reserved_ranks = {item["original_rank"] for item in reserved}
+    for candidate in reserved:
+        if any(item["original_rank"] == candidate["original_rank"] for item in selected):
+            continue
+        replace = next(
+            (item for item in reversed(selected) if item["original_rank"] not in reserved_ranks),
+            None,
+        )
+        if replace is None:
+            raise ValueError("Cannot reserve RRF candidates within rerank budget")
+        selected.remove(replace)
+        selected.append(candidate)
+    selected.sort(key=lambda item: item["cross_encoder_score"], reverse=True)
+    return selected
+
+
 def rerank_many(
     query: str,
     candidate_groups: dict[str, list[tuple[Document, float]]],
@@ -150,7 +175,12 @@ def rerank_many(
             )
 
         top_k = top_k_by_group.get(group_name, len(items))
-        selected = items[:top_k]
+        selected = (
+            _select_with_rrf_reserve(
+                items, top_k, max(0, settings.rerank_content_rrf_reserve)
+            )
+            if group_name == "content" else items[:top_k]
+        )
         results[group_name] = [
             (item["doc"], item["cross_encoder_score"]) for item in selected
         ]
