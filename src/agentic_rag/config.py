@@ -91,6 +91,7 @@ class Settings(BaseSettings):
     rrf_k: int = 60
     rerank_top_k_content: int = 5
     rerank_top_k_overview: int = 2
+    rerank_content_rrf_reserve: int = 2  # retain these top RRF content IDs within the existing content budget
     cross_encoder_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     # Local reranker execution. "auto" selects CUDA when available, else CPU.
     cross_encoder_device: str = "auto"
