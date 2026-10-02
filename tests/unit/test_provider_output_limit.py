@@ -11,6 +11,7 @@ def _load_provider_with_fake_model(monkeypatch):
 
     class FakeChatModel:
         def __init__(self, **kwargs):
+            self.init_options = kwargs
             self.bound_options = None
             self.calls = 0
             models.append(self)
@@ -30,7 +31,7 @@ def _load_provider_with_fake_model(monkeypatch):
         nvidia_model="test-model",
         openrouter_model="test-model",
         bedrock_model="test-model",
-        groq_fast_model="test-model",
+        groq_fast_model="openai/gpt-oss-20b",
         cerebras_fast_model="test-model",
         nvidia_fast_model="test-model",
         openrouter_fast_model="test-model",
@@ -79,3 +80,56 @@ def test_primary_calls_have_a_default_output_limit(monkeypatch):
     provider.provider_chain.invoke("Answer the question")
 
     assert models[0].bound_options == {"max_tokens": 4096}
+
+
+def test_only_fast_groq_gpt_oss_verifier_uses_low_reasoning_effort(monkeypatch):
+    provider, models = _load_provider_with_fake_model(monkeypatch)
+
+    provider.fast_provider_chain.invoke(
+        "Check citations", max_tokens=1024, groq_reasoning_effort="low"
+    )
+    assert models[1].bound_options == {
+        "max_tokens": 1024,
+        "reasoning_effort": "low",
+    }
+
+    provider._MODELS["fast"]["groq"] = "other-model"
+    provider.fast_provider_chain.invoke(
+        "Check citations", max_tokens=1024, groq_reasoning_effort="low"
+    )
+    assert models[1].bound_options == {"max_tokens": 1024}
+
+    provider.provider_chain.invoke(
+        "Answer", groq_reasoning_effort="low"
+    )
+    assert models[0].bound_options == {"max_tokens": 4096}
+
+
+def test_installed_chatgroq_forwards_verifier_options_without_network() -> None:
+    from langchain_groq import ChatGroq
+
+    captured = {}
+
+    class FakeCompletions:
+        def create(self, **kwargs):
+            captured.update(kwargs)
+            return {
+                "choices": [{
+                    "message": {"role": "assistant", "content": '{"verdict":"grounded"}'},
+                    "finish_reason": "stop",
+                }],
+                "usage": {
+                    "prompt_tokens": 1,
+                    "completion_tokens": 1,
+                    "total_tokens": 2,
+                },
+            }
+
+    model = ChatGroq(groq_api_key="offline-test-key", model_name="openai/gpt-oss-20b")
+    model.client = FakeCompletions()
+
+    response = model.bind(max_tokens=1024, reasoning_effort="low").invoke("Verify")
+
+    assert response.content == '{"verdict":"grounded"}'
+    assert captured["max_tokens"] == 1024
+    assert captured["reasoning_effort"] == "low"

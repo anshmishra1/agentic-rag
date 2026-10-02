@@ -17,6 +17,30 @@ ABSTENTION_RESPONSE = (
 )
 
 
+def verifier_response_diagnostics(response: object) -> dict[str, str | int | None]:
+    """Return only safe completion metadata when verifier text is empty."""
+    metadata = getattr(response, "response_metadata", None)
+    metadata = metadata if isinstance(metadata, dict) else {}
+    usage = metadata.get("token_usage")
+    usage = usage if isinstance(usage, dict) else {}
+    details = usage.get("completion_tokens_details")
+    details = details if isinstance(details, dict) else {}
+
+    finish_reason = metadata.get("finish_reason")
+    if finish_reason not in {"stop", "length", "tool_calls", "content_filter"}:
+        finish_reason = "unknown"
+
+    completion_tokens = usage.get("completion_tokens")
+    reasoning_tokens = details.get("reasoning_tokens")
+    return {
+        "finish_reason": finish_reason,
+        "completion_tokens": completion_tokens
+        if type(completion_tokens) is int else None,
+        "reasoning_tokens": reasoning_tokens
+        if type(reasoning_tokens) is int else None,
+    }
+
+
 def parse_grounding_response(raw: str) -> tuple[str, list[str], bool]:
     """Parse the grounding verifier's JSON response defensively.
 

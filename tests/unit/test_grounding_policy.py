@@ -1,4 +1,5 @@
 import json
+from types import SimpleNamespace
 
 import pytest
 
@@ -6,6 +7,7 @@ from agentic_rag.policies.grounding import (
     citation_issue_result,
     grounding_result,
     parse_grounding_response,
+    verifier_response_diagnostics,
 )
 
 
@@ -47,6 +49,7 @@ def test_parse_markdown_fenced_json() -> None:
     "raw",
     [
         "not json",
+        "",
         '{"verdict": "unknown"}',
         '{"verdict":"unsupported","unsupported_claims":"not-an-array"}',
         "[]",
@@ -112,3 +115,26 @@ def test_citation_failure_routes_to_correction_then_exhausts() -> None:
     assert first["grounding_unsupported_claims"] == issues
     assert first["verification_exhausted"] is False
     assert second["verification_exhausted"] is True
+
+
+def test_empty_verifier_diagnostics_exclude_response_text() -> None:
+    response = SimpleNamespace(
+        content="sensitive answer text",
+        additional_kwargs={"reasoning_content": "sensitive reasoning text"},
+        response_metadata={
+            "finish_reason": "length",
+            "token_usage": {
+                "completion_tokens": 512,
+                "completion_tokens_details": {"reasoning_tokens": 510},
+            },
+        },
+    )
+
+    diagnostics = verifier_response_diagnostics(response)
+
+    assert diagnostics == {
+        "finish_reason": "length",
+        "completion_tokens": 512,
+        "reasoning_tokens": 510,
+    }
+    assert "sensitive" not in str(diagnostics)

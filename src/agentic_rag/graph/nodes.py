@@ -56,6 +56,7 @@ from agentic_rag.policies.grounding import (
     ABSTENTION_RESPONSE,
     citation_issue_result,
     grounding_result,
+    verifier_response_diagnostics,
 )
 from agentic_rag.policies.conversation import classify_query_intent
 from agentic_rag.observability.trace import log_stage
@@ -780,8 +781,17 @@ def check_hallucination(state: RAGState) -> dict:
             f"Answer:\n{generation}"
         )
 
-        result = fast_provider_chain.invoke(prompt)
+        result = fast_provider_chain.invoke(
+            prompt,
+            max_tokens=settings.grounding_verifier_max_tokens,
+            groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
+        )
         raw_grade = result.content.strip()
+        if not raw_grade:
+            print(
+                "Empty grounding verifier content; completion metadata: "
+                f"{verifier_response_diagnostics(result)}"
+            )
         outcome = grounding_result(
             raw_grade,
             correction_attempted=state.get("correction_attempted", False),

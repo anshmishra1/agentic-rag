@@ -174,6 +174,8 @@ GROQ_MODEL=openai/gpt-oss-120b
 GROQ_FAST_MODEL=openai/gpt-oss-20b
 PRIMARY_LLM_MAX_TOKENS=2048
 FAST_LLM_MAX_TOKENS=512
+GROQ_VERIFIER_REASONING_EFFORT=low
+GROUNDING_VERIFIER_MAX_TOKENS=1024
 DEBUG=false
 ```
 
@@ -188,13 +190,25 @@ Key environment variables (see `.env.example` for the full list):
 | Variable | Purpose |
 |---|---|
 | `PROVIDER_ORDER` | Fallback order across LLM providers, e.g. `cerebras,groq,nvidia,openrouter` |
-| `PRIMARY_LLM_MAX_TOKENS`, `FAST_LLM_MAX_TOKENS` | Output caps for primary and fast model calls (defaults: 4096 and 1024) |
+| `PRIMARY_LLM_MAX_TOKENS`, `FAST_LLM_MAX_TOKENS` | Output caps for primary and fast model calls (defaults: 2048 and 512) |
+| `GROQ_VERIFIER_REASONING_EFFORT` | Groq GPT-OSS grounding-verifier effort: `low` by default; grading and rewriting retain their current effort |
+| `GROUNDING_VERIFIER_MAX_TOKENS` | Verifier-only completion cap (default: 1024); other fast calls retain `FAST_LLM_MAX_TOKENS` |
 | `PINECONE_API_KEY`, `PINECONE_INDEX_NAME` | Vector store connection |
 | `POSTGRES_URL` | Conversation checkpointing + document registry |
 | `RETRIEVAL_MIN_TOP_SCORE` | Provisional absolute score floor for retrieval routing (`RETRIEVAL_STRONG_TOP_SCORE` is currently unused) |
 | `CROSS_ENCODER_DEVICE` | `auto` (default), `cuda`, or `cpu` |
 | `MAX_RETRIES` | Cap on rewrite/retry loop iterations |
 | `DEBUG` | Verbose logging (candidate-level retrieval/rerank tables) |
+
+The grounding verifier has its own 1024-token cap because a bounded Groq
+GPT-OSS 20B diagnostic consumed 510 of 512 completion tokens in reasoning
+and returned empty answer text with `finish_reason=length`. Only Groq
+GPT-OSS verification requests use low reasoning effort; other fast calls
+retain their existing settings. An identical, separate post-change probe
+returned valid verdict JSON with 70 completion tokens and
+`finish_reason=stop`. Empty verifier text still fails closed, with only
+finish reason and token counts added to diagnostics. This verifies the
+provider-call mechanism, not a full application answer.
 
 Retrieval thresholds in `config.py` are provisional. The calibration command
 requires reviewed positive and negative query/document pairs; it no longer
