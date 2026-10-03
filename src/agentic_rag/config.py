@@ -1,5 +1,7 @@
 """Central application settings loaded from environment / .env."""
 
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -22,6 +24,7 @@ class Settings(BaseSettings):
 
     # Fast-tier models
     groq_fast_model: str = "openai/gpt-oss-20b"
+    groq_verifier_reasoning_effort: Literal["low", "medium", "high"] = "low"
     cerebras_fast_model: str = "llama3.1-8b"
     nvidia_fast_model: str = "nvidia/nemotron-3.5-lightning-30b-a3b"
     openrouter_fast_model: str = "qwen/qwen-2.5-7b-instruct"
@@ -36,6 +39,7 @@ class Settings(BaseSettings):
     fast_llm_timeout: float = 15.0
     primary_llm_timeout: float = 45.0
     fast_llm_max_tokens: int = 512
+    grounding_verifier_max_tokens: int = 1024
     primary_llm_max_tokens: int = 2048
 
     # Bedrock

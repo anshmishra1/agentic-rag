@@ -204,7 +204,13 @@ class ProviderChain:
             model=_MODELS[self.tier]["bedrock"],
         )
 
-    def invoke(self, prompt: Any, *, max_tokens: int | None = None):
+    def invoke(
+        self,
+        prompt: Any,
+        *,
+        max_tokens: int | None = None,
+        groq_reasoning_effort: str | None = None,
+    ):
         """Invoke providers in configured order until one succeeds.
 
         Rate-limit-shaped errors get a few retries with exponential backoff
@@ -237,7 +243,18 @@ class ProviderChain:
                         if self.tier == "fast"
                         else settings.primary_llm_max_tokens
                     )
-                    request_llm = llm.bind(max_tokens=output_limit)
+                    request_options = {"max_tokens": output_limit}
+                    if (
+                        groq_reasoning_effort is not None
+                        and name == "groq"
+                        and self.tier == "fast"
+                        and _MODELS["fast"]["groq"] in {
+                            "openai/gpt-oss-20b",
+                            "openai/gpt-oss-120b",
+                        }
+                    ):
+                        request_options["reasoning_effort"] = groq_reasoning_effort
+                    request_llm = llm.bind(**request_options)
                     response = request_llm.invoke(prompt)
                     elapsed = time.perf_counter() - started
 
