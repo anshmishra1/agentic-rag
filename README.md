@@ -156,6 +156,15 @@ attempt per LLM call). Rebuild only the service whose source changed, for
 example `python scripts/local_docker.py start --build api`. The runner's
 `stop` command retains containers and the PostgreSQL volume.
 
+The Docker image uses the CPU-only PyTorch wheel on Linux, matching its CPU
+embedding and reranking runtime. Local Windows installs retain the CUDA wheel.
+The Dockerfile keeps uv's package cache outside image layers, so later builds
+can reuse downloads without shipping the cache in the image. A source change
+still requires rebuilding the affected service once; routine starts reuse the
+existing image. Pull requests and `main` run the locked Docker build, runtime
+import check, and offline unit suite in `.github/workflows/offline.yml` without
+provider credentials or network access during tests.
+
 For direct Compose use, `docker compose up -d --no-build` starts existing
 images, but it does not mount the host model cache or log folder.
 
