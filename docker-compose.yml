@@ -1,5 +1,6 @@
 services:
   api:
+    image: agentic-rag-app:local
     build: .
     ports:
       - "8000:8000"
@@ -7,6 +8,9 @@ services:
       - .env
     environment:
       DEBUG: "false"
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      MODEL_LOCAL_FILES_ONLY: "true"
       POSTGRES_URL: postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
     depends_on:
       postgres:
@@ -19,7 +23,7 @@ services:
       start_period: 300s
 
   frontend:
-    build: .
+    image: agentic-rag-app:local
     command: streamlit run app/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
     ports:
       - "8501:8501"

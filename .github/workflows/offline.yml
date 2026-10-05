@@ -35,6 +35,11 @@ jobs:
           docker run --rm --network none agentic-rag-ci:local \
             python -c 'import torch; from pinecone import Pinecone; assert torch.version.cuda is None; print(torch.__version__)'
 
+      - name: Verify baked models without network access
+        run: |
+          docker run --rm --network none agentic-rag-ci:local \
+            python scripts/cache_models.py --verify-only
+
       - name: Run offline unit suite
         run: |
           docker run --rm --network none \

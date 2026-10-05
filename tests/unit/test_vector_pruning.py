@@ -31,6 +31,8 @@ def _vectorstore(monkeypatch):
         "agentic_rag.config",
         settings=SimpleNamespace(
             embedding_model="stub",
+            embedding_model_revision="revision",
+            model_local_files_only=True,
             pinecone_index_name="agentic-rag-hybrid-v2",
         ),
     )
