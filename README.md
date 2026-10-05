@@ -159,12 +159,13 @@ python scripts/local_docker.py stop
 ```
 
 `start` reuses existing images and containers. The runner creates a temporary
-Compose override to mount the existing host Hugging Face cache read-only and
-write API run files to `logs/runs/` on the host. It keeps provider settings in
-`.env` and does not read that file itself. Model downloads are disabled. For a
-quota-limited diagnostic run, use `start --bounded` (two graph retries, one
-attempt per LLM call). Rebuild only the service whose source changed, for
-example `python scripts/local_docker.py start --build api`. The runner's
+Compose override that writes API run files to `logs/runs/` on the host. It
+keeps provider settings in `.env` and does not read that file itself. Model
+downloads are disabled at runtime because the pinned embedding and reranking
+models are already included in the application image. For a quota-limited
+diagnostic run, use `start --bounded` (two graph retries, one attempt per LLM
+call). `--build api`, `--build frontend`, and `--build all` each rebuild the
+one shared application image before starting both services. The runner's
 `stop` command retains containers and the PostgreSQL volume.
 
 The Docker image uses the CPU-only PyTorch wheel on Linux, matching its CPU
@@ -173,8 +174,17 @@ The Dockerfile keeps uv's package cache outside image layers, so later builds
 can reuse downloads without shipping the cache in the image. A source change
 still requires rebuilding the affected service once; routine starts reuse the
 existing image. Pull requests and `main` run the locked Docker build, runtime
-import check, and offline unit suite in `.github/workflows/offline.yml` without
-provider credentials or network access during tests.
+import check, baked-model offline load check, and offline unit suite in
+`.github/workflows/offline.yml` without provider credentials or network access
+during tests.
+
+The image pins exact Hugging Face revisions for
+`sentence-transformers/all-MiniLM-L6-v2` and
+`cross-encoder/ms-marco-MiniLM-L6-v2`. The first image build downloads those
+public model files into a reusable Docker layer. API startup and CI load them
+with Hugging Face networking disabled, so a host cache is no longer required.
+Changing either model or revision is an index migration and requires a new
+versioned `PINECONE_INDEX_NAME` plus document re-ingestion.
 
 For direct Compose use, `docker compose up -d --no-build` starts existing
 images, but it does not mount the host model cache or log folder.
@@ -215,6 +225,9 @@ Key environment variables (see `.env.example` for the full list):
 | `GROUNDING_VERIFIER_MAX_TOKENS` | Verifier-only completion cap (default: 1024); other fast calls retain `FAST_LLM_MAX_TOKENS` |
 | `PINECONE_API_KEY`, `PINECONE_INDEX_NAME` | Vector store connection and retrieval schema version; use a name such as `agentic-rag-hybrid-v2` for migrations |
 | `POSTGRES_URL` | Conversation checkpointing + document registry |
+| `EMBEDDING_MODEL`, `EMBEDDING_MODEL_REVISION` | Dense embedding model and immutable Hugging Face revision baked into Docker |
+| `CROSS_ENCODER_MODEL`, `CROSS_ENCODER_MODEL_REVISION` | Reranker model and immutable Hugging Face revision baked into Docker |
+| `MODEL_LOCAL_FILES_ONLY` | Prevent runtime model downloads; Docker sets this to `true` |
 | `RETRIEVAL_MIN_TOP_SCORE` | Provisional absolute score floor for retrieval routing (`RETRIEVAL_STRONG_TOP_SCORE` is currently unused) |
 | `CROSS_ENCODER_DEVICE` | `auto` (default), `cuda`, or `cpu` |
 | `MAX_RETRIES` | Cap on rewrite/retry loop iterations |

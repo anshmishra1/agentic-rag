@@ -16,14 +16,17 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from pinecone import Pinecone
 
 from agentic_rag.config import settings
+from agentic_rag.model_identity import canonical_model_name
 
 
 _embedding_device = "cuda" if torch.cuda.is_available() else "cpu"
 
 _embeddings = HuggingFaceEmbeddings(
-    model_name=settings.embedding_model,
+    model_name=canonical_model_name(settings.embedding_model),
     model_kwargs={
-        "device": "cuda" if torch.cuda.is_available() else "cpu"
+        "device": "cuda" if torch.cuda.is_available() else "cpu",
+        "revision": settings.embedding_model_revision,
+        "local_files_only": settings.model_local_files_only,
     },
 )
 

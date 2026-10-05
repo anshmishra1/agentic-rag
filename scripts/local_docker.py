@@ -1,4 +1,4 @@
-"""Run the local Compose app with persistent host logs and cached models.
+"""Run the local Compose app with persistent host logs and baked models.
 
 This script uses only the Python standard library. Compose loads .env at
 runtime; the script never opens or prints it.
@@ -18,7 +18,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 COMPOSE_FILE = PROJECT_ROOT / "docker-compose.yml"
 OVERRIDE_FILE = Path(tempfile.gettempdir()) / "agentic-rag-local-runner.yml"
 LOG_DIR = PROJECT_ROOT / "logs"
-MODEL_CACHE = Path.home() / ".cache" / "huggingface"
 
 
 def _docker_executable() -> str:
@@ -47,10 +46,7 @@ def _override_text(*, bounded: bool) -> str:
             '      LLM_MAX_RETRIES_PER_PROVIDER: "1"',
         ]
 
-    mounts = [
-        f"{MODEL_CACHE.resolve().as_posix()}:/home/appuser/.cache/huggingface:ro",
-        f"{LOG_DIR.resolve().as_posix()}:/app/logs",
-    ]
+    mounts = [f"{LOG_DIR.resolve().as_posix()}:/app/logs"]
     return "\n".join(
         ["services:", "  api:", "    environment:", *environment, "    volumes:"]
         + [f"      - {json.dumps(mount)}" for mount in mounts]
@@ -97,9 +93,6 @@ def main() -> int:
         _run(_compose_command(docker, "logs", "-f", "--tail", "100", "api"))
         return 0
 
-    if not (MODEL_CACHE / "hub").is_dir():
-        raise SystemExit(f"Local model cache not found at {MODEL_CACHE}; no model downloads were started.")
-
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     override_text = _override_text(bounded=args.bounded)
     if not OVERRIDE_FILE.is_file() or OVERRIDE_FILE.read_text(encoding="utf-8") != override_text:
@@ -107,7 +100,7 @@ def main() -> int:
 
     _run(_compose_command(docker, "config", "--quiet", override=True))
     if args.build:
-        services = ["api", "frontend"] if args.build == "all" else [args.build]
+        services = ["api"]
         _run(_compose_command(docker, "build", *services, override=True))
     _run(_compose_command(docker, "up", "-d", "--no-build", override=True))
     _run(_compose_command(docker, "ps", override=True))

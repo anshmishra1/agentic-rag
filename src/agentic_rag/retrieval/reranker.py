@@ -25,6 +25,7 @@ from langchain_core.documents import Document
 from sentence_transformers import CrossEncoder
 
 from agentic_rag.config import settings
+from agentic_rag.model_identity import canonical_model_name
 
 _cross_encoder: CrossEncoder | None = None
 
@@ -47,8 +48,10 @@ def _get_cross_encoder() -> CrossEncoder:
             device = "cuda" if torch.cuda.is_available() else "cpu"
 
         _cross_encoder = CrossEncoder(
-            settings.cross_encoder_model,
+            canonical_model_name(settings.cross_encoder_model),
             device=device,
+            revision=settings.cross_encoder_model_revision,
+            local_files_only=settings.model_local_files_only,
         )
 
     return _cross_encoder

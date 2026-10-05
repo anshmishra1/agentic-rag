@@ -4,6 +4,14 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from agentic_rag.model_identity import (
+    CROSS_ENCODER_MODEL,
+    CROSS_ENCODER_REVISION,
+    EMBEDDING_MODEL,
+    EMBEDDING_REVISION,
+)
+
+
 class Settings(BaseSettings):
     """Runtime configuration for the PDF RAG application."""
 
@@ -59,7 +67,9 @@ class Settings(BaseSettings):
     )
 
     # RAG / pipeline
-    embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_model: str = EMBEDDING_MODEL
+    embedding_model_revision: str = EMBEDDING_REVISION
+    model_local_files_only: bool = False
     # NOTE: units are TOKENS (per the embedding model's own tokenizer), not
     # characters - see ingestion/chunking.py. all-MiniLM-L6-v2's max sequence
     # length is 256 tokens; 240 leaves headroom for any tokenizer rounding.
@@ -99,7 +109,8 @@ class Settings(BaseSettings):
     rerank_top_k_content: int = 5
     rerank_top_k_overview: int = 2
     rerank_content_rrf_reserve: int = 2  # retain these top RRF content IDs within the existing content budget
-    cross_encoder_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    cross_encoder_model: str = CROSS_ENCODER_MODEL
+    cross_encoder_model_revision: str = CROSS_ENCODER_REVISION
     # Local reranker execution. "auto" selects CUDA when available, else CPU.
     cross_encoder_device: str = "auto"
     cross_encoder_batch_size: int = 32

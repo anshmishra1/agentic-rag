@@ -26,6 +26,7 @@ correct_generation → check_hallucination (one more pass, single correction bud
 - **LLM providers:** tiered fallback chain (fast tier for classification/grading/rewriting, primary tier for final generation only), across Groq/Cerebras/NVIDIA/OpenRouter/Bedrock(optional), configurable order.
 - **Conversation memory:** LangGraph Postgres checkpointer (Neon), thread_id-scoped.
 - **Packaging:** Python 3.12 dependencies are locked by `uv.lock`; Docker builds from the lock file, runs as a non-root user, and Compose provides a health-checked local PostgreSQL service on host port 5442.
+- **Model provisioning:** Docker pins exact Hugging Face revisions for the MiniLM embedding model and cross-encoder, downloads them once into a cacheable image layer, and verifies both with networking disabled. API and frontend share that image; runtime startup no longer depends on a host Hugging Face cache.
 - **Grounding verification:** structured JSON verdicts distinguish grounded answers, insufficient evidence, and unsupported generation. Unsupported-claim text is passed into one constrained correction; exhausted evidence retries produce a deterministic abstention rather than speculative generation.
 - **Observability:** fixed — no more unbounded `trace` accumulation in checkpointed state (was growing forever, printing the whole session's history every turn); now logger-based, with per-request + session-level PerformanceTracker via contextvars (not a module global anymore).
 
