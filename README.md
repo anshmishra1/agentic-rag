@@ -121,11 +121,22 @@ cp .env.example .env   # fill in provider keys, Pinecone key, Postgres URL
 uv sync --frozen
 ```
 
-Create the Pinecone index (must use `dotproduct` metric for hybrid search to work):
+Create a new versioned Pinecone index (must use `dotproduct` for hybrid search):
 
 ```bash
-python scripts/create_hybrid_index.py
+python scripts/create_hybrid_index.py --name agentic-rag-hybrid-v2
 ```
+
+This is a live Pinecone operation. Run it only after the corresponding
+chunking or embedding change passes offline evaluation. Set
+`PINECONE_INDEX_NAME` to the chosen version before ingestion. Existing
+`agentic-rag-hybrid` data remains untouched for rollback.
+
+The PostgreSQL document registry is index-aware. On first use it assigns
+pre-versioning rows to the legacy `agentic-rag-hybrid` index and changes the
+registry identity from `document_id` to `(index_name, document_id)`. Document
+listing, BM25 lookup, and deletion then operate only on the active index. This
+allows the same source document to be evaluated independently in v1 and v2.
 
 ## Running locally
 
@@ -202,7 +213,7 @@ Key environment variables (see `.env.example` for the full list):
 | `PRIMARY_LLM_MAX_TOKENS`, `FAST_LLM_MAX_TOKENS` | Output caps for primary and fast model calls (defaults: 2048 and 512) |
 | `GROQ_VERIFIER_REASONING_EFFORT` | Groq GPT-OSS grounding-verifier effort: `low` by default; grading and rewriting retain their current effort |
 | `GROUNDING_VERIFIER_MAX_TOKENS` | Verifier-only completion cap (default: 1024); other fast calls retain `FAST_LLM_MAX_TOKENS` |
-| `PINECONE_API_KEY`, `PINECONE_INDEX_NAME` | Vector store connection |
+| `PINECONE_API_KEY`, `PINECONE_INDEX_NAME` | Vector store connection and retrieval schema version; use a name such as `agentic-rag-hybrid-v2` for migrations |
 | `POSTGRES_URL` | Conversation checkpointing + document registry |
 | `RETRIEVAL_MIN_TOP_SCORE` | Provisional absolute score floor for retrieval routing (`RETRIEVAL_STRONG_TOP_SCORE` is currently unused) |
 | `CROSS_ENCODER_DEVICE` | `auto` (default), `cuda`, or `cpu` |

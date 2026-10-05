@@ -130,6 +130,7 @@ def upsert_hybrid(chunks: list[Document], bm25_encoder) -> set[str]:
         sparse = bm25_encoder.encode_documents(text)
         metadata = dict(chunk.metadata)
         metadata["text"] = text
+        metadata["index_name"] = settings.pinecone_index_name
         doc_id = metadata.get("document_id", "doc")
         chunk_type = metadata.get("type", "content")
         vector_id = _stable_chunk_id(doc_id, chunk_type, text)

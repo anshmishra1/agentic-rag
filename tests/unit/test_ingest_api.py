@@ -22,7 +22,14 @@ def _module(monkeypatch, name, **attributes):
 
 
 def _client(monkeypatch, ingest_file):
-    _module(monkeypatch, "agentic_rag.config", settings=SimpleNamespace(debug=False))
+    _module(
+        monkeypatch,
+        "agentic_rag.config",
+        settings=SimpleNamespace(
+            debug=False,
+            pinecone_index_name="agentic-rag-hybrid-v2",
+        ),
+    )
     _module(monkeypatch, "agentic_rag.graph.builder", build_graph=lambda _: None)
     _module(
         monkeypatch,
@@ -85,6 +92,7 @@ def test_ingest_returns_document_id_and_cleans_upload(monkeypatch):
     assert response.json() == [{
         "filename": "example.pdf",
         "document_id": hashlib.sha256(b"example PDF bytes").hexdigest(),
+        "index_name": "agentic-rag-hybrid-v2",
         "chunks_indexed": 2,
     }]
     assert len(uploaded_paths) == 1
