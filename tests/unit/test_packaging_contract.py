@@ -12,10 +12,11 @@ def test_dockerfile_uses_locked_project_dependencies() -> None:
     dockerfile = _read("Dockerfile")
 
     assert "FROM python:3.12-slim" in dockerfile
-    assert "COPY pyproject.toml uv.lock ./" in dockerfile
+    assert "COPY --chown=appuser:appuser pyproject.toml uv.lock ./" in dockerfile
     assert "uv sync --frozen --no-dev" in dockerfile
     assert "requirements.txt" not in dockerfile
     assert "USER appuser" in dockerfile
+    assert dockerfile.index("USER appuser") < dockerfile.index("uv sync --frozen --no-dev")
 
 
 def test_docker_context_excludes_local_and_sensitive_artifacts() -> None:
