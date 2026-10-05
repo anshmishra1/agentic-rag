@@ -26,7 +26,14 @@ def _vectorstore(monkeypatch):
         ),
     )
     _module(monkeypatch, "pinecone", Pinecone=lambda **kwargs: None)
-    _module(monkeypatch, "agentic_rag.config", settings=SimpleNamespace(embedding_model="stub"))
+    _module(
+        monkeypatch,
+        "agentic_rag.config",
+        settings=SimpleNamespace(
+            embedding_model="stub",
+            pinecone_index_name="agentic-rag-hybrid-v2",
+        ),
+    )
     path = Path(__file__).resolve().parents[2] / "src/agentic_rag/retrieval/vectorstore.py"
     spec = importlib.util.spec_from_file_location("vectorstore_under_test", path)
     module = importlib.util.module_from_spec(spec)
@@ -86,3 +93,6 @@ def test_upsert_returns_only_ids_written_after_success(monkeypatch):
         for kind, text in (("content", "current passage"), ("overview", "current overview"))
     }
     assert {vector["id"] for vector in writes} == written
+    assert {vector["metadata"]["index_name"] for vector in writes} == {
+        "agentic-rag-hybrid-v2"
+    }

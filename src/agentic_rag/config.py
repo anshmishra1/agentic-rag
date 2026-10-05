@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     aws_bedrock_region: str = "us-east-1"
 
     # Vector database
+    # The index name is the retrieval schema identity. Keep the legacy value
+    # for existing installations; migrations use a numeric suffix such as
+    # agentic-rag-hybrid-v2.
     pinecone_index_name: str = "agentic-rag-hybrid"
 
     # PostgreSQL / LangGraph checkpointing

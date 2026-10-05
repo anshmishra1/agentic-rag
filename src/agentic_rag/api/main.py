@@ -75,6 +75,7 @@ class QueryResponse(BaseModel):
 class IngestResult(BaseModel):
     filename: str
     document_id: str
+    index_name: str
     chunks_indexed: int
 
 
@@ -220,6 +221,7 @@ async def ingest(
                 IngestResult(
                     filename=upload.filename or "unknown",
                     document_id=document_id,
+                    index_name=settings.pinecone_index_name,
                     chunks_indexed=chunk_count,
                 )
             )
@@ -266,6 +268,7 @@ def delete_document(document_id: str) -> dict:
 
     return {
         "document_id": document_id,
+        "index_name": settings.pinecone_index_name,
         "vectors_deleted": vectors_deleted,
         "registry_rows_deleted": rows_deleted,
     }

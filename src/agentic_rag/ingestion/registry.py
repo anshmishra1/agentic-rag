@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import psycopg
 
 from agentic_rag.config import settings
+from agentic_rag.indexing import LEGACY_INDEX_NAME
 
 
 _CREATE_TABLE = """
@@ -34,16 +35,29 @@ ALTER TABLE ingested_documents
 ADD COLUMN IF NOT EXISTS bm25_params TEXT;
 """
 
+_MIGRATE_INDEX_NAME = """
+ALTER TABLE ingested_documents
+ADD COLUMN IF NOT EXISTS index_name TEXT;
+"""
+
+_BACKFILL_LEGACY_INDEX_NAME = """
+UPDATE ingested_documents
+SET index_name = %s
+WHERE index_name IS NULL
+  AND document_id IS NOT NULL;
+"""
+
 _DEDUPLICATE_DOCUMENT_IDS = """
 WITH ranked_documents AS (
     SELECT
         id,
         ROW_NUMBER() OVER (
-            PARTITION BY document_id
+            PARTITION BY index_name, document_id
             ORDER BY ingested_at DESC, id DESC
         ) AS row_number
     FROM ingested_documents
     WHERE document_id IS NOT NULL
+      AND index_name IS NOT NULL
 )
 DELETE FROM ingested_documents
 WHERE id IN (
@@ -53,14 +67,19 @@ WHERE id IN (
 );
 """
 
-_CREATE_DOCUMENT_ID_UNIQUE_INDEX = """
-CREATE UNIQUE INDEX IF NOT EXISTS ingested_documents_document_id_unique
-ON ingested_documents (document_id)
-WHERE document_id IS NOT NULL;
+_DROP_LEGACY_DOCUMENT_ID_UNIQUE_INDEX = """
+DROP INDEX IF EXISTS ingested_documents_document_id_unique;
 """
 
-_GET_DOCUMENT_ID_UNIQUE_INDEX = """
-SELECT to_regclass('ingested_documents_document_id_unique');
+_CREATE_INDEX_DOCUMENT_UNIQUE_INDEX = """
+CREATE UNIQUE INDEX IF NOT EXISTS ingested_documents_index_document_unique
+ON ingested_documents (index_name, document_id)
+WHERE document_id IS NOT NULL
+  AND index_name IS NOT NULL;
+"""
+
+_GET_INDEX_DOCUMENT_UNIQUE_INDEX = """
+SELECT to_regclass('ingested_documents_index_document_unique');
 """
 
 
@@ -72,11 +91,21 @@ def _ensure_table(conn) -> None:
     conn.execute(_CREATE_TABLE)
     conn.execute(_MIGRATE_DOCUMENT_ID)
     conn.execute(_MIGRATE_BM25_PARAMS)
+    conn.execute(_MIGRATE_INDEX_NAME)
 
-    index_row = conn.execute(_GET_DOCUMENT_ID_UNIQUE_INDEX).fetchone()
+    index_row = conn.execute(_GET_INDEX_DOCUMENT_UNIQUE_INDEX).fetchone()
     if not index_row or index_row[0] is None:
+        conn.execute(_BACKFILL_LEGACY_INDEX_NAME, (LEGACY_INDEX_NAME,))
+        conn.execute(_DROP_LEGACY_DOCUMENT_ID_UNIQUE_INDEX)
         conn.execute(_DEDUPLICATE_DOCUMENT_IDS)
-        conn.execute(_CREATE_DOCUMENT_ID_UNIQUE_INDEX)
+        conn.execute(_CREATE_INDEX_DOCUMENT_UNIQUE_INDEX)
+
+
+def _active_index_name(index_name: str | None = None) -> str:
+    active = index_name or settings.pinecone_index_name
+    if not active or not active.strip():
+        raise ValueError("PINECONE_INDEX_NAME cannot be empty")
+    return active.strip()
 
 
 def record_ingestion(
@@ -84,15 +113,18 @@ def record_ingestion(
     chunk_count: int,
     document_id: str | None = None,
     bm25_params: str | None = None,
+    index_name: str | None = None,
 ) -> None:
+    active_index = _active_index_name(index_name)
     with _connect() as conn:
         _ensure_table(conn)
         conn.execute(
             """
             INSERT INTO ingested_documents
-                (document_id, filename, chunk_count, ingested_at, bm25_params)
-            VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (document_id) WHERE document_id IS NOT NULL
+                (index_name, document_id, filename, chunk_count, ingested_at, bm25_params)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (index_name, document_id)
+                WHERE document_id IS NOT NULL AND index_name IS NOT NULL
             DO UPDATE SET
                 filename = EXCLUDED.filename,
                 chunk_count = EXCLUDED.chunk_count,
@@ -100,6 +132,7 @@ def record_ingestion(
                 bm25_params = EXCLUDED.bm25_params
             """,
             (
+                active_index,
                 document_id,
                 filename,
                 chunk_count,
@@ -109,56 +142,63 @@ def record_ingestion(
         )
 
 
-def get_bm25_params(document_id: str) -> str | None:
-    """Returns the JSON-serialized BM25 params for a document_id, or None if
-    the document predates the hybrid-search change (ingested before this
-    column existed) or wasn't found."""
+def get_bm25_params(document_id: str, index_name: str | None = None) -> str | None:
+    """Return BM25 state for one document in one retrieval index."""
+    active_index = _active_index_name(index_name)
     with _connect() as conn:
         _ensure_table(conn)
         row = conn.execute(
             """
             SELECT bm25_params
             FROM ingested_documents
-            WHERE document_id = %s
+            WHERE index_name = %s AND document_id = %s
             ORDER BY ingested_at DESC
             LIMIT 1
             """,
-            (document_id,),
+            (active_index, document_id),
         ).fetchone()
     return row[0] if row and row[0] else None
 
 
-def list_documents() -> list[dict]:
+def list_documents(index_name: str | None = None) -> list[dict]:
+    active_index = _active_index_name(index_name)
     with _connect() as conn:
         _ensure_table(conn)
         rows = conn.execute(
             """
-            SELECT document_id, filename, chunk_count, ingested_at
+            SELECT index_name, document_id, filename, chunk_count, ingested_at
             FROM ingested_documents
+            WHERE index_name = %s
             ORDER BY ingested_at DESC
-            """
+            """,
+            (active_index,),
         ).fetchall()
 
     return [
         {
-            "document_id": r[0],
-            "filename": r[1],
-            "chunk_count": r[2],
-            "ingested_at": r[3].isoformat(),
+            "index_name": r[0],
+            "document_id": r[1],
+            "filename": r[2],
+            "chunk_count": r[3],
+            "ingested_at": r[4].isoformat(),
         }
         for r in rows
     ]
 
-def delete_document_record(document_id: str) -> int:
+def delete_document_record(document_id: str, index_name: str | None = None) -> int:
     """Removes a document's row(s) from the registry. Returns rows deleted.
 
     Doesn't touch Pinecone - see retrieval.vectorstore.delete_document_vectors
     for that half. Callers needing a full removal should call both.
     """
+    active_index = _active_index_name(index_name)
     with _connect() as conn:
         _ensure_table(conn)
         result = conn.execute(
-            "DELETE FROM ingested_documents WHERE document_id = %s",
-            (document_id,),
+            """
+            DELETE FROM ingested_documents
+            WHERE index_name = %s AND document_id = %s
+            """,
+            (active_index, document_id),
         )
         return result.rowcount
