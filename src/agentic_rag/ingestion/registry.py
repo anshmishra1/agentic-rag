@@ -15,6 +15,9 @@ from agentic_rag.config import settings
 from agentic_rag.indexing import LEGACY_INDEX_NAME
 
 
+LEGACY_CHUNKING_STRATEGY = "token_window_v1"
+
+
 _CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS ingested_documents (
     id SERIAL PRIMARY KEY,
@@ -40,11 +43,29 @@ ALTER TABLE ingested_documents
 ADD COLUMN IF NOT EXISTS index_name TEXT;
 """
 
+_MIGRATE_CHUNKING_STRATEGY = """
+ALTER TABLE ingested_documents
+ADD COLUMN IF NOT EXISTS chunking_strategy TEXT;
+"""
+
 _BACKFILL_LEGACY_INDEX_NAME = """
 UPDATE ingested_documents
 SET index_name = %s
 WHERE index_name IS NULL
   AND document_id IS NOT NULL;
+"""
+
+_BACKFILL_LEGACY_CHUNKING_STRATEGY = """
+UPDATE ingested_documents
+SET chunking_strategy = %s
+WHERE chunking_strategy IS NULL;
+"""
+
+_GET_INDEX_CHUNKING_STRATEGIES = """
+SELECT DISTINCT chunking_strategy
+FROM ingested_documents
+WHERE index_name = %s
+  AND chunking_strategy IS NOT NULL;
 """
 
 _DEDUPLICATE_DOCUMENT_IDS = """
@@ -92,6 +113,8 @@ def _ensure_table(conn) -> None:
     conn.execute(_MIGRATE_DOCUMENT_ID)
     conn.execute(_MIGRATE_BM25_PARAMS)
     conn.execute(_MIGRATE_INDEX_NAME)
+    conn.execute(_MIGRATE_CHUNKING_STRATEGY)
+    conn.execute(_BACKFILL_LEGACY_CHUNKING_STRATEGY, (LEGACY_CHUNKING_STRATEGY,))
 
     index_row = conn.execute(_GET_INDEX_DOCUMENT_UNIQUE_INDEX).fetchone()
     if not index_row or index_row[0] is None:
@@ -108,28 +131,67 @@ def _active_index_name(index_name: str | None = None) -> str:
     return active.strip()
 
 
+def _active_chunking_strategy(chunking_strategy: str | None = None) -> str:
+    active = chunking_strategy or settings.chunking_strategy
+    if not active or not active.strip():
+        raise ValueError("CHUNKING_STRATEGY cannot be empty")
+    return active.strip()
+
+
+def _assert_index_chunking_strategy(conn, index_name: str, chunking_strategy: str) -> None:
+    rows = conn.execute(
+        _GET_INDEX_CHUNKING_STRATEGIES,
+        (index_name,),
+    ).fetchall()
+    existing = {row[0] for row in rows if row and row[0]}
+    if existing and existing != {chunking_strategy}:
+        configured = ", ".join(sorted(existing))
+        raise ValueError(
+            f"Index '{index_name}' already contains chunking strategy "
+            f"'{configured}', but the application is configured for "
+            f"'{chunking_strategy}'. Use a separate versioned index."
+        )
+
+
+def ensure_index_chunking_strategy(
+    chunking_strategy: str | None = None,
+    index_name: str | None = None,
+) -> None:
+    """Reject an ingestion that would mix retrieval schemas in one index."""
+    active_index = _active_index_name(index_name)
+    active_strategy = _active_chunking_strategy(chunking_strategy)
+    with _connect() as conn:
+        _ensure_table(conn)
+        _assert_index_chunking_strategy(conn, active_index, active_strategy)
+
+
 def record_ingestion(
     filename: str,
     chunk_count: int,
     document_id: str | None = None,
     bm25_params: str | None = None,
     index_name: str | None = None,
+    chunking_strategy: str | None = None,
 ) -> None:
     active_index = _active_index_name(index_name)
+    active_strategy = _active_chunking_strategy(chunking_strategy)
     with _connect() as conn:
         _ensure_table(conn)
+        _assert_index_chunking_strategy(conn, active_index, active_strategy)
         conn.execute(
             """
             INSERT INTO ingested_documents
-                (index_name, document_id, filename, chunk_count, ingested_at, bm25_params)
-            VALUES (%s, %s, %s, %s, %s, %s)
+                (index_name, document_id, filename, chunk_count, ingested_at,
+                 bm25_params, chunking_strategy)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (index_name, document_id)
                 WHERE document_id IS NOT NULL AND index_name IS NOT NULL
             DO UPDATE SET
                 filename = EXCLUDED.filename,
                 chunk_count = EXCLUDED.chunk_count,
                 ingested_at = EXCLUDED.ingested_at,
-                bm25_params = EXCLUDED.bm25_params
+                bm25_params = EXCLUDED.bm25_params,
+                chunking_strategy = EXCLUDED.chunking_strategy
             """,
             (
                 active_index,
@@ -138,6 +200,7 @@ def record_ingestion(
                 chunk_count,
                 datetime.now(timezone.utc),
                 bm25_params,
+                active_strategy,
             ),
         )
 
@@ -166,7 +229,8 @@ def list_documents(index_name: str | None = None) -> list[dict]:
         _ensure_table(conn)
         rows = conn.execute(
             """
-            SELECT index_name, document_id, filename, chunk_count, ingested_at
+            SELECT index_name, document_id, filename, chunk_count, ingested_at,
+                   chunking_strategy
             FROM ingested_documents
             WHERE index_name = %s
             ORDER BY ingested_at DESC
@@ -181,6 +245,7 @@ def list_documents(index_name: str | None = None) -> list[dict]:
             "filename": r[2],
             "chunk_count": r[3],
             "ingested_at": r[4].isoformat(),
+            "chunking_strategy": r[5],
         }
         for r in rows
     ]

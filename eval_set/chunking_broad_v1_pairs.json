@@ -1,0 +1,445 @@
+[
+  {
+    "case_id": "broad-evals-components",
+    "query": "What is the difference between a task, a trial, a transcript, and an outcome in an agent evaluation?",
+    "document_id": "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d",
+    "should_match": true,
+    "scenario": "multi_fact",
+    "split": "development",
+    "source_document": "Demystifying evals for AI agents _ Anthropic.pdf",
+    "source_pages": "3",
+    "relevant_chunk_ids": [
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-f9e70a69e7fa96d2",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-d1f39db988caf0b4"
+    ],
+    "expected_answer": "Define the task, each repeated trial, the full interaction transcript, and the final environment outcome."
+  },
+  {
+    "case_id": "broad-evals-graders",
+    "query": "Which three grader types are commonly combined for agent evaluations?",
+    "document_id": "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d",
+    "should_match": true,
+    "scenario": "enumeration",
+    "split": "development",
+    "source_document": "Demystifying evals for AI agents _ Anthropic.pdf",
+    "source_pages": "6; 7; 8",
+    "relevant_chunk_ids": [
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-e7af5112114cb12b",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-43324561f25bfb86",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-97197a77032ab0cc",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-3d62eeb4266b3d97",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-c5546be76a44888c",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-947de7c774fdaf7c",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-b12c1ac4e742c566",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-445ab50c94794a50",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-90e40e20a49053d8",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-c4052b5107f546be",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-1c5c4d75df4fbc6c"
+    ],
+    "expected_answer": "Code-based, model-based, and human graders."
+  },
+  {
+    "case_id": "broad-evals-capability-regression",
+    "query": "How do capability evaluations differ from regression evaluations?",
+    "document_id": "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d",
+    "should_match": true,
+    "scenario": "comparison",
+    "split": "development",
+    "source_document": "Demystifying evals for AI agents _ Anthropic.pdf",
+    "source_pages": "8",
+    "relevant_chunk_ids": [
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-97197a77032ab0cc"
+    ],
+    "expected_answer": "Capability evals target difficult growth areas and may start low; regression evals protect known behavior and should remain near 100 percent."
+  },
+  {
+    "case_id": "broad-evals-pass-metrics",
+    "query": "How do pass@k and pass^k change as the number of trials increases?",
+    "document_id": "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d",
+    "should_match": true,
+    "scenario": "numeric_reasoning",
+    "split": "holdout",
+    "source_document": "Demystifying evals for AI agents _ Anthropic.pdf",
+    "source_pages": "12; 13",
+    "relevant_chunk_ids": [
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-2bb463a516df56b6",
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-36dd4f490884b01b"
+    ],
+    "expected_answer": "pass@k rises because any successful attempt is enough, while pass^k falls because every attempt must succeed."
+  },
+  {
+    "case_id": "broad-evals-false-premise",
+    "query": "Why should regression evaluations begin with a deliberately low pass rate?",
+    "document_id": "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d",
+    "should_match": true,
+    "scenario": "false_premise",
+    "split": "holdout",
+    "source_document": "Demystifying evals for AI agents _ Anthropic.pdf",
+    "source_pages": "8",
+    "relevant_chunk_ids": [
+      "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d-content-97197a77032ab0cc"
+    ],
+    "expected_answer": "Reject the premise: capability evaluations may start low, while regression evaluations should be near 100 percent."
+  },
+  {
+    "case_id": "broad-evals-unanswerable",
+    "query": "Which NVIDIA GPU model was used to benchmark the agent evaluation system?",
+    "document_id": "aeaf515b1352db393ccac7880f661fb973fda59aef2b05ce18bb78b0f93e096d",
+    "should_match": false,
+    "scenario": "unanswerable",
+    "split": "holdout",
+    "source_document": "Demystifying evals for AI agents _ Anthropic.pdf",
+    "source_pages": "",
+    "relevant_chunk_ids": [],
+    "expected_answer": "Abstain because the document does not report such a benchmark GPU."
+  },
+  {
+    "case_id": "broad-dpo-direct-objective",
+    "query": "How does DPO optimize preferences without the usual separate reward-model and reinforcement-learning stages?",
+    "document_id": "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a",
+    "should_match": true,
+    "scenario": "mechanism",
+    "split": "development",
+    "source_document": "Direct Preference Optimization.pdf",
+    "source_pages": "2",
+    "relevant_chunk_ids": [
+      "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a-content-016fb9496e36d6c4",
+      "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a-content-794a46bea38d41d5"
+    ],
+    "expected_answer": "It reparameterizes the preference loss directly in terms of the policy and optimizes a binary cross-entropy objective."
+  },
+  {
+    "case_id": "broad-dpo-rlhf-phases",
+    "query": "What are the three phases in the standard RLHF pipeline described by the paper?",
+    "document_id": "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a",
+    "should_match": true,
+    "scenario": "enumeration",
+    "split": "development",
+    "source_document": "Direct Preference Optimization.pdf",
+    "source_pages": "3",
+    "relevant_chunk_ids": [
+      "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a-content-de77ca28c91e515d",
+      "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a-content-50c4e76d6100dbff",
+      "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a-content-4a8d60427d453755",
+      "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a-content-ce1817f759db2964"
+    ],
+    "expected_answer": "Supervised fine-tuning, preference sampling and reward learning, and reinforcement-learning optimization."
+  },
+  {
+    "case_id": "broad-dpo-partition",
+    "query": "Why can DPO avoid estimating the partition function in its preference objective?",
+    "document_id": "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a",
+    "should_match": true,
+    "scenario": "equation_explanation",
+    "split": "development",
+    "source_document": "Direct Preference Optimization.pdf",
+    "source_pages": "4",
+    "relevant_chunk_ids": [
+      "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a-content-7faa4f62726dd56d"
+    ],
+    "expected_answer": "Bradley-Terry preferences depend on reward differences, so the shared prompt-dependent partition term cancels."
+  },
+  {
+    "case_id": "broad-dpo-evaluation",
+    "query": "How did the DPO paper evaluate summarization and dialogue when the true reward was unavailable?",
+    "document_id": "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a",
+    "should_match": true,
+    "scenario": "evaluation_method",
+    "split": "holdout",
+    "source_document": "Direct Preference Optimization.pdf",
+    "source_pages": "7",
+    "relevant_chunk_ids": [
+      "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a-content-aa402597294a0a20"
+    ],
+    "expected_answer": "It measured win rate against baselines and used GPT-4 as a proxy judge for summary quality and response helpfulness."
+  },
+  {
+    "case_id": "broad-dpo-false-premise",
+    "query": "Why does DPO require a separately trained reward model before policy optimization?",
+    "document_id": "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a",
+    "should_match": true,
+    "scenario": "false_premise",
+    "split": "holdout",
+    "source_document": "Direct Preference Optimization.pdf",
+    "source_pages": "1; 2",
+    "relevant_chunk_ids": [
+      "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a-content-4a8d60427d453755",
+      "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a-content-016fb9496e36d6c4"
+    ],
+    "expected_answer": "Reject the premise: DPO directly optimizes the policy and removes the separate reward-model training stage."
+  },
+  {
+    "case_id": "broad-dpo-unanswerable",
+    "query": "Which OCR engine does DPO use to parse scanned preference datasets?",
+    "document_id": "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a",
+    "should_match": false,
+    "scenario": "unanswerable",
+    "split": "holdout",
+    "source_document": "Direct Preference Optimization.pdf",
+    "source_pages": "",
+    "relevant_chunk_ids": [],
+    "expected_answer": "Abstain because the document does not discuss an OCR engine."
+  },
+  {
+    "case_id": "broad-vllm-paged-attention",
+    "query": "How does PagedAttention apply operating-system paging ideas to the KV cache?",
+    "document_id": "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e",
+    "should_match": true,
+    "scenario": "analogy",
+    "split": "development",
+    "source_document": "Efficient Memory Management for Large Language.pdf",
+    "source_pages": "1; 2",
+    "relevant_chunk_ids": [
+      "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e-content-6587a4b1c6ce9d57",
+      "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e-content-74669b086c254091"
+    ],
+    "expected_answer": "It divides KV caches into fixed-size blocks mapped non-contiguously, analogous to pages, bytes, and processes."
+  },
+  {
+    "case_id": "broad-vllm-fragmentation",
+    "query": "How does PagedAttention reduce fragmentation and enable KV-cache sharing?",
+    "document_id": "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e",
+    "should_match": true,
+    "scenario": "multi_fact",
+    "split": "development",
+    "source_document": "Efficient Memory Management for Large Language.pdf",
+    "source_pages": "2",
+    "relevant_chunk_ids": [
+      "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e-content-74669b086c254091"
+    ],
+    "expected_answer": "Fixed-size on-demand blocks reduce internal and eliminate external fragmentation while allowing block-level sharing."
+  },
+  {
+    "case_id": "broad-vllm-throughput",
+    "query": "What throughput improvement did vLLM report while maintaining comparable latency?",
+    "document_id": "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e",
+    "should_match": true,
+    "scenario": "numeric_fact",
+    "split": "development",
+    "source_document": "Efficient Memory Management for Large Language.pdf",
+    "source_pages": "1",
+    "relevant_chunk_ids": [
+      "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e-content-23e72933b3048be4",
+      "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e-content-f815b135ceb3c8c1",
+      "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e-content-e71c3256dc416af7",
+      "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e-content-8cc53dc26da15808"
+    ],
+    "expected_answer": "A 2 to 4 times throughput improvement at a similar latency level."
+  },
+  {
+    "case_id": "broad-vllm-block-size",
+    "query": "Why did the authors choose a PagedAttention block size of 16 tokens?",
+    "document_id": "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e",
+    "should_match": true,
+    "scenario": "tradeoff",
+    "split": "holdout",
+    "source_document": "Efficient Memory Management for Large Language.pdf",
+    "source_pages": "12",
+    "relevant_chunk_ids": [
+      "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e-content-1ba88331a92bbf67"
+    ],
+    "expected_answer": "It was large enough for GPU efficiency but small enough to limit internal fragmentation across workloads."
+  },
+  {
+    "case_id": "broad-vllm-false-premise",
+    "query": "Why does PagedAttention require each request's KV cache to occupy contiguous GPU memory?",
+    "document_id": "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e",
+    "should_match": true,
+    "scenario": "false_premise",
+    "split": "holdout",
+    "source_document": "Efficient Memory Management for Large Language.pdf",
+    "source_pages": "2",
+    "relevant_chunk_ids": [
+      "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e-content-d6df2bb631e1cc1a",
+      "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e-content-4b2c34e26ad3bd98"
+    ],
+    "expected_answer": "Reject the premise: KV-cache blocks need not be contiguous."
+  },
+  {
+    "case_id": "broad-vllm-unanswerable",
+    "query": "What BLEU score does PagedAttention achieve on WMT 2014 English-to-German translation?",
+    "document_id": "55b3b324d779a67c59dac2519445e3b07c14e6ff5c656fadb47a3d7b5997469e",
+    "should_match": false,
+    "scenario": "unanswerable",
+    "split": "holdout",
+    "source_document": "Efficient Memory Management for Large Language.pdf",
+    "source_pages": "",
+    "relevant_chunk_ids": [],
+    "expected_answer": "Abstain because the document reports serving performance, not WMT translation BLEU."
+  },
+  {
+    "case_id": "broad-lora-mechanism",
+    "query": "How does LoRA adapt a pretrained Transformer while keeping its original weights frozen?",
+    "document_id": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a",
+    "should_match": true,
+    "scenario": "mechanism",
+    "split": "development",
+    "source_document": "LoRa.pdf",
+    "source_pages": "1",
+    "relevant_chunk_ids": [
+      "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a-content-b149386d821f88dd",
+      "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a-content-8fcdfaa878720c16"
+    ],
+    "expected_answer": "It trains small low-rank update matrices injected into Transformer layers while freezing the base weights."
+  },
+  {
+    "case_id": "broad-lora-reductions",
+    "query": "For GPT-3 175B, what reductions in trainable parameters and GPU memory does LoRA report?",
+    "document_id": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a",
+    "should_match": true,
+    "scenario": "numeric_fact",
+    "split": "development",
+    "source_document": "LoRa.pdf",
+    "source_pages": "1",
+    "relevant_chunk_ids": [
+      "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a-content-8fcdfaa878720c16"
+    ],
+    "expected_answer": "About 10,000 times fewer trainable parameters and 3 times lower GPU memory requirement."
+  },
+  {
+    "case_id": "broad-lora-latency",
+    "query": "Why can LoRA add no inference latency compared with a fully fine-tuned model?",
+    "document_id": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a",
+    "should_match": true,
+    "scenario": "causal_explanation",
+    "split": "development",
+    "source_document": "LoRa.pdf",
+    "source_pages": "2; 4; 5",
+    "relevant_chunk_ids": [
+      "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a-content-7f17dcbcd324cdfb",
+      "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a-content-9a38184bfdc3010b"
+    ],
+    "expected_answer": "The low-rank update can be merged into the frozen weight matrix before deployment, so inference uses the usual matrix operation."
+  },
+  {
+    "case_id": "broad-lora-batching-limit",
+    "query": "What deployment limitation does the paper identify when batching different tasks with different LoRA matrices?",
+    "document_id": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a",
+    "should_match": true,
+    "scenario": "limitation",
+    "split": "holdout",
+    "source_document": "LoRa.pdf",
+    "source_pages": "5",
+    "relevant_chunk_ids": [
+      "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a-content-34c1fb3349f236b6"
+    ],
+    "expected_answer": "Merged task-specific matrices make mixed-task batching difficult; dynamic modules are possible when latency is less critical."
+  },
+  {
+    "case_id": "broad-lora-false-premise",
+    "query": "Why does LoRA necessarily add adapter-layer inference latency after deployment?",
+    "document_id": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a",
+    "should_match": true,
+    "scenario": "false_premise",
+    "split": "holdout",
+    "source_document": "LoRa.pdf",
+    "source_pages": "2; 4",
+    "relevant_chunk_ids": [
+      "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a-content-7f17dcbcd324cdfb",
+      "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a-content-8fcdfaa878720c16",
+      "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a-content-9a38184bfdc3010b"
+    ],
+    "expected_answer": "Reject the premise: LoRA updates can be merged into the frozen weights and add no inference latency."
+  },
+  {
+    "case_id": "broad-lora-unanswerable",
+    "query": "What Pinecone index dimension does the LoRA paper recommend for production retrieval?",
+    "document_id": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a",
+    "should_match": false,
+    "scenario": "unanswerable",
+    "split": "holdout",
+    "source_document": "LoRa.pdf",
+    "source_pages": "",
+    "relevant_chunk_ids": [],
+    "expected_answer": "Abstain because the document does not discuss Pinecone retrieval indexes."
+  },
+  {
+    "case_id": "broad-chinchilla-scaling",
+    "query": "What compute-optimal scaling rule does the Chinchilla paper propose for model size and training tokens?",
+    "document_id": "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4",
+    "should_match": true,
+    "scenario": "scaling_rule",
+    "split": "development",
+    "source_document": "Training Compute-Optimal Large Language Models.pdf",
+    "source_pages": "1; 7",
+    "relevant_chunk_ids": [
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-b6c78dec496e5597",
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-b3c78a94df5481b9"
+    ],
+    "expected_answer": "Scale parameters and training tokens approximately equally; doubling model size should double training tokens."
+  },
+  {
+    "case_id": "broad-chinchilla-gopher",
+    "query": "How do Chinchilla and Gopher compare in parameter count, training tokens, and compute budget?",
+    "document_id": "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4",
+    "should_match": true,
+    "scenario": "numeric_comparison",
+    "split": "development",
+    "source_document": "Training Compute-Optimal Large Language Models.pdf",
+    "source_pages": "2; 3; 9",
+    "relevant_chunk_ids": [
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-076e0bfb1d3aeda4",
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-50a87b66eb392ce4"
+    ],
+    "expected_answer": "Chinchilla has 70B parameters and 1.4T training tokens versus Gopher's 280B and 300B, at the same training-compute budget."
+  },
+  {
+    "case_id": "broad-chinchilla-inference",
+    "query": "Why does Chinchilla reduce downstream memory and inference cost relative to Gopher?",
+    "document_id": "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4",
+    "should_match": true,
+    "scenario": "causal_explanation",
+    "split": "development",
+    "source_document": "Training Compute-Optimal Large Language Models.pdf",
+    "source_pages": "2; 9",
+    "relevant_chunk_ids": [
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-8db669f2f1553051",
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-50a87b66eb392ce4"
+    ],
+    "expected_answer": "It reaches better performance with one quarter of Gopher's parameters, so its memory footprint and inference compute are smaller."
+  },
+  {
+    "case_id": "broad-chinchilla-mmlu",
+    "query": "What MMLU result did Chinchilla achieve relative to Gopher?",
+    "document_id": "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4",
+    "should_match": true,
+    "scenario": "table_lookup",
+    "split": "holdout",
+    "source_document": "Training Compute-Optimal Large Language Models.pdf",
+    "source_pages": "11; 12",
+    "relevant_chunk_ids": [
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-9e15a133402854d0",
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-221344ebcd0c9622",
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-cd0627679330163c",
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-39a7330dbac6c44e"
+    ],
+    "expected_answer": "Chinchilla achieved 67.6 percent five-shot MMLU accuracy, 7.6 points above Gopher, and won on 51 of 57 tasks."
+  },
+  {
+    "case_id": "broad-chinchilla-false-premise",
+    "query": "Why is Chinchilla a larger model than Gopher despite using the same compute budget?",
+    "document_id": "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4",
+    "should_match": true,
+    "scenario": "false_premise",
+    "split": "holdout",
+    "source_document": "Training Compute-Optimal Large Language Models.pdf",
+    "source_pages": "2; 3; 9",
+    "relevant_chunk_ids": [
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-8db669f2f1553051",
+      "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4-content-076e0bfb1d3aeda4"
+    ],
+    "expected_answer": "Reject the premise: Chinchilla is four times smaller than Gopher and is trained on more tokens at the same compute budget."
+  },
+  {
+    "case_id": "broad-chinchilla-unanswerable",
+    "query": "What per-token latency did Chinchilla achieve on an NVIDIA A100 GPU?",
+    "document_id": "3fd3632a8ef48171bd25282990221d49535d75356192f068b3b2ebe08f2aedd4",
+    "should_match": false,
+    "scenario": "unanswerable",
+    "split": "holdout",
+    "source_document": "Training Compute-Optimal Large Language Models.pdf",
+    "source_pages": "",
+    "relevant_chunk_ids": [],
+    "expected_answer": "Abstain because the paper does not report that hardware-specific latency measurement."
+  }
+]

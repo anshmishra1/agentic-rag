@@ -4,7 +4,8 @@ import hashlib
 
 from langchain_core.documents import Document
 
-from agentic_rag.ingestion.chunking import chunk_documents
+from agentic_rag.config import settings
+from agentic_rag.ingestion.chunking import chunk_documents, pdf_extraction_mode
 from agentic_rag.ingestion.loaders import load_audio, load_image, load_pdf
 from agentic_rag.llm.provider import provider_chain
 from agentic_rag.retrieval.sparse import dump_bm25_json, fit_bm25
@@ -62,6 +63,7 @@ def _build_overview(
             "filename": filename,
             "document_id": document_id,
             "type": "overview",
+            "chunking_strategy": settings.chunking_strategy,
         },
     )
 
@@ -77,7 +79,19 @@ def ingest_file(path: str | Path, display_name: str | None = None) -> int:
     filename = display_name or path.name
     document_id = _document_id(path)
 
-    docs = loader(path)
+    from agentic_rag.ingestion.registry import (
+        ensure_index_chunking_strategy,
+        record_ingestion,
+    )
+
+    # Fail before parsing, provider calls, or vector writes if this process is
+    # pointed at an index populated by a different retrieval schema.
+    ensure_index_chunking_strategy(settings.chunking_strategy)
+
+    if path.suffix.lower() == ".pdf":
+        docs = load_pdf(path, extraction_mode=pdf_extraction_mode(settings.chunking_strategy))
+    else:
+        docs = loader(path)
     chunks = chunk_documents(
         docs,
         document_id=document_id,
@@ -99,13 +113,12 @@ def ingest_file(path: str | Path, display_name: str | None = None) -> int:
 
     written_ids = upsert_hybrid(all_chunks, bm25_encoder)
 
-    from agentic_rag.ingestion.registry import record_ingestion
-
     record_ingestion(
         filename,
         len(chunks),
         document_id=document_id,
         bm25_params=bm25_params_json,
+        chunking_strategy=settings.chunking_strategy,
     )
 
     # Only prune after every new vector and its matching BM25 state are saved.

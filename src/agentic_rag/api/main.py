@@ -76,6 +76,7 @@ class IngestResult(BaseModel):
     filename: str
     document_id: str
     index_name: str
+    chunking_strategy: str
     chunks_indexed: int
 
 
@@ -222,6 +223,7 @@ async def ingest(
                     filename=upload.filename or "unknown",
                     document_id=document_id,
                     index_name=settings.pinecone_index_name,
+                    chunking_strategy=settings.chunking_strategy,
                     chunks_indexed=chunk_count,
                 )
             )

@@ -1,0 +1,164 @@
+[
+  {
+    "case_id": "pilot-attention-architecture",
+    "query": "What architectural components does the Transformer replace with attention?",
+    "document_id": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+    "should_match": true,
+    "split": "development",
+    "source_document": "AttentionIsAllyouNeed.pdf",
+    "target_document": "AttentionIsAllyouNeed.pdf",
+    "source_pages": "1",
+    "relevant_chunk_ids": [
+      "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697-content-1a0dec5fcdb883dc",
+      "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697-content-22558e915f8d1992"
+    ]
+  },
+  {
+    "case_id": "pilot-attention-scaling",
+    "query": "Why is scaled dot-product attention divided by the square root of the key dimension?",
+    "document_id": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+    "should_match": true,
+    "split": "development",
+    "source_document": "AttentionIsAllyouNeed.pdf",
+    "target_document": "AttentionIsAllyouNeed.pdf",
+    "source_pages": "4",
+    "relevant_chunk_ids": [
+      "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697-content-0edf78127aeaa493"
+    ]
+  },
+  {
+    "case_id": "pilot-attention-multihead",
+    "query": "What does multi-head attention allow the model to do?",
+    "document_id": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+    "should_match": true,
+    "split": "development",
+    "source_document": "AttentionIsAllyouNeed.pdf",
+    "target_document": "AttentionIsAllyouNeed.pdf",
+    "source_pages": "5",
+    "relevant_chunk_ids": [
+      "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697-content-eecd6d3b134ba247"
+    ]
+  },
+  {
+    "case_id": "pilot-attention-position",
+    "query": "Why does the Transformer add positional encodings to its input embeddings?",
+    "document_id": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+    "should_match": true,
+    "split": "holdout",
+    "source_document": "AttentionIsAllyouNeed.pdf",
+    "target_document": "AttentionIsAllyouNeed.pdf",
+    "source_pages": "6",
+    "relevant_chunk_ids": [
+      "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697-content-7aafc995adf4cb0d"
+    ]
+  },
+  {
+    "case_id": "pilot-agents-workflow-distinction",
+    "query": "How does Anthropic distinguish workflows from agents?",
+    "document_id": "e90c896f4a5fa23453439e1553a2e8dec3bf3df69d4dd2ff02b806308728ddaf",
+    "should_match": true,
+    "split": "development",
+    "source_document": "Building Effective AI Agents _ Anthropic.pdf",
+    "target_document": "Building Effective AI Agents _ Anthropic.pdf",
+    "source_pages": "2",
+    "relevant_chunk_ids": [
+      "e90c896f4a5fa23453439e1553a2e8dec3bf3df69d4dd2ff02b806308728ddaf-content-737fde1abf0d3d8f"
+    ]
+  },
+  {
+    "case_id": "pilot-agents-augmented-llm",
+    "query": "What capabilities make up the augmented LLM building block?",
+    "document_id": "e90c896f4a5fa23453439e1553a2e8dec3bf3df69d4dd2ff02b806308728ddaf",
+    "should_match": true,
+    "split": "development",
+    "source_document": "Building Effective AI Agents _ Anthropic.pdf",
+    "target_document": "Building Effective AI Agents _ Anthropic.pdf",
+    "source_pages": "3",
+    "relevant_chunk_ids": [
+      "e90c896f4a5fa23453439e1553a2e8dec3bf3df69d4dd2ff02b806308728ddaf-content-968bacaa817d8fd0"
+    ]
+  },
+  {
+    "case_id": "pilot-agents-evaluator-optimizer",
+    "query": "How does the evaluator-optimizer workflow operate?",
+    "document_id": "e90c896f4a5fa23453439e1553a2e8dec3bf3df69d4dd2ff02b806308728ddaf",
+    "should_match": true,
+    "split": "development",
+    "source_document": "Building Effective AI Agents _ Anthropic.pdf",
+    "target_document": "Building Effective AI Agents _ Anthropic.pdf",
+    "source_pages": "8",
+    "relevant_chunk_ids": [
+      "e90c896f4a5fa23453439e1553a2e8dec3bf3df69d4dd2ff02b806308728ddaf-content-87c2451a2fb41f91"
+    ]
+  },
+  {
+    "case_id": "pilot-agents-tradeoffs",
+    "query": "What tradeoffs should be considered before using an agentic system?",
+    "document_id": "e90c896f4a5fa23453439e1553a2e8dec3bf3df69d4dd2ff02b806308728ddaf",
+    "should_match": true,
+    "split": "holdout",
+    "source_document": "Building Effective AI Agents _ Anthropic.pdf",
+    "target_document": "Building Effective AI Agents _ Anthropic.pdf",
+    "source_pages": "2; 10",
+    "relevant_chunk_ids": [
+      "e90c896f4a5fa23453439e1553a2e8dec3bf3df69d4dd2ff02b806308728ddaf-content-7bfccff70ee52130",
+      "e90c896f4a5fa23453439e1553a2e8dec3bf3df69d4dd2ff02b806308728ddaf-content-d6e688e5e7d0cfac"
+    ]
+  },
+  {
+    "case_id": "pilot-flashattention-io-aware",
+    "query": "What does it mean for FlashAttention to be IO-aware?",
+    "document_id": "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4",
+    "should_match": true,
+    "split": "development",
+    "source_document": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+    "target_document": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+    "source_pages": "1",
+    "relevant_chunk_ids": [
+      "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4-content-8a3786be8b2b9a58",
+      "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4-content-cfd1183c9934009b"
+    ]
+  },
+  {
+    "case_id": "pilot-flashattention-tiling",
+    "query": "How does tiling reduce memory traffic in FlashAttention?",
+    "document_id": "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4",
+    "should_match": true,
+    "split": "development",
+    "source_document": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+    "target_document": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+    "source_pages": "2; 4",
+    "relevant_chunk_ids": [
+      "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4-content-11f2eeb01bbbbb7a",
+      "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4-content-e654efd1ea2bf728"
+    ]
+  },
+  {
+    "case_id": "pilot-flashattention-exact",
+    "query": "Why is FlashAttention described as exact rather than approximate attention?",
+    "document_id": "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4",
+    "should_match": true,
+    "split": "development",
+    "source_document": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+    "target_document": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+    "source_pages": "4; 5",
+    "relevant_chunk_ids": [
+      "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4-content-e654efd1ea2bf728",
+      "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4-content-9462d84e96d6b26f"
+    ]
+  },
+  {
+    "case_id": "pilot-flashattention-complexity",
+    "query": "How does FlashAttention's high-bandwidth-memory access complexity compare with standard attention?",
+    "document_id": "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4",
+    "should_match": true,
+    "split": "holdout",
+    "source_document": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+    "target_document": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+    "source_pages": "2; 6",
+    "relevant_chunk_ids": [
+      "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4-content-5b1a0a5f34642e3e",
+      "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4-content-906bcdca12c7c7d9"
+    ]
+  }
+]
