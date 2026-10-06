@@ -75,6 +75,7 @@ class Settings(BaseSettings):
     # length is 256 tokens; 240 leaves headroom for any tokenizer rounding.
     chunk_size: int = 240
     chunk_overlap: int = 40
+    chunking_strategy: Literal["token_window_v1", "structure_aware_v2"] = "token_window_v1"
     max_retries: int = 2
 
     # Conversation / generation optimization

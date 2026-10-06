@@ -2,6 +2,23 @@
 
 A production-grade, corrective Retrieval-Augmented Generation system built on LangGraph. Rather than a fixed retrieve-then-generate pipeline, the graph adaptively routes each query through relevance grading, query rewriting, hallucination checking, and constrained regeneration — deciding at each step whether the evidence is strong enough to proceed, or whether the query, the retrieval, or the answer itself needs correcting first.
 
+## Current project status
+
+The current retrieval schema uses the versioned `agentic-rag-hybrid-v2` index
+with `structure_aware_v2` chunking. In the reviewed v1/v2 evaluation, v2 raised
+relevant-evidence recall in the application's final five passages from 76% to
+92% and improved final ranking MRR from 0.647 to 0.703 without a material
+retrieval-latency increase. Structure-aware chunking is therefore fixed for the
+next development stage while embeddings remain unchanged.
+
+The active repair sequence is provider-independent citation normalization,
+reliable abstention/status classification, and then evidence-selection tuning
+for difficult passages that enter the candidate pool but miss the final context.
+See [`docs/PROJECT_PROGRESS.md`](docs/PROJECT_PROGRESS.md) for the completed
+milestones, measured evidence, current limitations, and upcoming work. Detailed
+v1/v2 results are in
+[`docs/CHUNKING_V2_BROAD_EVALUATION.md`](docs/CHUNKING_V2_BROAD_EVALUATION.md).
+
 ## Architecture
 
 ```
@@ -137,6 +154,16 @@ pre-versioning rows to the legacy `agentic-rag-hybrid` index and changes the
 registry identity from `document_id` to `(index_name, document_id)`. Document
 listing, BM25 lookup, and deletion then operate only on the active index. This
 allows the same source document to be evaluated independently in v1 and v2.
+The registry also records the chunking strategy and rejects ingestion when an
+index already contains a different strategy.
+
+The v1 control uses `CHUNKING_STRATEGY=token_window_v1`: plain PDF extraction
+followed by the existing 240-token windows with 40-token overlap. The v2
+treatment uses `CHUNKING_STRATEGY=structure_aware_v2`: layout-preserving PDF
+extraction, heading detection, sentence/bullet units, section-aware packing up
+to the same 240-token embedding limit, and section/page-range metadata. Keep
+the embedding model and the other retrieval settings fixed for the first v1
+versus v2 comparison.
 
 ## Running locally
 
@@ -224,6 +251,7 @@ Key environment variables (see `.env.example` for the full list):
 | `GROQ_VERIFIER_REASONING_EFFORT` | Groq GPT-OSS grounding-verifier effort: `low` by default; grading and rewriting retain their current effort |
 | `GROUNDING_VERIFIER_MAX_TOKENS` | Verifier-only completion cap (default: 1024); other fast calls retain `FAST_LLM_MAX_TOKENS` |
 | `PINECONE_API_KEY`, `PINECONE_INDEX_NAME` | Vector store connection and retrieval schema version; use a name such as `agentic-rag-hybrid-v2` for migrations |
+| `CHUNKING_STRATEGY` | `token_window_v1` for the baseline or `structure_aware_v2` for the section-aware treatment; one strategy per index |
 | `POSTGRES_URL` | Conversation checkpointing + document registry |
 | `EMBEDDING_MODEL`, `EMBEDDING_MODEL_REVISION` | Dense embedding model and immutable Hugging Face revision baked into Docker |
 | `CROSS_ENCODER_MODEL`, `CROSS_ENCODER_MODEL_REVISION` | Reranker model and immutable Hugging Face revision baked into Docker |
@@ -288,6 +316,6 @@ are documented in [`docs/RETRIEVAL_EVALUATION_RATIONALE.md`](docs/RETRIEVAL_EVAL
 ## API
 
 - `POST /query` — `{question, session_id, document_id}` → `{answer, grounded, answer_status, grounding_diagnosis, verification_exhausted, citations, contexts}`
-- `POST /ingest` — multipart file upload → `{filename, document_id, chunks_indexed}` per file
+- `POST /ingest` - multipart file upload returns `{filename, document_id, index_name, chunking_strategy, chunks_indexed}` per file
 - `GET /documents` — list of ingested documents and their metadata
 - `GET /health` — liveness check

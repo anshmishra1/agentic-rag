@@ -5,9 +5,12 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 
 
-def load_pdf(path: str | Path) -> list[Document]:
-    """Same loader as the original app, just relocated behind a stable interface."""
-    return PyPDFLoader(str(path)).load()
+def load_pdf(path: str | Path, *, extraction_mode: str = "plain") -> list[Document]:
+    """Load one document per PDF page with an explicit extraction mode."""
+    documents = PyPDFLoader(str(path), extraction_mode=extraction_mode).load()
+    for document in documents:
+        document.metadata["extraction_mode"] = extraction_mode
+    return documents
 
 
 def load_image(path: str | Path) -> list[Document]:

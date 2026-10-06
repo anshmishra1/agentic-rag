@@ -28,6 +28,7 @@ def _client(monkeypatch, ingest_file):
         settings=SimpleNamespace(
             debug=False,
             pinecone_index_name="agentic-rag-hybrid-v2",
+            chunking_strategy="structure_aware_v2",
         ),
     )
     _module(monkeypatch, "agentic_rag.graph.builder", build_graph=lambda _: None)
@@ -93,6 +94,7 @@ def test_ingest_returns_document_id_and_cleans_upload(monkeypatch):
         "filename": "example.pdf",
         "document_id": hashlib.sha256(b"example PDF bytes").hexdigest(),
         "index_name": "agentic-rag-hybrid-v2",
+        "chunking_strategy": "structure_aware_v2",
         "chunks_indexed": 2,
     }]
     assert len(uploaded_paths) == 1
@@ -129,11 +131,12 @@ def _pipeline(monkeypatch, invoke, writes):
         chunk_documents=lambda docs, **kwargs: [
             Document(page_content="Indexed fact", metadata=kwargs)
         ],
+        pdf_extraction_mode=lambda strategy: "layout",
     )
     _module(
         monkeypatch,
         "agentic_rag.ingestion.loaders",
-        load_pdf=lambda path: [Document(page_content="Source fact")],
+        load_pdf=lambda path, **kwargs: [Document(page_content="Source fact")],
         load_image=lambda path: [],
         load_audio=lambda path: [],
     )
@@ -159,6 +162,7 @@ def _pipeline(monkeypatch, invoke, writes):
     _module(
         monkeypatch,
         "agentic_rag.ingestion.registry",
+        ensure_index_chunking_strategy=lambda *args, **kwargs: None,
         record_ingestion=lambda *args, **kwargs: writes.append(("registry", kwargs)),
     )
 
@@ -189,6 +193,7 @@ def test_pipeline_indexes_only_after_overview_succeeds(monkeypatch, tmp_path):
     assert [step for step, _ in writes] == ["vectors", "registry", "prune"]
     assert writes[0][1][-1].metadata["type"] == "overview"
     assert writes[1][1]["document_id"] == hashlib.sha256(b"synthetic PDF").hexdigest()
+    assert writes[1][1]["chunking_strategy"] == "token_window_v1"
     assert writes[2][1][0] == writes[1][1]["document_id"]
     assert writes[2][1][1] == {"document-content-current", "document-overview-current"}
 
@@ -210,6 +215,34 @@ def test_pipeline_does_not_write_when_overview_provider_fails(monkeypatch, tmp_p
     else:
         raise AssertionError("Provider failure should stop ingestion")
 
+    assert writes == []
+
+
+def test_pipeline_rejects_mixed_index_before_provider_or_vector_work(monkeypatch, tmp_path):
+    writes = []
+    provider_calls = []
+
+    def invoke(prompt, *, max_tokens):
+        provider_calls.append((prompt, max_tokens))
+        return SimpleNamespace(content="Document overview")
+
+    pipeline = _pipeline(monkeypatch, invoke, writes)
+    source = tmp_path / "example.pdf"
+    source.write_bytes(b"synthetic PDF")
+
+    def reject_strategy(*args, **kwargs):
+        raise ValueError("Use a separate versioned index")
+
+    monkeypatch.setattr(
+        sys.modules["agentic_rag.ingestion.registry"],
+        "ensure_index_chunking_strategy",
+        reject_strategy,
+    )
+
+    with pytest.raises(ValueError, match="separate versioned index"):
+        pipeline.ingest_file(source)
+
+    assert provider_calls == []
     assert writes == []
 
 
