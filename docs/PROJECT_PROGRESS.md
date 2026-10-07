@@ -40,8 +40,9 @@ The design and its boundaries are documented in
 `docs/QUERY_ROUTING_DESIGN.md`. Forty-three focused tests and 147 additional
 supported offline tests pass. Three existing chunking tests remain blocked on
 the host because its cache lacks the pinned Hugging Face tokenizer that is
-baked into the Docker image. The branch is uncommitted and has not used live
-providers, Pinecone, PostgreSQL, or `.env`.
+baked into the Docker image. PR #31 merged the router at `2407a13`; its bounded
+live validation remains pending. No live providers, Pinecone, PostgreSQL, or
+`.env` were used for the implementation verification.
 
 ## Structure-aware chunking v2
 
@@ -115,7 +116,9 @@ not tune cross-encoder scores as if they were calibrated probabilities.
 
 - Disable SDK-level provider retries so the application retry budget is the
   single authoritative limit.
-- Bake NLTK assets into the image and verify them offline before runtime.
+- NLTK `punkt_tab` and `stopwords` are now provisioned during the image build
+  and verified in the network-disabled CI runtime gate. The reviewed repair is
+  committed on `fix/nltk-runtime-assets`; Docker/CI image validation is pending.
 - Prefer direct content citations over overview citations when both support the
   answer.
 

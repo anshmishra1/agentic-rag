@@ -201,7 +201,9 @@ python scripts/local_docker.py stop
 Compose override that writes API run files to `logs/runs/` on the host. It
 keeps provider settings in `.env` and does not read that file itself. Model
 downloads are disabled at runtime because the pinned embedding and reranking
-models are already included in the application image. For a quota-limited
+models are already included in the application image. The NLTK `punkt_tab` and
+`stopwords` resources required by Pinecone BM25 are also provisioned and
+verified during the build, so the first query does not download them. For a quota-limited
 diagnostic run, use `start --bounded` (two graph retries, one attempt per LLM
 call). `--build api`, `--build frontend`, and `--build all` each rebuild the
 one shared application image before starting both services. The runner's

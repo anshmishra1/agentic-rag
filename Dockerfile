@@ -10,7 +10,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_CACHE_DIR=/home/appuser/.cache/uv \
     PATH="/app/.venv/bin:$PATH" \
-    HF_HOME=/home/appuser/.cache/huggingface
+    HF_HOME=/home/appuser/.cache/huggingface \
+    NLTK_DATA=/home/appuser/nltk_data
 
 RUN useradd --uid 10001 --user-group --create-home --shell /usr/sbin/nologin appuser \
     && mkdir -p /app/logs /home/appuser/.cache/huggingface \
@@ -34,6 +35,9 @@ RUN python scripts/cache_models.py \
     --reranker-model "$CROSS_ENCODER_MODEL" \
     --reranker-revision "$CROSS_ENCODER_MODEL_REVISION"
 
+COPY --chown=appuser:appuser scripts/cache_nltk.py scripts/cache_nltk.py
+RUN python scripts/cache_nltk.py
+
 ENV EMBEDDING_MODEL=$EMBEDDING_MODEL \
     EMBEDDING_MODEL_REVISION=$EMBEDDING_MODEL_REVISION \
     CROSS_ENCODER_MODEL=$CROSS_ENCODER_MODEL \
@@ -42,7 +46,8 @@ ENV EMBEDDING_MODEL=$EMBEDDING_MODEL \
     HF_HUB_OFFLINE=1 \
     TRANSFORMERS_OFFLINE=1
 
-RUN python scripts/cache_models.py --verify-only
+RUN python scripts/cache_models.py --verify-only \
+    && python scripts/cache_nltk.py --verify-only
 
 COPY --chown=appuser:appuser src/ src/
 COPY --chown=appuser:appuser app/ app/

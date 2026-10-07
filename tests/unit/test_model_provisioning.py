@@ -22,6 +22,17 @@ def test_docker_image_pins_and_verifies_both_models_offline() -> None:
     assert "MODEL_LOCAL_FILES_ONLY=true" in dockerfile
 
 
+def test_docker_image_bakes_and_verifies_bm25_tokenizer_data() -> None:
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    workflow = (ROOT / ".github/workflows/offline.yml").read_text(encoding="utf-8")
+
+    assert "NLTK_DATA=/home/appuser/nltk_data" in dockerfile
+    assert "python scripts/cache_nltk.py" in dockerfile
+    assert "python scripts/cache_nltk.py --verify-only" in dockerfile
+    assert "--network none agentic-rag-ci:local" in workflow
+    assert "python scripts/cache_nltk.py --verify-only" in workflow
+
+
 def test_compose_uses_one_built_application_image() -> None:
     compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
 
