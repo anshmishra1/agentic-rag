@@ -40,6 +40,11 @@ jobs:
           docker run --rm --network none agentic-rag-ci:local \
             python scripts/cache_models.py --verify-only
 
+      - name: Verify baked BM25 tokenizer data without network access
+        run: |
+          docker run --rm --network none agentic-rag-ci:local \
+            python scripts/cache_nltk.py --verify-only
+
       - name: Run offline unit suite
         run: |
           docker run --rm --network none \

@@ -1,6 +1,6 @@
 # AgenticRAG project progress
 
-Updated: 2026-10-06
+Updated: 2026-10-07
 
 This document is the concise project status. Detailed chronological decisions
 remain in `docs/CODEX_SESSION_LOG.md`; evaluation methods and measurements live
@@ -93,7 +93,9 @@ not tune cross-encoder scores as if they were calibrated probabilities.
 
 - Disable SDK-level provider retries so the application retry budget is the
   single authoritative limit.
-- Package NLTK assets into the image or remove the runtime download path.
+- NLTK `punkt_tab` and `stopwords` are now provisioned during the image build
+  and verified in the network-disabled CI runtime gate. This repair remains
+  uncommitted pending review and a Docker build.
 - Prefer direct content citations over overview citations when both support the
   answer.
 
