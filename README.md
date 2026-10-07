@@ -26,6 +26,16 @@ contextualize_question
         |
         +-- control query -----------------------------> record_turn -> END
         |
+        +-- general-model query ----------------------> generate_general_answer
+        |                                                       |
+        |                                                       v
+        |                                                  record_turn -> END
+        |
+        +-- unresolved source ------------------------> request_clarification
+        |                                                       |
+        |                                                       v
+        |                                                  record_turn -> END
+        |
         v
      retrieve  <----------------------------------------------+
         |                                                      |
@@ -73,7 +83,7 @@ record_turn     |                 |       correct_generation
 - **Whole-document overview chunks** — a summary generated at ingestion time and retrieved separately from content chunks, so structural questions ("what does this document cover") aren't left to chunk-level semantic search, which is the wrong granularity for that kind of question.
 - **Corrective grounding handling** — a structured verifier distinguishes a grounded answer, insufficient evidence, and unsupported generation. Verification sees only the passages cited by the answer; missing or unknown labels and uncited factual list items route to correction without an LLM verdict. Evidence problems route back to retrieval and end in an explicit abstention when retries are exhausted; a relevance grade of irrelevant also abstains after the retrieval retry budget. Generation problems receive one constrained correction using the verifier's unsupported-claim list. Malformed verifier output fails closed instead of silently approving an answer.
 - **Multi-provider LLM fallback** — requests fall through a configurable provider chain (Groq, Cerebras, NVIDIA NIM, OpenRouter, optionally AWS Bedrock), split into a "primary" tier (used only for final answer generation) and a "fast" tier (used for classification-style calls: grading, rewriting, hallucination checking) to control cost and rate-limit pressure.
-- **Conversation memory** — multi-turn context via a LangGraph Postgres checkpointer, with a per-turn query classifier distinguishing new questions, follow-ups, and control utterances (e.g. "thanks", "stop").
+- **Typed semantic routing** — the UI explicitly separates selected-document, general-model, and automatic source modes. A bounded fast-tier planner resolves conversational follow-ups and verification requests into a validated query plan; ambiguous automatic choices ask for clarification instead of silently mixing document evidence with model knowledge.
 - **GPU-accelerated local reranking** — the cross-encoder and embedding model run locally (auto-detecting CUDA if available), so reranking adds no external API cost or quota pressure.
 
 ## Tech stack
@@ -111,7 +121,9 @@ src/agentic_rag/
   policies/
     retrieval.py                 Retrieval confidence gate (generate / grade / rewrite)
     generation.py                 Refusal detection, context/history budget limits
-    conversation.py               Query-intent classification (new / follow-up / control)
+    conversation.py               Closed control-command recognition
+    query_planning.py              Typed semantic source, relationship, and format plan
+    answer_format.py               Shared math and textual-flowchart presentation rules
     grounding.py                   Hallucination-check verdict parsing
     calibrate_retrieval.py         Empirical threshold calibration against labeled examples
   graph/
@@ -250,6 +262,7 @@ Key environment variables (see `.env.example` for the full list):
 |---|---|
 | `PROVIDER_ORDER` | Fallback order across LLM providers, e.g. `cerebras,groq,nvidia,openrouter` |
 | `PRIMARY_LLM_MAX_TOKENS`, `FAST_LLM_MAX_TOKENS` | Output caps for primary and fast model calls (defaults: 2048 and 512) |
+| `SEMANTIC_ROUTER_MAX_TOKENS` | Output cap for the typed semantic query plan (default: 256) |
 | `GROQ_VERIFIER_REASONING_EFFORT` | Groq GPT-OSS grounding-verifier effort: `low` by default; grading and rewriting retain their current effort |
 | `GROUNDING_VERIFIER_MAX_TOKENS` | Verifier-only completion cap (default: 1024); other fast calls retain `FAST_LLM_MAX_TOKENS` |
 | `PINECONE_API_KEY`, `PINECONE_INDEX_NAME` | Vector store connection and retrieval schema version; use a name such as `agentic-rag-hybrid-v2` for migrations |
@@ -317,7 +330,7 @@ are documented in [`docs/RETRIEVAL_EVALUATION_RATIONALE.md`](docs/RETRIEVAL_EVAL
 
 ## API
 
-- `POST /query` — `{question, session_id, document_id}` → `{answer, grounded, answer_status, grounding_diagnosis, verification_exhausted, citations, contexts}`
+- `POST /query` - `{question, session_id, document_id, source_mode}` returns the answer plus `answer_source`, `query_relationship`, `response_format`, grounding status, citations, and contexts
 - `POST /ingest` - multipart file upload returns `{filename, document_id, index_name, chunking_strategy, chunks_indexed}` per file
 - `GET /documents` — list of ingested documents and their metadata
 - `GET /health` — liveness check

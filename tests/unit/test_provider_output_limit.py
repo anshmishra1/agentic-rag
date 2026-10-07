@@ -105,6 +105,27 @@ def test_only_fast_groq_gpt_oss_verifier_uses_low_reasoning_effort(monkeypatch):
     assert models[0].bound_options == {"max_tokens": 4096}
 
 
+def test_fast_groq_router_receives_structured_output_schema(monkeypatch):
+    provider, models = _load_provider_with_fake_model(monkeypatch)
+    response_format = {
+        "type": "json_schema",
+        "json_schema": {"name": "query_plan", "schema": {"type": "object"}},
+    }
+
+    provider.fast_provider_chain.invoke(
+        "Route this query",
+        max_tokens=256,
+        groq_reasoning_effort="low",
+        groq_response_format=response_format,
+    )
+
+    assert models[1].bound_options == {
+        "max_tokens": 256,
+        "reasoning_effort": "low",
+        "response_format": response_format,
+    }
+
+
 def test_installed_chatgroq_forwards_verifier_options_without_network() -> None:
     from langchain_groq import ChatGroq
 

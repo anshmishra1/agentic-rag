@@ -21,6 +21,29 @@ in the linked reports.
   previous retrieval schema.
 - Added reproducible, source-reviewed retrieval evaluation datasets and reports.
 
+## Semantic answer-source routing (local review)
+
+The former phrase-based new-question/follow-up classifier has been replaced by
+a constrained, typed query plan inside the existing LangGraph flow. The UI now
+offers Selected document, General model, and Auto modes. The plan records the
+answer source, conversational relationship, requested response format, and a
+standalone retrieval query. Ambiguous Auto requests ask for clarification.
+
+Document answers continue through retrieval, citations, correction, and
+grounding. General-model answers skip Pinecone and document verification and
+are labeled explicitly in both the API and UI. Closed controls remain
+deterministic. Shared generation instructions require valid LaTeX, symbol
+definitions, a plain-language explanation for formulas, and fenced text for
+requested textual flowcharts.
+
+The design and its boundaries are documented in
+`docs/QUERY_ROUTING_DESIGN.md`. Forty-three focused tests and 147 additional
+supported offline tests pass. Three existing chunking tests remain blocked on
+the host because its cache lacks the pinned Hugging Face tokenizer that is
+baked into the Docker image. PR #31 merged the router at `2407a13`; its bounded
+live validation remains pending. No live providers, Pinecone, PostgreSQL, or
+`.env` were used for the implementation verification.
+
 ## Structure-aware chunking v2
 
 The v1 control uses plain PDF extraction followed by 240-token windows with
@@ -94,8 +117,8 @@ not tune cross-encoder scores as if they were calibrated probabilities.
 - Disable SDK-level provider retries so the application retry budget is the
   single authoritative limit.
 - NLTK `punkt_tab` and `stopwords` are now provisioned during the image build
-  and verified in the network-disabled CI runtime gate. This repair remains
-  uncommitted pending review and a Docker build.
+  and verified in the network-disabled CI runtime gate. The reviewed repair is
+  committed on `fix/nltk-runtime-assets`; Docker/CI image validation is pending.
 - Prefer direct content citations over overview citations when both support the
   answer.
 
