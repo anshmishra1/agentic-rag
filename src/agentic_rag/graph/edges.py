@@ -83,9 +83,16 @@ def route_after_contextualization(state: RAGState) -> str:
     """
 
     query_intent = state.get("query_intent")
+    answer_source = state.get("answer_source")
 
-    if query_intent == "control":
+    if answer_source == "control" or (
+        answer_source is None and query_intent == "control"
+    ):
         decision = "record_turn"
+    elif answer_source == "general":
+        decision = "generate_general_answer"
+    elif answer_source == "clarify":
+        decision = "clarify_source"
     else:
         decision = "retrieve"
 
@@ -93,11 +100,13 @@ def route_after_contextualization(state: RAGState) -> str:
     print("GRAPH ROUTER: AFTER CONTEXTUALIZATION")
     print("=" * 70)
     print(f"Query intent: {query_intent}")
+    print(f"Answer source: {answer_source}")
     print(f"ROUTE -> {decision}")
 
     log_stage(
         "route_after_contextualization",
         query_intent=query_intent,
+        answer_source=answer_source,
         decision=decision,
     )
 

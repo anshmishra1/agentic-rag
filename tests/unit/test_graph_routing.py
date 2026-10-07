@@ -15,6 +15,18 @@ def test_question_continues_to_retrieval() -> None:
     assert route_after_contextualization({"query_intent": "follow_up"}) == "retrieve"
 
 
+def test_general_question_skips_document_retrieval() -> None:
+    assert route_after_contextualization(
+        {"query_intent": "new_question", "answer_source": "general"}
+    ) == "generate_general_answer"
+
+
+def test_ambiguous_source_routes_to_clarification() -> None:
+    assert route_after_contextualization(
+        {"query_intent": "new_question", "answer_source": "clarify"}
+    ) == "clarify_source"
+
+
 def test_retrieval_assessment_preserves_known_decisions() -> None:
     assert route_after_retrieval_assessment({"retrieval_decision": "generate"}) == "generate"
     assert route_after_retrieval_assessment({"retrieval_decision": "rewrite_query"}) == "rewrite_query"

@@ -210,6 +210,7 @@ class ProviderChain:
         *,
         max_tokens: int | None = None,
         groq_reasoning_effort: str | None = None,
+        groq_response_format: dict | None = None,
     ):
         """Invoke providers in configured order until one succeeds.
 
@@ -254,6 +255,8 @@ class ProviderChain:
                         }
                     ):
                         request_options["reasoning_effort"] = groq_reasoning_effort
+                    if groq_response_format is not None and name == "groq":
+                        request_options["response_format"] = groq_response_format
                     request_llm = llm.bind(**request_options)
                     response = request_llm.invoke(prompt)
                     elapsed = time.perf_counter() - started

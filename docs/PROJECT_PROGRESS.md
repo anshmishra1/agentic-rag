@@ -1,6 +1,6 @@
 # AgenticRAG project progress
 
-Updated: 2026-10-06
+Updated: 2026-10-07
 
 This document is the concise project status. Detailed chronological decisions
 remain in `docs/CODEX_SESSION_LOG.md`; evaluation methods and measurements live
@@ -20,6 +20,28 @@ in the linked reports.
   metadata, and vector-ID migrations can be evaluated without corrupting the
   previous retrieval schema.
 - Added reproducible, source-reviewed retrieval evaluation datasets and reports.
+
+## Semantic answer-source routing (local review)
+
+The former phrase-based new-question/follow-up classifier has been replaced by
+a constrained, typed query plan inside the existing LangGraph flow. The UI now
+offers Selected document, General model, and Auto modes. The plan records the
+answer source, conversational relationship, requested response format, and a
+standalone retrieval query. Ambiguous Auto requests ask for clarification.
+
+Document answers continue through retrieval, citations, correction, and
+grounding. General-model answers skip Pinecone and document verification and
+are labeled explicitly in both the API and UI. Closed controls remain
+deterministic. Shared generation instructions require valid LaTeX, symbol
+definitions, a plain-language explanation for formulas, and fenced text for
+requested textual flowcharts.
+
+The design and its boundaries are documented in
+`docs/QUERY_ROUTING_DESIGN.md`. Forty-three focused tests and 147 additional
+supported offline tests pass. Three existing chunking tests remain blocked on
+the host because its cache lacks the pinned Hugging Face tokenizer that is
+baked into the Docker image. The branch is uncommitted and has not used live
+providers, Pinecone, PostgreSQL, or `.env`.
 
 ## Structure-aware chunking v2
 
@@ -93,7 +115,7 @@ not tune cross-encoder scores as if they were calibrated probabilities.
 
 - Disable SDK-level provider retries so the application retry budget is the
   single authoritative limit.
-- Package NLTK assets into the image or remove the runtime download path.
+- Bake NLTK assets into the image and verify them offline before runtime.
 - Prefer direct content citations over overview citations when both support the
   answer.
 

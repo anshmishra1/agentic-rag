@@ -27,6 +27,7 @@ def _load_node(monkeypatch, content: str, metadata: dict):
 
     stubs = {
         "agentic_rag.llm.provider": {
+            "ProviderUnavailableError": RuntimeError,
             "provider_chain": SimpleNamespace(),
             "fast_provider_chain": SimpleNamespace(invoke=invoke),
         },
