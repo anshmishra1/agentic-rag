@@ -17,6 +17,7 @@ class RequestState(TypedDict, total=False):
 
     question: str
     document_id: str | None
+    source_mode: Literal["document", "general", "auto"]
     messages: Annotated[list, add_messages]
 
 
@@ -31,6 +32,12 @@ class QueryState(TypedDict, total=False):
     query_intent: Literal["new_question", "follow_up", "control"] | str
     query_is_control: bool
     contextualization_used: bool
+    answer_source: Literal["document", "general", "control", "clarify"] | str | None
+    query_relationship: Literal["standalone", "follow_up", "verify_previous"] | str
+    response_format: str
+    semantic_router_used: bool
+    routing_parse_success: bool | None
+    needs_clarification: bool
 
 
 # =============================================================
@@ -70,6 +77,8 @@ class AnswerState(TypedDict, total=False):
         "unsupported",
         "verification_uncertain",
         "control",
+        "general_answer",
+        "clarification_required",
     ] | str | None
     hallucination_grade: str | None
     grounding_diagnosis: str | None
@@ -116,6 +125,7 @@ class GraphInput(TypedDict, total=False):
 
     question: str
     document_id: str | None
+    source_mode: Literal["document", "general", "auto"]
     messages: Annotated[list, add_messages]
 
 
@@ -127,3 +137,6 @@ class GraphOutput(TypedDict, total=False):
     grounding_diagnosis: str
     verification_exhausted: bool
     citations: list[str]
+    answer_source: str
+    query_relationship: str
+    response_format: str

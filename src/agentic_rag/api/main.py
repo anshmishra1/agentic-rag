@@ -17,6 +17,7 @@ import shutil
 import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Literal
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from langgraph.checkpoint.postgres import PostgresSaver
@@ -59,6 +60,7 @@ class QueryRequest(BaseModel):
     question: str
     session_id: str = "default"
     document_id: str | None = None
+    source_mode: Literal["document", "general", "auto"] = "document"
 
 
 class QueryResponse(BaseModel):
@@ -70,6 +72,9 @@ class QueryResponse(BaseModel):
     is_control: bool = False
     citations: list[str] = Field(default_factory=list)
     contexts: list[str] = Field(default_factory=list)
+    answer_source: str = "document"
+    query_relationship: str = "standalone"
+    response_format: str = "requested"
 
 
 class IngestResult(BaseModel):
@@ -111,6 +116,7 @@ def query(
         question=request.question,
         session_id=request.session_id,
         document_id=request.document_id,
+        source_mode=request.source_mode,
     )
 
     result = None
@@ -121,6 +127,7 @@ def query(
             {
                 "question": request.question,
                 "document_id": request.document_id,
+                "source_mode": request.source_mode,
             },
             config=config,
         )
@@ -136,6 +143,8 @@ def query(
             grounding_diagnosis=result.get("grounding_diagnosis"),
             verification_exhausted=result.get("verification_exhausted", False),
             is_control=is_control,
+            answer_source=result.get("answer_source", "document"),
+            query_relationship=result.get("query_relationship", "standalone"),
         )
 
         contexts = [doc.page_content for doc in result.get("documents", [])]
@@ -149,6 +158,9 @@ def query(
             is_control=is_control,
             citations=result.get("citations", []),
             contexts=contexts,
+            answer_source=result.get("answer_source", "document"),
+            query_relationship=result.get("query_relationship", "standalone"),
+            response_format=result.get("response_format", "requested"),
     )
 
     except Exception as exc:
@@ -180,6 +192,7 @@ def query(
                 "question": request.question,
                 "session_id": request.session_id,
                 "document_id": request.document_id,
+                "source_mode": request.source_mode,
                 "performance": performance,
             },
         )

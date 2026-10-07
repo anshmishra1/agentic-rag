@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     fast_llm_timeout: float = 15.0
     primary_llm_timeout: float = 45.0
     fast_llm_max_tokens: int = 512
+    semantic_router_max_tokens: int = 256
     grounding_verifier_max_tokens: int = 1024
     primary_llm_max_tokens: int = 2048
 

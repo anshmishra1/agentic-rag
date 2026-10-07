@@ -25,10 +25,12 @@ from agentic_rag.graph.edges import (
 from agentic_rag.graph.nodes import (
     abstain,
     assess_retrieval,
+    clarify_source,
     contextualize_question,
     check_hallucination,
     correct_generation,
     generate,
+    generate_general_answer,
     grade_documents,
     record_turn,
     retrieve,
@@ -55,6 +57,8 @@ def build_graph(checkpointer: BaseCheckpointSaver):
     graph.add_node("record_turn", record_turn)
     graph.add_node("correct_generation", correct_generation)
     graph.add_node("abstain", abstain)
+    graph.add_node("clarify_source", clarify_source)
+    graph.add_node("generate_general_answer", generate_general_answer)
 
     # ---------------------------------------------------------
     # Entry point
@@ -68,11 +72,15 @@ def build_graph(checkpointer: BaseCheckpointSaver):
     graph.add_conditional_edges(
     "contextualize_question",
     route_after_contextualization,
-    {
-        "retrieve": "retrieve",
-        "record_turn": "record_turn",
-    },
-)
+        {
+            "retrieve": "retrieve",
+            "record_turn": "record_turn",
+            "clarify_source": "clarify_source",
+            "generate_general_answer": "generate_general_answer",
+        },
+    )
+    graph.add_edge("clarify_source", "record_turn")
+    graph.add_edge("generate_general_answer", "record_turn")
     graph.add_edge("retrieve", "assess_retrieval")
     # graph.add_edge("retrieve", "grade_documents")
 

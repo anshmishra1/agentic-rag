@@ -29,7 +29,11 @@ from langchain_core.messages import AIMessage, HumanMessage
 
 from agentic_rag.config import settings
 from agentic_rag.graph.state import RAGState
-from agentic_rag.llm.provider import provider_chain, fast_provider_chain
+from agentic_rag.llm.provider import (
+    ProviderUnavailableError,
+    fast_provider_chain,
+    provider_chain,
+)
 from agentic_rag.retrieval.vectorstore import (
     build_query_representation,
     retrieve_hybrid_with_scores,
@@ -58,7 +62,16 @@ from agentic_rag.policies.grounding import (
     grounding_result,
     verifier_response_diagnostics,
 )
-from agentic_rag.policies.conversation import classify_query_intent
+from agentic_rag.policies.query_planning import (
+    QueryPlan,
+    build_query_plan_prompt,
+    clarification_response,
+    direct_query_plan,
+    enforce_query_plan,
+    groq_query_plan_response_format,
+    parse_query_plan,
+)
+from agentic_rag.policies.answer_format import answer_format_instructions
 from agentic_rag.observability.trace import log_stage
 
 logger = get_logger(__name__)
@@ -87,11 +100,9 @@ def _preview(text: str, length: int = 500) -> str:
 def _fresh_turn_state() -> dict:
     """Baseline state fields for any turn that starts a new graph pass.
 
-    contextualize_question's three branches (control / new_question /
-    follow_up) each need to reset the same set of run-scoped fields before
-    handing off to the rest of the graph - previously hand-listed
-    separately in each branch, which is exactly how the control branch
-    drifted out of sync and skipped resetting most of these fields.
+    Every source and relationship plan needs to reset the same run-scoped
+    fields before handing off to the rest of the graph. These fields were
+    previously hand-listed by branch, which allowed branches to drift.
     """
     return {
         "documents": [],
@@ -111,90 +122,95 @@ def _fresh_turn_state() -> dict:
         "verification_exhausted": False,
         "retry_count": 0,
         "rewrite_stalled": False,
+        "answer_source": None,
+        "query_relationship": "standalone",
+        "response_format": "requested",
+        "semantic_router_used": False,
+        "routing_parse_success": None,
+        "needs_clarification": False,
     }
 
-def contextualize_question(state: RAGState) -> dict:
-    """
-    Determine whether the incoming query is new, a follow-up, or a
-    conversation-control message.
 
-    Only follow-ups requiring conversational resolution invoke the
-    fast LLM contextualizer.
-    """
+def contextualize_question(state: RAGState) -> dict:
+    """Create a typed plan for document, general, and conversational turns."""
 
     with get_current_tracker().measure("contextualize_question"):
-
         history = state.get("messages", [])[-6:]
         question = state["question"]
+        source_mode = state.get("source_mode", "document")
+        document_selected = bool(state.get("document_id"))
 
-        intent, is_control = classify_query_intent(
-            question,
-            history,
+        plan = direct_query_plan(question, history, source_mode)
+        semantic_router_used = plan is None
+        routing_parse_success = None
+
+        if plan is None:
+            prompt = build_query_plan_prompt(
+                question,
+                history,
+                source_mode,
+                document_selected=document_selected,
+            )
+            try:
+                result = fast_provider_chain.invoke(
+                    prompt,
+                    max_tokens=settings.semantic_router_max_tokens,
+                    groq_reasoning_effort="low",
+                    groq_response_format=groq_query_plan_response_format(),
+                )
+                plan = parse_query_plan(result.content)
+                routing_parse_success = True
+            except (ProviderUnavailableError, TypeError, ValueError) as exc:
+                logger.warning("Semantic query routing failed closed: %s", exc)
+                plan = QueryPlan(
+                    source="clarify",
+                    relationship="standalone",
+                    response_format="prose",
+                    standalone_query=None,
+                    needs_clarification=True,
+                )
+                routing_parse_success = False
+
+        plan = enforce_query_plan(
+            plan,
+            question=question,
+            history=history,
+            source_mode=source_mode,
+            document_selected=document_selected,
         )
 
-        print("QUERY INTENT")
-        print(f"Question: {question}")
-        print(f"Intent: {intent}")
-        print(f"Control query: {is_control}")
-
-        # -----------------------------------------------------
-        # Control message
-        # -----------------------------------------------------
-
-        if intent == "control":
-            return {
-                **_fresh_turn_state(),
-                "query_intent": "control",
-                "query_is_control": True,
-                "contextualization_used": False,
-                "retrieval_query": question,
-            }
-
-        # -----------------------------------------------------
-        # New standalone question
-        # -----------------------------------------------------
-
-        if intent == "new_question":
-            return {
-                **_fresh_turn_state(),
-                "query_intent": "new_question",
-                "query_is_control": False,
-                "contextualization_used": False,
-                "retrieval_query": question,
-            }
-
-        # -----------------------------------------------------
-        # Follow-up
-        # -----------------------------------------------------
-
-        history_text = "\n".join(
-            f"{m.type}: {m.content}"
-            for m in history
+        query_intent = (
+            "control"
+            if plan.source == "control"
+            else "follow_up"
+            if plan.relationship in {"follow_up", "verify_previous"}
+            else "new_question"
         )
+        retrieval_query = plan.standalone_query or question
 
-        prompt = (
-            "Rewrite the user's follow-up as a standalone search query "
-            "for the same document.\n\n"
-            "Rules:\n"
-            "1. Preserve the user's actual information need.\n"
-            "2. Use the previous conversation only to resolve references.\n"
-            "3. Do not introduce new topics.\n"
-            "4. Do not answer the question.\n"
-            "5. Return only the standalone search query.\n\n"
-            f"Conversation:\n{history_text}\n\n"
-            f"Follow-up:\n{question}"
+        log_stage(
+            "query_plan",
+            requested_source=source_mode,
+            answer_source=plan.source,
+            relationship=plan.relationship,
+            response_format=plan.response_format,
+            semantic_router_used=semantic_router_used,
+            routing_parse_success=routing_parse_success,
+            needs_clarification=plan.needs_clarification,
         )
-
-        result = fast_provider_chain.invoke(prompt)
-
-        rewritten = result.content.strip()
 
     return {
         **_fresh_turn_state(),
-        "query_intent": "follow_up",
-        "query_is_control": False,
-        "contextualization_used": True,
-        "retrieval_query": rewritten,
+        "query_intent": query_intent,
+        "query_is_control": plan.source == "control",
+        "contextualization_used": semantic_router_used,
+        "retrieval_query": retrieval_query,
+        "answer_source": plan.source,
+        "query_relationship": plan.relationship,
+        "response_format": plan.response_format,
+        "semantic_router_used": semantic_router_used,
+        "routing_parse_success": routing_parse_success,
+        "needs_clarification": plan.needs_clarification,
     }
 
 
@@ -639,6 +655,59 @@ def rewrite_query(state: RAGState) -> dict:
 # Generation
 # =============================================================
 
+def clarify_source(state: RAGState) -> dict:
+    """Return a deterministic source-choice request without using a provider."""
+
+    return {
+        "generation": clarification_response(bool(state.get("document_id"))),
+        "answer_status": "clarification_required",
+        "answer_source": "clarify",
+        "hallucination_grade": None,
+        "grounding_diagnosis": None,
+        "citations": [],
+        "documents": [],
+        "verification_exhausted": False,
+    }
+
+
+def generate_general_answer(state: RAGState) -> dict:
+    """Answer from model knowledge without document retrieval or grounding."""
+
+    with get_current_tracker().measure("generate_general_answer"):
+        history = state.get("messages", [])[-6:]
+        history_text = (
+            "\n".join(f"{message.type}: {message.content}" for message in history)
+            if history
+            else "None"
+        )
+        format_rules = answer_format_instructions(
+            state.get("response_format", "requested")
+        )
+        prompt = (
+            "Answer as a general-purpose assistant using model knowledge. "
+            "No document retrieval was requested for this turn. Do not claim "
+            "that the answer is grounded in an uploaded document and do not "
+            "invent [S#] source labels. If the user asks to verify an earlier "
+            "statement, use the conversation and clearly state any uncertainty.\n\n"
+            f"Formatting rules:\n{format_rules}\n\n"
+            f"Prior conversation:\n{history_text}\n\n"
+            f"Question: {state['question']}"
+        )
+        result = provider_chain.invoke(prompt)
+        generation = result.content.strip()
+
+    return {
+        "generation": generation,
+        "answer_status": "general_answer",
+        "answer_source": "general",
+        "hallucination_grade": None,
+        "grounding_diagnosis": None,
+        "citations": [],
+        "documents": [],
+        "verification_exhausted": False,
+    }
+
+
 def generate(state: RAGState) -> dict:
     with get_current_tracker().measure("generate"):
         _separator("6. GENERATION")
@@ -660,6 +729,16 @@ def generate(state: RAGState) -> dict:
             else "None"
         )
 
+        format_rules = answer_format_instructions(
+            state.get("response_format", "requested")
+        )
+        verification_instruction = (
+            "Re-evaluate the previous answer explicitly against the new "
+            "context. State what is confirmed, corrected, or unsupported. "
+            if state.get("query_relationship") == "verify_previous"
+            else ""
+        )
+
         prompt = (
             "Answer the question using only the provided context and "
             "prior conversation. "
@@ -675,7 +754,9 @@ def generate(state: RAGState) -> dict:
             "each factual sentence and list item, not just at the end of "
             "the whole answer. Never invent a label. "
             "Do not omit important details needed to properly answer "
-            "the question.\n\n"
+            "the question. "
+            f"{verification_instruction}\n\n"
+            f"Formatting rules:\n{format_rules}\n\n"
             f"Prior conversation:\n{history_text}\n\n"
             f"Context:\n{context}\n\n"
             f"Question: {state['question']}"
@@ -847,6 +928,9 @@ def correct_generation(state: RAGState) -> dict:
             if unsupported_claims
             else "(no specific claims identified - be more conservative overall)"
         )
+        format_rules = answer_format_instructions(
+            state.get("response_format", "requested")
+        )
 
         prompt = (
             "Your previous answer contained claims that are not supported "
@@ -860,6 +944,7 @@ def correct_generation(state: RAGState) -> dict:
             "factual sentence and list item with the provided [S#] labels, "
             "and never invent a "
             "label.\n\n"
+            f"Formatting rules:\n{format_rules}\n\n"
             f"Prior conversation:\n{history_text}\n\n"
             f"Context:\n{context}\n\n"
             f"Question: {state['question']}\n\n"
@@ -973,6 +1058,7 @@ def record_turn(state: RAGState) -> dict:
             "grounding_unsupported_claims": [],
             "grounding_parse_success": None,
             "answer_status": "control",
+            "answer_source": "control",
             "citations": [],
             "correction_attempted": False,
             "verification_exhausted": False,
@@ -983,6 +1069,31 @@ def record_turn(state: RAGState) -> dict:
                 AIMessage(content=control_response),
             ],
 
+        }
+
+    answer_source = state.get("answer_source")
+    if answer_source in {"general", "clarify"}:
+        generation = state.get("generation", "")
+        log_stage(
+            "record_turn",
+            final_route="end",
+            query_intent=state.get("query_intent"),
+            query_is_control=False,
+            answer_source=answer_source,
+            query_relationship=state.get("query_relationship"),
+            answer_status=state.get("answer_status"),
+            retrieval_skipped=True,
+            grounding_skipped=True,
+        )
+        return {
+            "generation": generation,
+            "answer_status": state.get("answer_status"),
+            "answer_source": answer_source,
+            "citations": [],
+            "messages": [
+                HumanMessage(content=state["question"]),
+                AIMessage(content=generation),
+            ],
         }
 
     # ---------------------------------------------------------
@@ -1025,6 +1136,8 @@ def record_turn(state: RAGState) -> dict:
         final_route="end",
         query_intent=state.get("query_intent"),
         query_is_control=False,
+        answer_source=state.get("answer_source", "document"),
+        query_relationship=state.get("query_relationship"),
         retry_count=state.get("retry_count", 0),
         retrieval_decision=state.get("retrieval_decision"),
         retrieval_evidence_strength=state.get(
