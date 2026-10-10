@@ -14,11 +14,13 @@ class _Connection:
         *,
         chunking_strategies: tuple[str, ...] = (),
         document_rows: list[tuple] | None = None,
+        document_metadata: tuple | None = None,
     ) -> None:
         self.executions: list[tuple[str, tuple | None]] = []
         self.existing_index = existing_index
         self.chunking_strategies = chunking_strategies
         self.document_rows = document_rows or []
+        self.document_metadata = document_metadata
         self.rowcount = 1
 
     def __enter__(self):
@@ -32,6 +34,9 @@ class _Connection:
         return self
 
     def fetchone(self):
+        statement = self.executions[-1][0]
+        if statement.startswith("SELECT filename, chunking_strategy"):
+            return self.document_metadata
         return (self.existing_index,)
 
     def fetchall(self):
@@ -222,6 +227,27 @@ def test_list_documents_exposes_chunking_strategy(monkeypatch) -> None:
             "chunking_strategy": "structure_aware_v2",
         }
     ]
+
+
+def test_document_metadata_is_scoped_for_auto_routing(monkeypatch) -> None:
+    connection = _Connection(
+        existing_index="ingested_documents_index_document_unique",
+        document_metadata=("Prompt_Engineering.pdf", "structure_aware_v2"),
+    )
+    monkeypatch.setattr(registry, "_connect", lambda: connection)
+
+    result = registry.get_document_metadata(
+        "doc-123",
+        index_name="agentic-rag-hybrid-v2",
+    )
+
+    assert result == {
+        "filename": "Prompt_Engineering.pdf",
+        "chunking_strategy": "structure_aware_v2",
+    }
+    statement, params = connection.executions[-1]
+    assert "WHERE index_name = %s AND document_id = %s" in statement
+    assert params == ("agentic-rag-hybrid-v2", "doc-123")
 
 
 def test_reads_and_deletes_are_scoped_to_active_index(monkeypatch) -> None:

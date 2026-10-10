@@ -44,6 +44,12 @@ def test_relevant_documents_generate() -> None:
     ) == "generate"
 
 
+def test_uncertain_relevance_uses_grounding_as_the_final_gate() -> None:
+    assert route_after_grading(
+        {"relevance_grade": "uncertain", "retry_count": 0}
+    ) == "generate"
+
+
 def test_irrelevant_documents_rewrite_until_budget_is_exhausted(
     monkeypatch,
 ) -> None:

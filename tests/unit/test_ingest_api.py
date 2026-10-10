@@ -47,6 +47,7 @@ def _client(monkeypatch, ingest_file):
         monkeypatch,
         "agentic_rag.ingestion.registry",
         list_documents=lambda: [],
+        get_document_metadata=lambda _: None,
         delete_document_record=lambda _: None,
     )
     _module(

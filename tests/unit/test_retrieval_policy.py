@@ -1,6 +1,13 @@
 from agentic_rag.policies import retrieval
 
 
+def test_relevance_parser_accepts_closed_verdicts_and_fails_uncertain() -> None:
+    assert retrieval.parse_relevance_grade('{"verdict":"relevant"}') == "relevant"
+    assert retrieval.parse_relevance_grade("irrelevant") == "irrelevant"
+    assert retrieval.parse_relevance_grade("") == "uncertain"
+    assert retrieval.parse_relevance_grade("not relevant") == "uncertain"
+
+
 def test_repeated_rewrite_rejects_empty_and_equivalent_queries() -> None:
     assert retrieval.is_repeated_rewrite("   ", "What is alignment?", "alignment")
     assert retrieval.is_repeated_rewrite(
@@ -55,7 +62,7 @@ def test_no_evidence_rewrites_query(monkeypatch) -> None:
     }
 
 
-def test_low_score_is_graded_after_retry_budget(monkeypatch) -> None:
+def test_low_score_is_semantically_graded_before_retrying(monkeypatch) -> None:
     _configure_thresholds(monkeypatch)
 
     result = retrieval.assess_retrieval_confidence(
@@ -69,11 +76,31 @@ def test_low_score_is_graded_after_retry_budget(monkeypatch) -> None:
         top_doc_type="content",
         overview_top_score=None,
         content_top_score=0.10,
-        retry_count=2,
+        retry_count=0,
     )
 
     assert result["decision"] == "grade"
-    assert result["reason"] == "top_score_below_floor_retries_exhausted"
+    assert result["reason"] == "top_score_below_floor_requires_semantic_grading"
+
+
+def test_live_scale_low_score_does_not_skip_semantic_grading(monkeypatch) -> None:
+    _configure_thresholds(monkeypatch)
+
+    result = retrieval.assess_retrieval_confidence(
+        metrics={
+            "top_score": 0.017,
+            "second_score": 0.011,
+            "mean_score": 0.006,
+            "top_to_mean_ratio": 2.83,
+            "gap_ratio": 0.35,
+        },
+        top_doc_type="content",
+        overview_top_score=0.004,
+        content_top_score=0.017,
+        retry_count=0,
+    )
+
+    assert result["decision"] == "grade"
 
 
 def test_well_separated_candidates_generate(monkeypatch) -> None:
@@ -172,7 +199,7 @@ def test_similarly_high_candidates_are_graded_without_rewrite(monkeypatch) -> No
     }
 
 
-def test_below_floor_still_rewrites_even_when_candidates_are_close(monkeypatch) -> None:
+def test_below_floor_candidates_are_graded_instead_of_blindly_rewritten(monkeypatch) -> None:
     _configure_thresholds(monkeypatch)
 
     result = retrieval.assess_retrieval_confidence(
@@ -190,7 +217,7 @@ def test_below_floor_still_rewrites_even_when_candidates_are_close(monkeypatch) 
     )
 
     assert result == {
-        "decision": "rewrite_query",
+        "decision": "grade",
         "evidence_strength": "weak",
-        "reason": "top_score_below_floor",
+        "reason": "top_score_below_floor_requires_semantic_grading",
     }

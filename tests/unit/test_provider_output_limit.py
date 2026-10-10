@@ -5,8 +5,10 @@ import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
+import pytest
 
-def _load_provider_with_fake_model(monkeypatch):
+
+def _load_provider_with_fake_model(monkeypatch, *, response_content="Overview"):
     models = []
 
     class FakeChatModel:
@@ -22,7 +24,7 @@ def _load_provider_with_fake_model(monkeypatch):
 
         def invoke(self, prompt):
             self.calls += 1
-            return SimpleNamespace(content="Overview")
+            return SimpleNamespace(content=response_content)
 
     fake_config = ModuleType("agentic_rag.config")
     fake_config.settings = SimpleNamespace(
@@ -64,6 +66,26 @@ def test_caller_can_limit_overview_output(monkeypatch):
     assert response.content == "Overview"
     assert models[0].bound_options == {"max_tokens": 512}
     assert models[0].calls == 1
+
+
+def test_groq_sdk_retries_are_disabled_so_the_app_owns_the_budget(monkeypatch):
+    _, models = _load_provider_with_fake_model(monkeypatch)
+
+    assert models[0].init_options["max_retries"] == 0
+    assert models[1].init_options["max_retries"] == 0
+
+
+def test_required_empty_content_is_a_provider_failure(monkeypatch):
+    provider, _ = _load_provider_with_fake_model(
+        monkeypatch,
+        response_content="",
+    )
+
+    with pytest.raises(provider.ProviderUnavailableError):
+        provider.fast_provider_chain.invoke(
+            "Grade retrieval",
+            require_nonempty_content=True,
+        )
 
 
 def test_payment_required_is_not_retried_as_a_rate_limit(monkeypatch):
