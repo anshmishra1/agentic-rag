@@ -1,6 +1,6 @@
 # AgenticRAG project progress
 
-Updated: 2026-10-07
+Updated: 2026-10-09
 
 This document is the concise project status. Detailed chronological decisions
 remain in `docs/CODEX_SESSION_LOG.md`; evaluation methods and measurements live
@@ -86,6 +86,51 @@ top-one hit, and difficult evidence can still be removed during final selection.
 Detailed evidence: `docs/CHUNKING_V2_BROAD_EVALUATION.md`.
 
 ## Current repair queue
+
+### Answer routing reliability (local review checkpoint)
+
+The latest manual run proved that response-format classification was not the
+main cause of missing output: a FlashAttention flowchart was planned,
+retrieved, and generated, then discarded after an insufficient-evidence
+verdict and an empty Groq rewrite. The repair now semantically grades any
+non-empty below-floor retrieval, treats malformed grading as `uncertain`, and
+lets the citation-aware grounding verifier make the final acceptance decision.
+Groq short decision tasks use low reasoning effort and bounded task-specific
+caps; required empty content triggers provider fallback, and hidden Groq SDK
+retries are disabled.
+
+First-turn format detection, retrieval-query cleanup, cited ASCII diagrams,
+and guarded prior-question reuse for format-only follow-ups cover the flowchart
+and LaTeX paths without adding per-format graph branches. The plan now records
+whether execution uses the current turn or the previous information need; both
+the model plan and a narrow full-message grammar must agree before the prior
+question can replace the current one. A request to find a document diagram,
+table, or equation remains a current evidence request. Auto routing now receives
+the selected document filename from the index-scoped registry instead of only
+a boolean document flag.
+
+Citation normalization now accepts alternate source brackets, optional line
+suffixes, and invisible Unicode formatting characters inside markers. Exact
+Start/End/Yes/No labels are exempt only inside fenced text diagrams; factual
+nodes remain checked. Generation and correction explicitly avoid unsupported
+author motivation, causality, maximality, and claims about what the whole
+document does not contain.
+
+The 2026-10-08 eleven-question run is frozen as a sanitized acceptance contract
+with route, query-lineage, citation, status, retry, correction, and forbidden-
+claim gates. The method is documented in
+`docs/V2_ANSWER_RELIABILITY_ACCEPTANCE.md`; no passage or provider-prompt text is
+stored in the committed manifest.
+
+The reliability-focused suite passes 65 tests, and the complete offline suite
+passes 180 tests with model networking disabled. One existing Starlette
+dependency deprecation warning remains. A single candidate image built from
+this worktree passed installed-package imports, CPU-only PyTorch, baked
+embedding/reranker model verification, baked NLTK verification, FastAPI import,
+and the same 180-test suite with container networking disabled. Its 3.92 GB
+logical size shares 3.919 GB with the existing local image and adds about 643 KB
+of unique image data. Infrastructure startup and live acceptance remain unrun.
+No live service was contacted.
 
 ### 1. Normalize generated citations
 
