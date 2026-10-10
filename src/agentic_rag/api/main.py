@@ -27,13 +27,16 @@ from agentic_rag.config import settings
 from agentic_rag.graph.builder import build_graph
 from agentic_rag.ingestion.pipeline import _document_id, ingest_file
 from agentic_rag.llm.provider import ProviderUnavailableError
-from agentic_rag.ingestion.registry import list_documents
+from agentic_rag.ingestion.registry import (
+    delete_document_record,
+    get_document_metadata,
+    list_documents,
+)
 
 from agentic_rag.retrieval.reranker import warmup_cross_encoder
 from agentic_rag.core.diagnostic import DiagnosticCollector
 from agentic_rag.core.logging import configure_logging, get_run_directory,  get_run_id, get_logger
 from agentic_rag.core.timing import PerformanceTracker, reset_current_tracker, set_current_tracker
-from agentic_rag.ingestion.registry import delete_document_record, list_documents
 from agentic_rag.retrieval.vectorstore import delete_document_vectors
 
 logger = logging.getLogger(__name__)
@@ -74,6 +77,7 @@ class QueryResponse(BaseModel):
     contexts: list[str] = Field(default_factory=list)
     answer_source: str = "document"
     query_relationship: str = "standalone"
+    information_need_source: str = "current_turn"
     response_format: str = "requested"
 
 
@@ -123,10 +127,20 @@ def query(
     status = "failed"
 
     try:
+        document_metadata = (
+            get_document_metadata(request.document_id)
+            if request.document_id and request.source_mode != "general"
+            else None
+        )
         result = http_request.app.state.rag_graph.invoke(
             {
                 "question": request.question,
                 "document_id": request.document_id,
+                "document_name": (
+                    document_metadata.get("filename")
+                    if document_metadata
+                    else None
+                ),
                 "source_mode": request.source_mode,
             },
             config=config,
@@ -145,6 +159,9 @@ def query(
             is_control=is_control,
             answer_source=result.get("answer_source", "document"),
             query_relationship=result.get("query_relationship", "standalone"),
+            information_need_source=result.get(
+                "information_need_source", "current_turn"
+            ),
         )
 
         contexts = [doc.page_content for doc in result.get("documents", [])]
@@ -160,6 +177,9 @@ def query(
             contexts=contexts,
             answer_source=result.get("answer_source", "document"),
             query_relationship=result.get("query_relationship", "standalone"),
+            information_need_source=result.get(
+                "information_need_source", "current_turn"
+            ),
             response_format=result.get("response_format", "requested"),
     )
 

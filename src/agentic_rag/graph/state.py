@@ -17,6 +17,7 @@ class RequestState(TypedDict, total=False):
 
     question: str
     document_id: str | None
+    document_name: str | None
     source_mode: Literal["document", "general", "auto"]
     messages: Annotated[list, add_messages]
 
@@ -34,6 +35,7 @@ class QueryState(TypedDict, total=False):
     contextualization_used: bool
     answer_source: Literal["document", "general", "control", "clarify"] | str | None
     query_relationship: Literal["standalone", "follow_up", "verify_previous"] | str
+    information_need_source: Literal["current_turn", "previous_information_need"] | str
     response_format: str
     semantic_router_used: bool
     routing_parse_success: bool | None
@@ -125,6 +127,7 @@ class GraphInput(TypedDict, total=False):
 
     question: str
     document_id: str | None
+    document_name: str | None
     source_mode: Literal["document", "general", "auto"]
     messages: Annotated[list, add_messages]
 
@@ -139,4 +142,5 @@ class GraphOutput(TypedDict, total=False):
     citations: list[str]
     answer_source: str
     query_relationship: str
+    information_need_source: str
     response_format: str

@@ -26,9 +26,61 @@ thresholds as valid for the new cross-encoder score distribution.
 
 from __future__ import annotations
 
+import json
 import re
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict
 
 from agentic_rag.config import settings
+
+
+RelevanceGrade = Literal["relevant", "irrelevant", "uncertain"]
+
+
+class RelevanceVerdict(BaseModel):
+    """Closed semantic-grading result used by provider adapters."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    verdict: Literal["relevant", "irrelevant"]
+
+
+def groq_relevance_response_format() -> dict:
+    """Return Groq's strict JSON-schema envelope for relevance grading."""
+
+    return {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "retrieval_relevance",
+            "strict": True,
+            "schema": RelevanceVerdict.model_json_schema(),
+        },
+    }
+
+
+def parse_relevance_grade(content: str) -> RelevanceGrade:
+    """Parse JSON or an exact legacy word; malformed output is uncertain."""
+
+    text = content.strip()
+    if not text:
+        return "uncertain"
+
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].strip().lower() in {"```", "```json"}:
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+
+    if text.casefold() in {"relevant", "irrelevant"}:
+        return text.casefold()
+
+    try:
+        return RelevanceVerdict.model_validate(json.loads(text)).verdict
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return "uncertain"
 
 
 def is_repeated_rewrite(candidate: str, original: str, previous: str) -> bool:
@@ -51,6 +103,11 @@ def build_rewrite_prompt(
             "The retrieved passages were judged irrelevant; "
             "search a different aspect or section."
         )
+    elif reason == "grounding_insufficient_evidence":
+        guidance = (
+            "The answer could not be fully supported; search for the specific "
+            "mechanism, stages, definitions, or relationships needed to answer."
+        )
     elif reason.startswith("top_score_below_floor"):
         guidance = (
             "The match was weak; correct wording or use more specific "
@@ -65,8 +122,10 @@ def build_rewrite_prompt(
         guidance = "Try a different search angle while preserving every part of the question."
 
     return (
-        "Rewrite the search query for this document. Keep every part of the "
-        "original question, and do not add facts the user did not ask about.\n\n"
+        "Rewrite the search query for this document. Preserve every factual "
+        "constraint in the original question, but remove presentation requests "
+        "such as flowchart, table, bullets, or LaTeX because they do not help "
+        "retrieval. Do not add facts the user did not ask about.\n\n"
         f"Original question: {original}\n"
         f"Most recent search attempt: {previous}\n"
         f"Retrieval failure: {reason}; relevance grade: {relevance_grade or 'not graded'}.\n"
@@ -128,25 +187,19 @@ def assess_retrieval_confidence(
             "reason": "no_usable_retrieval_evidence",
         }
         # ---------------------------------------------------------
-    # 1b. Top score below meaningful floor
+    # 1b. Top score below the provisional floor
     #
     # Ratios computed from near-zero scores are numerically
-    # unstable and can look "strong" by pure noise. Require a
-    # minimum absolute top score before trusting the relative
-    # distribution shape at all.
+    # unstable and can look "strong" by pure noise. The floor is not
+    # calibrated, so it may prevent distribution-based auto-generation, but
+    # it must not discard candidates or trigger a blind rewrite. Ask the
+    # semantic grader whether the retrieved text actually answers the query.
     # ---------------------------------------------------------
     if top_score < settings.retrieval_min_top_score:
-        if retry_count >= settings.max_retries:
-            return {
-                "decision": "grade",
-                "evidence_strength": "weak",
-                "reason": "top_score_below_floor_retries_exhausted",
-            }
-
         return {
-            "decision": "rewrite_query",
+            "decision": "grade",
             "evidence_strength": "weak",
-            "reason": "top_score_below_floor",
+            "reason": "top_score_below_floor_requires_semantic_grading",
         }
     # ---------------------------------------------------------
     # 2. Close-ranked candidates need semantic grading

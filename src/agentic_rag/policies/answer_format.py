@@ -17,7 +17,9 @@ def answer_format_instructions(response_format: str = "requested") -> str:
     if response_format == "ascii_flowchart":
         instructions.append(
             "Give the requested textual flowchart as a fenced plain-text code "
-            "block, then explain its important transitions."
+            "block, then explain its important transitions. Put a valid [S#] "
+            "citation on every factual node or transition label inside the "
+            "diagram; arrows and borders need no citation."
         )
     elif response_format == "math":
         instructions.append(

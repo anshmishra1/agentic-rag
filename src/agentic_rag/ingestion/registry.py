@@ -223,6 +223,34 @@ def get_bm25_params(document_id: str, index_name: str | None = None) -> str | No
     return row[0] if row and row[0] else None
 
 
+def get_document_metadata(
+    document_id: str,
+    index_name: str | None = None,
+) -> dict | None:
+    """Return authoritative routing metadata for one indexed document."""
+
+    active_index = _active_index_name(index_name)
+    with _connect() as conn:
+        _ensure_table(conn)
+        row = conn.execute(
+            """
+            SELECT filename, chunking_strategy
+            FROM ingested_documents
+            WHERE index_name = %s AND document_id = %s
+            ORDER BY ingested_at DESC
+            LIMIT 1
+            """,
+            (active_index, document_id),
+        ).fetchone()
+
+    if not row:
+        return None
+    return {
+        "filename": row[0],
+        "chunking_strategy": row[1],
+    }
+
+
 def list_documents(index_name: str | None = None) -> list[dict]:
     active_index = _active_index_name(index_name)
     with _connect() as conn:

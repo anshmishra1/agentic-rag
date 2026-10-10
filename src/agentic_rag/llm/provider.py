@@ -149,6 +149,7 @@ class ProviderChain:
             groq_api_key=settings.groq_api_key,
             model_name=_MODELS[self.tier]["groq"],
             timeout=self.timeout,
+            max_retries=0,
         )
 
     def _build_cerebras(self) -> BaseChatModel | None:
@@ -211,6 +212,7 @@ class ProviderChain:
         max_tokens: int | None = None,
         groq_reasoning_effort: str | None = None,
         groq_response_format: dict | None = None,
+        require_nonempty_content: bool = False,
     ):
         """Invoke providers in configured order until one succeeds.
 
@@ -259,6 +261,14 @@ class ProviderChain:
                         request_options["response_format"] = groq_response_format
                     request_llm = llm.bind(**request_options)
                     response = request_llm.invoke(prompt)
+                    if require_nonempty_content and (
+                        not isinstance(response.content, str)
+                        or not response.content.strip()
+                    ):
+                        raise ValueError(
+                            "Provider returned empty textual content for a "
+                            "task that requires a decision."
+                        )
                     elapsed = time.perf_counter() - started
 
                     self._last_provider = name

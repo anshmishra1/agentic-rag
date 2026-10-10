@@ -8,15 +8,32 @@ from collections.abc import Sequence
 
 _CITATION_PATTERN = re.compile(r"\[S(\d+)\]")
 _BULLET_PATTERN = re.compile(r"^\s*(?:[-*]|\d+[.)])\s+")
-_ALTERNATE_CITATION_PATTERN = re.compile(r"【S(\d+)】")
+_MARKER_FORMAT_CONTROLS = r"[\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]*"
+_CITATION_CANDIDATE_PATTERN = re.compile(
+    rf"(?:\[|\u3010){_MARKER_FORMAT_CONTROLS}S{_MARKER_FORMAT_CONTROLS}"
+    rf"(\d+){_MARKER_FORMAT_CONTROLS}"
+    rf"(?:\u2020{_MARKER_FORMAT_CONTROLS}L\d+(?:-L\d+)?)?"
+    rf"{_MARKER_FORMAT_CONTROLS}(?:\]|\u3011)",
+    re.IGNORECASE,
+)
+_ASCII_STRUCTURE_TOKENS = frozenset({"start", "end", "yes", "no"})
 
 
 def normalize_citation_markers(answer: str) -> str:
-    """Convert the observed alternate source brackets to canonical labels."""
-    return _ALTERNATE_CITATION_PATTERN.sub(
+    """Canonicalize provider citation variants without altering other text."""
+    return _CITATION_CANDIDATE_PATTERN.sub(
         lambda match: f"[S{match.group(1)}]",
         answer,
     )
+
+
+def _is_ascii_structure_item(line: str) -> bool:
+    """Recognize non-factual control labels inside a fenced text diagram."""
+
+    content = _BULLET_PATTERN.sub("", line)
+    content = re.sub(r"[*_`#]", "", content)
+    words = re.findall(r"[A-Za-z]+", content.casefold())
+    return bool(words) and all(word in _ASCII_STRUCTURE_TOKENS for word in words)
 
 
 def _source_name(document) -> str:
@@ -104,6 +121,7 @@ def cited_verification_context(
     max_chars: int,
 ) -> tuple[str, list[str]]:
     """Limit verification evidence to cited labels and report citation gaps."""
+    answer = normalize_citation_markers(answer)
     blocks = _labeled_blocks(
         documents, max_documents=max_documents, max_chars=max_chars
     )
@@ -116,8 +134,14 @@ def cited_verification_context(
         issues.append(f"The answer cites unavailable source {label}.")
 
     lines = answer.splitlines()
+    inside_fenced_block = False
     for index, line in enumerate(lines):
+        if line.lstrip().startswith("```"):
+            inside_fenced_block = not inside_fenced_block
+            continue
         if not _BULLET_PATTERN.match(line):
+            continue
+        if inside_fenced_block and _is_ascii_structure_item(line):
             continue
         item = [line]
         for continuation in lines[index + 1:]:
@@ -139,6 +163,7 @@ def extract_used_citations(
     catalog: Sequence[str],
 ) -> list[str]:
     """Return valid catalog entries cited by the answer, in first-use order."""
+    answer = normalize_citation_markers(answer)
     by_label = {
         entry.split(" ", 1)[0]: entry
         for entry in catalog
