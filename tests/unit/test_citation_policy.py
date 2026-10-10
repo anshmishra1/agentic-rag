@@ -99,6 +99,32 @@ def test_alternate_source_brackets_are_normalized_before_extraction() -> None:
     ]
 
 
+def test_invisible_and_line_qualified_markers_are_canonicalized_locally() -> None:
+    catalog = ["[S1] guide.pdf, page 1", "[S2] guide.pdf, page 2"]
+    answer = (
+        "First [\u200bS\u200b2\u200b]. "
+        "Second \u3010S1\u2020L7-L9\u3011. "
+        "Unknown \u3010S9\u2020L1-L2\u3011."
+    )
+
+    normalized = normalize_citation_markers(answer)
+
+    assert normalized == "First [S2]. Second [S1]. Unknown [S9]."
+    assert extract_used_citations(answer, catalog) == [
+        "[S2] guide.pdf, page 2",
+        "[S1] guide.pdf, page 1",
+    ]
+
+    documents = [
+        FakeDocument("First evidence", {"filename": "guide.pdf", "page": 1}),
+        FakeDocument("Second evidence", {"filename": "guide.pdf", "page": 2}),
+    ]
+    _, issues = cited_verification_context(
+        documents, answer, max_documents=2, max_chars=500
+    )
+    assert issues == ["The answer cites unavailable source [S9]."]
+
+
 def test_verification_only_sees_sources_the_answer_cites() -> None:
     documents = [
         FakeDocument("Representation models do not generate text; classification is an example.", {"filename": "book.pdf", "page": 9}),
@@ -173,3 +199,43 @@ def test_citation_on_wrapped_list_item_is_accepted() -> None:
     )
 
     assert issues == []
+
+
+def test_ascii_flowchart_structure_is_exempt_but_factual_nodes_are_checked() -> None:
+    documents = [
+        FakeDocument(
+            "FlashAttention loads blocks from HBM into SRAM.",
+            {"filename": "flash.pdf", "page": 4},
+        )
+    ]
+    answer = (
+        "```text\n"
+        "1. **Start**\n"
+        "2. Load blocks from HBM into SRAM [S1]\n"
+        "3. **End**\n"
+        "```"
+    )
+
+    _, issues = cited_verification_context(
+        documents, answer, max_documents=1, max_chars=500
+    )
+    assert issues == []
+
+    uncited = answer.replace(" into SRAM [S1]", " into SRAM") + "\nSource [S1]."
+    _, uncited_issues = cited_verification_context(
+        documents, uncited, max_documents=1, max_chars=500
+    )
+    assert uncited_issues == [
+        "List item lacks a source citation: 2. Load blocks from HBM into SRAM"
+    ]
+
+
+def test_structural_word_outside_a_fenced_diagram_still_requires_citation() -> None:
+    documents = [FakeDocument("Evidence", {"filename": "guide.pdf", "page": 1})]
+    answer = "1. End\n\nThe cited explanation follows [S1]."
+
+    _, issues = cited_verification_context(
+        documents, answer, max_documents=1, max_chars=200
+    )
+
+    assert issues == ["List item lacks a source citation: 1. End"]

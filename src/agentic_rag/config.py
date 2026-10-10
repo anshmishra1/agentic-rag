@@ -48,6 +48,8 @@ class Settings(BaseSettings):
     primary_llm_timeout: float = 45.0
     fast_llm_max_tokens: int = 512
     semantic_router_max_tokens: int = 256
+    relevance_grader_max_tokens: int = 512
+    query_rewrite_max_tokens: int = 512
     grounding_verifier_max_tokens: int = 1024
     primary_llm_max_tokens: int = 2048
 

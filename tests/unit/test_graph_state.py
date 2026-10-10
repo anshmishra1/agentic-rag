@@ -7,6 +7,7 @@ from agentic_rag.graph.state import RAGState
 EXPECTED_STATE_FIELDS = {
     "question",
     "document_id",
+    "document_name",
     "source_mode",
     "messages",
     "retrieval_query",
@@ -15,6 +16,7 @@ EXPECTED_STATE_FIELDS = {
     "contextualization_used",
     "answer_source",
     "query_relationship",
+    "information_need_source",
     "response_format",
     "semantic_router_used",
     "routing_parse_success",

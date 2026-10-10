@@ -16,3 +16,5 @@ def test_textual_flowchart_uses_a_plain_text_code_block() -> None:
 
     assert "textual flowchart" in instructions
     assert "fenced plain-text code block" in instructions
+    assert "citation on every factual node or transition" in instructions
+    assert "arrows and borders need no citation" in instructions

@@ -44,7 +44,9 @@ from agentic_rag.ingestion.registry import get_bm25_params
 from agentic_rag.policies.retrieval import (
     assess_retrieval_confidence,
     build_rewrite_prompt,
+    groq_relevance_response_format,
     is_repeated_rewrite,
+    parse_relevance_grade,
 )
 from agentic_rag.policies.generation import (
     apply_citation_generation_limits,
@@ -124,6 +126,7 @@ def _fresh_turn_state() -> dict:
         "rewrite_stalled": False,
         "answer_source": None,
         "query_relationship": "standalone",
+        "information_need_source": "current_turn",
         "response_format": "requested",
         "semantic_router_used": False,
         "routing_parse_success": None,
@@ -150,12 +153,13 @@ def contextualize_question(state: RAGState) -> dict:
                 history,
                 source_mode,
                 document_selected=document_selected,
+                document_name=state.get("document_name"),
             )
             try:
                 result = fast_provider_chain.invoke(
                     prompt,
                     max_tokens=settings.semantic_router_max_tokens,
-                    groq_reasoning_effort="low",
+                    groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
                     groq_response_format=groq_query_plan_response_format(),
                 )
                 plan = parse_query_plan(result.content)
@@ -193,6 +197,7 @@ def contextualize_question(state: RAGState) -> dict:
             requested_source=source_mode,
             answer_source=plan.source,
             relationship=plan.relationship,
+            information_need_source=plan.information_need_source,
             response_format=plan.response_format,
             semantic_router_used=semantic_router_used,
             routing_parse_success=routing_parse_success,
@@ -207,6 +212,7 @@ def contextualize_question(state: RAGState) -> dict:
         "retrieval_query": retrieval_query,
         "answer_source": plan.source,
         "query_relationship": plan.relationship,
+        "information_need_source": plan.information_need_source,
         "response_format": plan.response_format,
         "semantic_router_used": semantic_router_used,
         "routing_parse_success": routing_parse_success,
@@ -573,6 +579,10 @@ def grade_documents(state: RAGState) -> dict:
         # Retrieval already sorted candidates by score. Keep the grader prompt
         # bounded and focused on the strongest evidence instead of all chunks.
         candidates = list(zip(documents, scores))
+        if not candidates:
+            print("No retrieved candidates are available to grade.")
+            return {"relevance_grade": "irrelevant"}
+
         preview = [
             {
                 "rank": idx,
@@ -592,18 +602,27 @@ def grade_documents(state: RAGState) -> dict:
             "evidence contains enough information to answer the user's query. "
             "Consider the candidate type metadata: an 'overview' chunk represents "
             "whole-document evidence, while a 'content' chunk represents specific "
-            "document content. Return exactly one word: 'relevant' or 'irrelevant'.\n\n"
+            "document content. Return only JSON as either "
+            "{\"verdict\":\"relevant\"} or "
+            "{\"verdict\":\"irrelevant\"}.\n\n"
             f"Question: {query}\n\n"
             f"Retrieved candidates:\n{json.dumps(preview, ensure_ascii=False, default=str)}"
         )
 
-        result = fast_provider_chain.invoke(prompt)
-        raw_grade = result.content.strip().lower()
-        grade = (
-            "relevant"
-            if "relevant" in raw_grade and "irrelevant" not in raw_grade
-            else "irrelevant"
-        )
+        try:
+            result = fast_provider_chain.invoke(
+                prompt,
+                max_tokens=settings.relevance_grader_max_tokens,
+                groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
+                groq_response_format=groq_relevance_response_format(),
+                require_nonempty_content=True,
+            )
+            raw_grade = result.content.strip()
+            grade = parse_relevance_grade(raw_grade)
+        except ProviderUnavailableError as exc:
+            logger.warning("Retrieval relevance grading unavailable: %s", exc)
+            raw_grade = ""
+            grade = "uncertain"
 
         print(f"\nRaw LLM grading response: {raw_grade}")
         print(f"\nNormalized relevance grade: {grade}")
@@ -625,14 +644,25 @@ def rewrite_query(state: RAGState) -> dict:
         original_question = state["question"]
         retry_count = state.get("retry_count", 0)
         retrieval_reason = state.get("retrieval_decision_reason") or "no clear evidence"
+        if state.get("grounding_diagnosis") == "insufficient_evidence":
+            retrieval_reason = "grounding_insufficient_evidence"
         relevance_grade = state.get("relevance_grade") or "not graded"
 
         prompt = build_rewrite_prompt(
             original_question, current, retrieval_reason, relevance_grade
         )
 
-        result = fast_provider_chain.invoke(prompt)
-        rewritten_query = result.content.strip()
+        try:
+            result = fast_provider_chain.invoke(
+                prompt,
+                max_tokens=settings.query_rewrite_max_tokens,
+                groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
+                require_nonempty_content=True,
+            )
+            rewritten_query = result.content.strip()
+        except ProviderUnavailableError as exc:
+            logger.warning("Query rewrite unavailable: %s", exc)
+            rewritten_query = ""
         new_retry_count = retry_count + 1
         rewrite_stalled = is_repeated_rewrite(
             rewritten_query, original_question, current
@@ -749,6 +779,10 @@ def generate(state: RAGState) -> dict:
             "If the user asks for a concise answer, keep it concise. "
             "If the answer isn't supported by the context, say you "
             "don't know. "
+            "Do not infer author intent, motivation, causality, optimality, "
+            "maximality, or the absence of material from the whole document "
+            "unless the cited context states it explicitly. Describe the "
+            "evidence limitation when a requested explanation is not present. "
             "Cite every factual claim with one or more source labels exactly "
             "as written in the context, such as [S1]. Place a citation on "
             "each factual sentence and list item, not just at the end of "
@@ -856,23 +890,30 @@ def check_hallucination(state: RAGState) -> dict:
             "but the answer adds, changes, or overstates factual claims. "
             "Treat a missing, invented, or mismatched [S#] citation as an "
             "unsupported claim. List each unsupported claim verbatim; "
-            "otherwise return an empty list.\n\n"
+            "otherwise return an empty list. In an ASCII diagram, arrows, "
+            "box borders, and layout characters are presentation rather than "
+            "factual claims; verify the factual text in nodes and transition "
+            "labels against their citations.\n\n"
             f"Question:\n{state['question']}\n\n"
             f"Context:\n{context}\n\n"
             f"Answer:\n{generation}"
         )
 
-        result = fast_provider_chain.invoke(
-            prompt,
-            max_tokens=settings.grounding_verifier_max_tokens,
-            groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
-        )
-        raw_grade = result.content.strip()
-        if not raw_grade:
-            print(
-                "Empty grounding verifier content; completion metadata: "
-                f"{verifier_response_diagnostics(result)}"
+        try:
+            result = fast_provider_chain.invoke(
+                prompt,
+                max_tokens=settings.grounding_verifier_max_tokens,
+                groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
             )
+            raw_grade = result.content.strip()
+            if not raw_grade:
+                print(
+                    "Empty grounding verifier content; completion metadata: "
+                    f"{verifier_response_diagnostics(result)}"
+                )
+        except ProviderUnavailableError as exc:
+            logger.warning("Grounding verification unavailable: %s", exc)
+            raw_grade = ""
         outcome = grounding_result(
             raw_grade,
             correction_attempted=state.get("correction_attempted", False),
@@ -936,10 +977,13 @@ def correct_generation(state: RAGState) -> dict:
             "Your previous answer contained claims that are not supported "
             "by the provided context:\n\n"
             f"{claims_text}\n\n"
-            "Rewrite the answer using ONLY claims directly supported by the "
-            "context below. If the context does not establish something, "
-            "explicitly say the document does not cover it rather than "
-            "omitting it silently. Preserve the user's requested level of "
+            "Make the smallest complete repair: remove or qualify each listed "
+            "claim while preserving supported content. Do not invent a "
+            "replacement reason, motivation, causal explanation, optimality "
+            "claim, or exhaustive statement about the whole document. Rewrite "
+            "using ONLY claims directly supported by the context below. If the "
+            "context does not establish something, say the supplied excerpts "
+            "do not establish it. Preserve the user's requested level of "
             "detail and formatting where the context allows it. Cite every "
             "factual sentence and list item with the provided [S#] labels, "
             "and never invent a "

@@ -14,11 +14,13 @@ from agentic_rag.core.timing import (
 )
 
 
-def _load_node(monkeypatch, content: str, metadata: dict):
+def _load_node(monkeypatch, content: str, metadata: dict, *, error: Exception | None = None):
     calls = []
 
     def invoke(prompt, **kwargs):
         calls.append((prompt, kwargs))
+        if error is not None:
+            raise error
         return SimpleNamespace(
             content=content,
             response_metadata=metadata,
@@ -87,6 +89,7 @@ def test_verifier_node_uses_dedicated_budget_and_low_effort(monkeypatch):
     assert result["answer_status"] == "answered"
     assert len(calls) == 1
     assert "[S1] fixture.pdf, page 2" in calls[0][0]
+    assert "arrows, box borders, and layout characters" in calls[0][0]
     assert calls[0][1] == {
         "max_tokens": 1024,
         "groq_reasoning_effort": "low",
@@ -119,3 +122,21 @@ def test_empty_verifier_still_fails_closed_and_logs_only_token_counts(
     assert result["grounding_parse_success"] is False
     assert "reasoning_tokens': 510" in printed
     assert "private reasoning text" not in printed
+
+
+def test_unavailable_verifier_fails_closed_without_api_exception(monkeypatch) -> None:
+    check, _ = _load_node(
+        monkeypatch,
+        "",
+        {},
+        error=RuntimeError("provider unavailable"),
+    )
+
+    token = set_current_tracker(PerformanceTracker())
+    try:
+        result = check(_state())
+    finally:
+        reset_current_tracker(token)
+
+    assert result["answer_status"] == "verification_uncertain"
+    assert result["grounding_parse_success"] is False

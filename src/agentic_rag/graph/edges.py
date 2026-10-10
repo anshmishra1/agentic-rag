@@ -56,9 +56,11 @@ def route_after_grading(state: RAGState) -> str:
     print(f"Retry count: {retry_count}")
     print(f"Maximum retries: {settings.max_retries}")
 
-    if grade == "relevant":
+    if grade in {"relevant", "uncertain"}:
         decision = "generate"
         print(f"ROUTE -> {decision}")
+        if grade == "uncertain":
+            print("Reason: let the stricter grounding verifier decide.")
         log_stage("route_after_grading", relevance_grade=grade, retry_count=retry_count, decision=decision)
         return decision
 
