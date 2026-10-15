@@ -29,7 +29,7 @@ correct_generation → check_hallucination (one more pass, single correction bud
 - **Conversation memory:** LangGraph Postgres checkpointer (Neon), thread_id-scoped.
 - **Packaging:** Python 3.12 dependencies are locked by `uv.lock`; Docker builds from the lock file, runs as a non-root user, and Compose provides a health-checked local PostgreSQL service on host port 5442.
 - **Model and parser provisioning:** Docker pins exact Hugging Face revisions for the MiniLM embedding model and Ettin 32M reranker, plus exact PyMuPDF, PyMuPDF4LLM, PyMuPDF Layout, and RapidOCR versions. CI verifies the selected parser with networking disabled. API and frontend share one image, while only the API receives GPU access. Embedding and reranking use the 4 GiB RTX 2050; PDF layout parsing, RapidOCR, and ordinary application work remain on CPU. CI uses the smaller CPU target.
-- **V3 persistence and query boundary:** PostgreSQL stores retrieval-schema identity, artifact/search-record metadata, page-to-region parent links, locators, BM25 state, and fail-closed `parsed`/`ready` status. The `v3_assets` Compose volume stores binary page and region assets. The isolated V3 writer and reader use explicit dependencies and document-prefixed IDs without modifying the V2 vector store. `POST /v3/ingest` remains opt-in; `/query` now accepts `retrieval_version`, reuses the existing Ettin reranker and corrective graph for ready V3 manifests, returns structured cited evidence, and keeps V2/V3 checkpoints separate. Streamlit can select both versions and preview cited artifacts. A disposable PostgreSQL 16 smoke verified the real DDL, lineage, readiness, and schema guards. The isolated Pinecone index, controlled V3 ingestion, and live query remain pending.
+- **V3 persistence and query boundary:** PostgreSQL stores retrieval-schema identity, artifact/search-record metadata, page-to-region parent links, locators, BM25 state, and fail-closed `parsed`/`ready` status. The `v3_assets` Compose volume stores binary page and region assets. The isolated V3 writer and reader use explicit dependencies and document-prefixed IDs without modifying the V2 vector store. `POST /v3/ingest` remains opt-in; `/query` accepts `retrieval_version`, reuses the existing Ettin reranker and corrective graph for ready V3 manifests, returns structured cited evidence, and keeps V2/V3 checkpoints separate. Streamlit can select both versions and preview cited artifacts. PR #34 merged; the isolated V3 index exists; a controlled scanned-PDF ingest/query returned a grounded, cited OCR answer and valid preview, then removed all test vectors, manifest rows, and assets.
 - **Grounding verification:** structured JSON verdicts distinguish grounded answers, insufficient evidence, and unsupported generation. Unsupported-claim text is passed into one constrained correction; exhausted evidence retries produce a deterministic abstention rather than speculative generation.
 - **Observability:** fixed — no more unbounded `trace` accumulation in checkpointed state (was growing forever, printing the whole session's history every turn); now logger-based, with per-request + session-level PerformanceTracker via contextvars (not a module global anymore).
 
@@ -40,13 +40,10 @@ correct_generation → check_hallucination (one more pass, single correction bud
 Duplicate Pinecone vectors (was: random UUID vector IDs → fixed: content-hash IDs), overview chunk buried by absolute-floor check running before overview-dominance check, refusal answers ("I don't know") wrongly flagged hallucinated, `rewrite_query` losing half of compound questions because it only saw the last attempt not the original question, `classify_query_intent` shadowed-duplicate-function bug, unbounded `trace` state growth, module-global (not request-scoped) performance tracker, mislabeled "RRF" scores that were actually raw Pinecone hybrid scores.
 
 ## Open/unresolved right now
-- V3 ingestion and querying are connected locally, but the isolated index has
-  not been created and the path has not completed a live ingest/query smoke.
+- V3 ingestion and querying passed one controlled live fixture. Broad matched
+  retrieval and bounded answer evaluation across the reviewed corpus remains.
   V3 deletion remains intentionally hidden until vector, manifest, and asset
-  removal is coordinated.
-- The isolated `agentic-rag-hybrid-v3` Pinecone index has not been created and
-  no real V3 document has been ingested. These are separately authorized
-  live-service operations.
+  removal is coordinated in the product API.
 - The V3 evaluation suite is source reviewed: 49 cases across seven documents,
   including seven controlled/natural pairs and an 18-case bounded core. It
   covers ambiguity, follow-ups, figures/tables/formulas/OCR, false premises,

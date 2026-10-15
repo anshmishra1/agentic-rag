@@ -20,8 +20,11 @@ smoke verified DDL creation, artifact lineage, parsed-to-ready promotion, and
 retrieval-schema mismatch protection. Artifact-aware V3 hybrid retrieval now
 reuses the existing Ettin reranker and graph, `/query` accepts an explicit
 retrieval version, and Streamlit can select V2 or V3 documents and render cited
-artifact previews. The isolated V3 Pinecone index, controlled ingestion, and
-live query verification remain pending before a V3 user demo.
+artifact previews. The isolated `agentic-rag-hybrid-v3` index now exists, and a
+controlled scanned-PDF smoke completed parser-to-ready ingestion, hybrid
+retrieval, Ettin reranking, a grounded Groq answer, a page citation, structured
+OCR evidence, and a valid PNG preview. Its test vectors, manifest, and assets
+were removed after verification. Broad matched V2/V3 evaluation remains.
 
 A source-reviewed V3 acceptance suite is now ready with 49 cases over seven
 documents. Its 18-case core bounds the first Groq-backed run; all retrievable
@@ -293,7 +296,8 @@ IDs before pruning stale IDs. A failed vector write leaves the manifest
 non-ready, so future retrieval can fail closed. The route has offline regression
 coverage, and its DDL, lineage, parsed-state hiding, ready promotion, and schema
 guard passed against a disposable PostgreSQL 16 instance. Pinecone writing and
-full parser-to-index ingestion remain unrun, and no V3 index has been created.
+the full parser-to-index path have now passed one controlled live smoke against
+the isolated V3 index.
 The V3 reader, unified document listing, version-scoped graph invocation,
 structured evidence response, safe artifact-preview route, and Streamlit V2/V3
 selection are implemented and covered offline. V3 deletion stays unavailable
