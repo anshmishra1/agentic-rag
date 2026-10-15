@@ -15,7 +15,7 @@ V3 is being built beside that stable V2 baseline. The selected PyMuPDF Layout
 parser, typed artifact and search-record contracts, content-addressed asset
 store, transactional PostgreSQL manifests, isolated Pinecone writer, and
 opt-in `POST /v3/ingest` route are implemented locally. The complete
-network-disabled offline suite passes 293 tests, and a disposable PostgreSQL 16
+network-disabled offline suite passes 299 tests, and a disposable PostgreSQL 16
 smoke verified DDL creation, artifact lineage, parsed-to-ready promotion, and
 retrieval-schema mismatch protection. Artifact-aware V3 hybrid retrieval now
 reuses the existing Ettin reranker and graph, `/query` accepts an explicit
@@ -411,8 +411,20 @@ evaluation before changing configuration.
 The evaluation history, index-consistency diagnosis, and cleanup safety gate
 are documented in [`docs/RETRIEVAL_EVALUATION_RATIONALE.md`](docs/RETRIEVAL_EVALUATION_RATIONALE.md).
 The separate V3 end-to-end suite covers parser evidence, retrieval and
-reranking, routing, answer formats, citations, verdicts, and latency. It is
-source reviewed but awaits exact V3 artifact IDs after controlled ingestion.
+reranking, routing, answer formats, citations, verdicts, and latency. Its
+retrieval-only executor reuses the production V3 reader and Ettin reranker,
+records IDs, provenance, dense/sparse/RRF/reranker signals, and stage latency,
+and never calls an LLM provider. It requires ready V3 manifests and an explicit
+`--live` flag:
+
+```bash
+python scripts/evaluate_v3_retrieval.py --live --output logs/evaluation/v3-retrieval.json
+```
+
+Reviewed positive cases are scored against page, artifact-type, and grounding
+labels. Unanswerable cases are retained in the report but excluded from
+positive hit-rate denominators because they do not identify a relevant record.
+See [`docs/V3_END_TO_END_EVALUATION.md`](docs/V3_END_TO_END_EVALUATION.md).
 
 ## API
 

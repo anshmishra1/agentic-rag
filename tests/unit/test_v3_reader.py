@@ -116,6 +116,9 @@ def test_v3_reader_scopes_both_queries_and_preserves_artifact_provenance() -> No
     assert results[0][0].metadata["grounding_basis"] == "vision_description"
     assert diagnostics["rrf_count"] == 2
     assert diagnostics["rrf"][0]["record_id"] == "record-shared"
+    assert diagnostics["rrf"][0]["dense_score"] == pytest.approx(0.7)
+    assert diagnostics["rrf"][0]["sparse_score"] == pytest.approx(4.0)
+    assert diagnostics["rrf"][0]["grounding_basis"] == "vision_description"
 
 
 def test_v3_reader_fails_before_vector_access_when_manifest_is_not_ready() -> None:

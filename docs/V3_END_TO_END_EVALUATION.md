@@ -149,6 +149,24 @@ A missing expected artifact indicates parsing or indexing. An indexed artifact
 that is never retrieved indicates candidate generation. A retrieved artifact
 that falls after reranking indicates evidence ranking.
 
+The repository provides this explicit live executor:
+
+```bash
+python scripts/evaluate_v3_retrieval.py --live --output logs/evaluation/v3-retrieval.json
+```
+
+It uses each frozen document SHA-256 as its document ID, requires the matching
+V3 manifest to be ready, and reuses the production hybrid reader and Ettin
+reranker. It writes no passage or answer text. The report includes the complete
+candidate order plus the records selected for the production context budget.
+Use `--tier e2e_core` or repeated `--case-id` options for a smaller diagnostic
+run. A failed case is retained with its error type and causes a nonzero exit.
+
+Cases with reviewed pages, artifact types, or grounding bases contribute to
+retrieval quality metrics. The seven unanswerable cases remain visible but do
+not contribute to positive hit rates: absence of a labelled relevant record is
+not evidence that arbitrary returned candidates are correct or incorrect.
+
 ### Pass 2: bounded end to end
 
 Run the 18 core cases through the application with the same documents and
@@ -194,14 +212,15 @@ safety regression.
 
 ## Current execution boundary
 
-The dataset and source labels are ready, and the complete V3 path has passed one
-controlled scanned-fixture smoke. That run exercised parser, asset storage,
-manifest readiness, Pinecone dense and sparse retrieval, weighted RRF, Ettin
-reranking, Groq generation and verification, citation resolution, structured
-OCR evidence, and the preview route. Cleanup left no fixture vectors, manifest,
-or assets. The next package must ingest the hash-locked corpus, attach exact
-artifact/search-record IDs, and execute the retrieval-only pass before any
-broader provider-backed evaluation.
+The dataset, source labels, and retrieval-only executor are ready, and the
+complete V3 path has passed one controlled scanned-fixture smoke. That run
+exercised parser, asset storage, manifest readiness, Pinecone dense and sparse
+retrieval, weighted RRF, Ettin reranking, Groq generation and verification,
+citation resolution, structured OCR evidence, and the preview route. Cleanup
+left no fixture vectors, manifest, or assets. The next execution step is to
+ingest the hash-locked corpus, run the retrieval-only executor, and review its
+exact artifact/search-record evidence before any broader provider-backed
+evaluation.
 
 Evaluation concept matching must normalize Unicode dash variants. The first
 smoke returned the correct `ORCHID‑73` with a non-breaking hyphen; an exact

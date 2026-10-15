@@ -377,8 +377,8 @@ dependencies only when called and uses the existing serialized embedding runtime
 The query/API/UI boundary adds version-scoped checkpoint identities, ready-only
 document listing and lookup, a safe artifact asset route, and Streamlit PDF-to-V3
 routing. The focused V3 query/UI selection passes 45 tests, and the complete
-network-disabled offline suite passes 293 tests with the existing Starlette
-deprecation warning.
+network-disabled offline suite passes 299 tests with the retrieval-only
+evaluator contracts and the existing Starlette deprecation warning.
 
 A disposable PostgreSQL 16 instance executed the V3 DDL and verified parsed-state
 hiding, ready promotion, persisted parent/record lineage, and schema-mismatch
