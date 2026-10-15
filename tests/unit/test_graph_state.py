@@ -8,6 +8,7 @@ EXPECTED_STATE_FIELDS = {
     "question",
     "document_id",
     "document_name",
+    "retrieval_version",
     "source_mode",
     "messages",
     "retrieval_query",

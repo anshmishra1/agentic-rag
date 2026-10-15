@@ -11,10 +11,9 @@ bi-encoder cosine similarity; a cross-encoder that directly models
 word-level interaction between query and passage separates them far more
 cleanly.
 
-Raw ms-marco cross-encoder output is an unbounded logit, not a 0-1 score.
-Sigmoid is applied manually here (numpy, not a library kwarg) since the exact
-constructor/predict parameter name for built-in activation varies across
-sentence-transformers versions - safer to compute it explicitly.
+The supported cross-encoders return unbounded relevance logits. Sigmoid keeps
+the existing bounded score transport contract, while ranking remains monotonic
+with the raw logits. The result is not a calibrated relevance probability.
 """
 from __future__ import annotations
 
@@ -25,6 +24,7 @@ from langchain_core.documents import Document
 from sentence_transformers import CrossEncoder
 
 from agentic_rag.config import settings
+from agentic_rag.local_inference import local_inference_slot, resolve_torch_device
 from agentic_rag.model_identity import canonical_model_name
 
 _cross_encoder: CrossEncoder | None = None
@@ -32,27 +32,23 @@ _cross_encoder: CrossEncoder | None = None
 
 def _resolve_device() -> str:
     configured = getattr(settings, "cross_encoder_device", "auto")
-    if configured != "auto":
-        return configured
-    return "cuda" if torch.cuda.is_available() else "cpu"
+    return resolve_torch_device(
+        configured,
+        cuda_available=torch.cuda.is_available(),
+    )
 
 
 def _get_cross_encoder() -> CrossEncoder:
     global _cross_encoder
 
-    if _cross_encoder is None:
-
-        device = settings.cross_encoder_device
-
-        if device == "auto":
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-
-        _cross_encoder = CrossEncoder(
-            canonical_model_name(settings.cross_encoder_model),
-            device=device,
-            revision=settings.cross_encoder_model_revision,
-            local_files_only=settings.model_local_files_only,
-        )
+    with local_inference_slot():
+        if _cross_encoder is None:
+            _cross_encoder = CrossEncoder(
+                canonical_model_name(settings.cross_encoder_model),
+                device=_resolve_device(),
+                revision=settings.cross_encoder_model_revision,
+                local_files_only=settings.model_local_files_only,
+            )
 
     return _cross_encoder
 
@@ -61,11 +57,12 @@ def warmup_cross_encoder() -> None:
     """Load and warm the local reranker during application startup."""
     start = time.perf_counter()
     model = _get_cross_encoder()
-    model.predict(
-        [("warmup query", "warmup passage")],
-        batch_size=1,
-        show_progress_bar=False,
-    )
+    with local_inference_slot():
+        model.predict(
+            [("warmup query", "warmup passage")],
+            batch_size=1,
+            show_progress_bar=False,
+        )
     elapsed = time.perf_counter() - start
     print("\n" + "=" * 70)
     print("CROSS-ENCODER WARM-UP")
@@ -131,13 +128,14 @@ def rerank_many(
             pairs.append((query, doc.page_content))
 
     start_time = time.perf_counter()
-    raw_scores = np.asarray(
-        _get_cross_encoder().predict(
-            pairs,
-            batch_size=getattr(settings, "cross_encoder_batch_size", 32),
-            show_progress_bar=False,
+    with local_inference_slot():
+        raw_scores = np.asarray(
+            _get_cross_encoder().predict(
+                pairs,
+                batch_size=getattr(settings, "cross_encoder_batch_size", 8),
+                show_progress_bar=False,
+            )
         )
-    )
     elapsed = time.perf_counter() - start_time
     scores = _sigmoid(raw_scores)
 
@@ -160,7 +158,7 @@ def rerank_many(
         doc.metadata["_cross_encoder_score"] = float(score)
 
     print(f"Inference time: {elapsed:.3f} sec")
-    print(f"Batch size: {getattr(settings, 'cross_encoder_batch_size', 32)}")
+    print(f"Batch size: {getattr(settings, 'cross_encoder_batch_size', 8)}")
 
     results: dict[str, list[tuple[Document, float]]] = {}
     for group_name, items in grouped.items():

@@ -3,6 +3,38 @@ from langchain_core.documents import Document
 from agentic_rag.retrieval import reranker
 
 
+def test_ettin_reranker_load_contract(monkeypatch):
+    captured = {}
+
+    def fake_cross_encoder(model_name, **kwargs):
+        captured["model_name"] = model_name
+        captured["kwargs"] = kwargs
+        return object()
+
+    monkeypatch.setattr(reranker, "CrossEncoder", fake_cross_encoder)
+    monkeypatch.setattr(reranker, "_cross_encoder", None)
+    monkeypatch.setattr(reranker.settings, "cross_encoder_device", "cpu")
+    monkeypatch.setattr(
+        reranker.settings,
+        "cross_encoder_model",
+        "cross-encoder/ettin-reranker-32m-v1",
+    )
+    monkeypatch.setattr(reranker.settings, "cross_encoder_model_revision", "revision")
+    monkeypatch.setattr(reranker.settings, "model_local_files_only", True)
+
+    result = reranker._get_cross_encoder()
+
+    assert result is not None
+    assert captured == {
+        "model_name": "cross-encoder/ettin-reranker-32m-v1",
+        "kwargs": {
+            "device": "cpu",
+            "revision": "revision",
+            "local_files_only": True,
+        },
+    }
+
+
 def test_rrf_reserve_keeps_second_ranked_support_within_five_slots():
     items = [
         {"original_rank": rank, "cross_encoder_score": float(16 - ce_rank)}

@@ -80,6 +80,58 @@ def _tracked_call(function, state):
         reset_current_tracker(token)
 
 
+def test_v3_request_uses_artifact_reader_and_existing_reranker(monkeypatch) -> None:
+    nodes, _, _ = _load_nodes(monkeypatch)
+    document = Document(
+        page_content="diagram evidence",
+        metadata={
+            "document_id": "doc-1",
+            "record_id": "record-1",
+            "artifact_id": "artifact-1",
+            "artifact_kind": "figure",
+            "grounding_basis": "vision_description",
+            "page_label": "2",
+            "type": "content",
+        },
+    )
+    reader_calls = []
+    rerank_calls = []
+
+    def retrieve_v3_document(**kwargs):
+        reader_calls.append(kwargs)
+        return [(document, 0.02)], {
+            "dense_count": 1,
+            "sparse_count": 1,
+            "rrf_count": 1,
+        }
+
+    def rerank_many(query, groups, limits):
+        rerank_calls.append((query, groups, limits))
+        return {"content": [(document, 0.75)]}
+
+    monkeypatch.setattr(nodes, "retrieve_v3_document", retrieve_v3_document)
+    monkeypatch.setattr(nodes, "rerank_many", rerank_many)
+
+    result = _tracked_call(
+        nodes.retrieve,
+        {
+            "question": "Explain the figure",
+            "document_id": "doc-1",
+            "retrieval_version": "v3",
+        },
+    )
+
+    assert reader_calls == [{
+        "query": "Explain the figure",
+        "document_id": "doc-1",
+    }]
+    assert rerank_calls[0][1] == {"content": [(document, 0.02)]}
+    assert result["documents"] == [document]
+    assert result["retrieval_scores"] == [0.75]
+    assert result["retrieval_overview_top_score"] is None
+    assert result["retrieval_content_top_score"] == 0.75
+
+
 def test_are_you_sure_becomes_document_verification(monkeypatch) -> None:
     router_content = json.dumps(
         {

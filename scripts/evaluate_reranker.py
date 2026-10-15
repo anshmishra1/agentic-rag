@@ -10,8 +10,10 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import time
 from contextlib import redirect_stdout
 from pathlib import Path
+from statistics import fmean
 
 
 def first_support_rank(order: list[str], support_ids: set[str]) -> int | None:
@@ -31,6 +33,23 @@ def summarize(rows: list[dict]) -> dict:
             "hit_at_3": sum(rank is not None and rank <= 3 for rank in ranks),
             "hit_at_5": sum(rank is not None and rank <= 5 for rank in ranks),
             "mean_reciprocal_rank": sum(1 / rank for rank in ranks if rank is not None) / len(ranks),
+        }
+    timings = [float(row["rerank_seconds"]) for row in eligible if "rerank_seconds" in row]
+    if timings:
+        summary["reranker_latency_seconds"] = {
+            "mean": fmean(timings),
+            "maximum": max(timings),
+        }
+    scores = [
+        float(score)
+        for row in eligible
+        for score in row.get("reranked_scores", [])
+    ]
+    if scores:
+        summary["reranker_score_distribution"] = {
+            "minimum": min(scores),
+            "mean": fmean(scores),
+            "maximum": max(scores),
         }
     return summary
 
@@ -72,7 +91,9 @@ def collect(pairs: list[dict], reviews: list[dict]) -> list[dict]:
                 query, encoder, settings.hybrid_candidate_k,
                 filter=document_filter, query_representation=representation,
             )
+            rerank_started = time.perf_counter()
             reranked = rerank(query, candidates, len(candidates))
+            rerank_seconds = time.perf_counter() - rerank_started
 
         def ids(items):
             return [
@@ -94,6 +115,8 @@ def collect(pairs: list[dict], reviews: list[dict]) -> list[dict]:
             "reranked_ids": reranked_ids,
             "rrf_support_rank": first_support_rank(rrf_ids, support_ids),
             "reranked_support_rank": first_support_rank(reranked_ids, support_ids),
+            "reranked_scores": [float(score) for _, score in reranked],
+            "rerank_seconds": rerank_seconds,
         })
         print(f"{case_id}: RRF={output[-1]['rrf_support_rank']} CE={output[-1]['reranked_support_rank']}")
     return output
@@ -111,7 +134,19 @@ def main() -> None:
     pairs = json.loads(args.pairs.read_text(encoding="utf-8"))
     reviews = json.loads(args.reviews.read_text(encoding="utf-8"))
     rows = collect(pairs, reviews)
-    payload = {"cases": rows, "selected_diagnostic_summary": summarize(rows)}
+    from agentic_rag.config import settings
+    from agentic_rag.model_identity import canonical_model_name
+
+    payload = {
+        "reranker": {
+            "model": canonical_model_name(settings.cross_encoder_model),
+            "revision": settings.cross_encoder_model_revision,
+            "device": settings.cross_encoder_device,
+            "batch_size": settings.cross_encoder_batch_size,
+        },
+        "cases": rows,
+        "selected_diagnostic_summary": summarize(rows),
+    }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(payload["selected_diagnostic_summary"], indent=2))

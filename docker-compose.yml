@@ -1,7 +1,9 @@
 services:
   api:
     image: agentic-rag-app:local
-    build: .
+    build:
+      context: .
+      target: gpu-runtime
     ports:
       - "8000:8000"
     env_file:
@@ -12,6 +14,9 @@ services:
       TRANSFORMERS_OFFLINE: "1"
       MODEL_LOCAL_FILES_ONLY: "true"
       POSTGRES_URL: postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable
+      V3_ASSET_ROOT: /app/data/v3-assets
+    volumes:
+      - v3_assets:/app/data/v3-assets
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,3 +57,4 @@ services:
 
 volumes:
   postgres_data:
+  v3_assets:

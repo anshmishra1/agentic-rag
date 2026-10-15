@@ -140,3 +140,52 @@ def test_unavailable_verifier_fails_closed_without_api_exception(monkeypatch) ->
 
     assert result["answer_status"] == "verification_uncertain"
     assert result["grounding_parse_success"] is False
+
+
+def test_verifier_uses_the_same_direct_first_evidence_selection(monkeypatch) -> None:
+    check, calls = _load_node(
+        monkeypatch,
+        '{"verdict":"grounded","unsupported_claims":[]}',
+        {"finish_reason": "stop"},
+    )
+    state = {
+        "question": "Explain the method.",
+        "generation": "The direct evidence states the method [S1]. The overview summarizes it [S6].",
+        "documents": [
+            Document(
+                page_content="highest-scoring overview",
+                metadata={"type": "overview", "filename": "fixture.pdf"},
+            ),
+            Document(
+                page_content="second overview must be excluded",
+                metadata={"type": "overview", "filename": "fixture.pdf"},
+            ),
+            *[
+                Document(
+                    page_content=f"direct evidence {index}",
+                    metadata={
+                        "type": "content",
+                        "filename": "fixture.pdf",
+                        "page_label": str(index),
+                    },
+                )
+                for index in range(1, 6)
+            ],
+        ],
+        "correction_attempted": False,
+    }
+
+    token = set_current_tracker(PerformanceTracker())
+    try:
+        result = check(state)
+    finally:
+        reset_current_tracker(token)
+
+    assert result["answer_status"] == "answered"
+    assert len(calls) == 1
+    prompt = calls[0][0]
+    assert "[S1] fixture.pdf, page 1" in prompt
+    assert "direct evidence 1" in prompt
+    assert "[S6] fixture.pdf, overview" in prompt
+    assert "highest-scoring overview" in prompt
+    assert "second overview must be excluded" not in prompt

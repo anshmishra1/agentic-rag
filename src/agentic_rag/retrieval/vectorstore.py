@@ -16,15 +16,19 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from pinecone import Pinecone
 
 from agentic_rag.config import settings
+from agentic_rag.local_inference import local_inference_slot, resolve_torch_device
 from agentic_rag.model_identity import canonical_model_name
 
 
-_embedding_device = "cuda" if torch.cuda.is_available() else "cpu"
+_embedding_device = resolve_torch_device(
+    getattr(settings, "embedding_device", "auto"),
+    cuda_available=torch.cuda.is_available(),
+)
 
 _embeddings = HuggingFaceEmbeddings(
     model_name=canonical_model_name(settings.embedding_model),
     model_kwargs={
-        "device": "cuda" if torch.cuda.is_available() else "cpu",
+        "device": _embedding_device,
         "revision": settings.embedding_model_revision,
         "local_files_only": settings.model_local_files_only,
     },
@@ -44,9 +48,32 @@ class QueryRepresentation:
 
 def build_query_representation(query: str, bm25_encoder=None) -> QueryRepresentation:
     """Build dense and sparse query vectors exactly once per request."""
-    dense = _embeddings.embed_query(query)
+    with local_inference_slot():
+        dense = _embeddings.embed_query(query)
     sparse = bm25_encoder.encode_queries(query) if bm25_encoder is not None else None
     return QueryRepresentation(dense=dense, sparse=sparse)
+
+
+def warmup_embeddings() -> None:
+    """Run one representative embedding before the API becomes ready."""
+
+    with local_inference_slot():
+        _embeddings.embed_query("warmup query")
+    print(f"Embedding model ready on {_embedding_device}")
+
+
+def embed_document_texts(texts: list[str]) -> list[list[float]]:
+    """Embed document text through the shared, serialized local runtime.
+
+    V3 ingestion uses this public boundary instead of constructing a second
+    embedding model. Keeping the inference lock here also prevents parser,
+    embedding, and reranker GPU work from competing for the local device.
+    """
+
+    if not texts or any(not text.strip() for text in texts):
+        raise ValueError("document embedding requires nonempty text values")
+    with local_inference_slot():
+        return _embeddings.embed_documents(texts)
 
 
 def get_pinecone_index():
@@ -126,7 +153,8 @@ def prune_obsolete_document_vectors(document_id: str, keep_ids: set[str]) -> int
 def upsert_hybrid(chunks: list[Document], bm25_encoder) -> set[str]:
     index = get_pinecone_index()
     texts = [c.page_content for c in chunks]
-    dense_vectors = _embeddings.embed_documents(texts)
+    with local_inference_slot():
+        dense_vectors = _embeddings.embed_documents(texts)
 
     vectors = []
     for chunk, dense, text in zip(chunks, dense_vectors, texts):

@@ -158,7 +158,7 @@ def test_record_ingestion_upserts_document_metadata(monkeypatch) -> None:
     assert isinstance(params[4], datetime)
     assert params[4].tzinfo is not None
     assert params[5] == "updated-bm25"
-    assert params[6] == "token_window_v1"
+    assert params[6] == "structure_aware_v2"
 
 
 def test_index_rejects_a_different_chunking_strategy(monkeypatch) -> None:
