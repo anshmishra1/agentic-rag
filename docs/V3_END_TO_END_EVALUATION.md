@@ -194,9 +194,15 @@ safety regression.
 
 ## Current execution boundary
 
-The dataset and source labels are ready. A real V3 run is not ready yet:
-`POST /v3/ingest` exists, while V3 artifact-aware retrieval, `/query`, document
-lifecycle operations, and Streamlit evidence rendering are still pending. The
-next implementation package must connect those components, ingest the frozen
-documents, attach exact artifact/search-record IDs to this suite, and only then
-run the two passes above.
+The dataset and source labels are ready, and the complete V3 path has passed one
+controlled scanned-fixture smoke. That run exercised parser, asset storage,
+manifest readiness, Pinecone dense and sparse retrieval, weighted RRF, Ettin
+reranking, Groq generation and verification, citation resolution, structured
+OCR evidence, and the preview route. Cleanup left no fixture vectors, manifest,
+or assets. The next package must ingest the hash-locked corpus, attach exact
+artifact/search-record IDs, and execute the retrieval-only pass before any
+broader provider-backed evaluation.
+
+Evaluation concept matching must normalize Unicode dash variants. The first
+smoke returned the correct `ORCHID‑73` with a non-breaking hyphen; an exact
+ASCII comparison would have reported a false failure.
