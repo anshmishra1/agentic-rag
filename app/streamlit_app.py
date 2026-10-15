@@ -16,6 +16,13 @@ import uuid
 import requests
 import streamlit as st
 
+from app.streamlit_support import (
+    document_key,
+    document_label,
+    ingestion_summary,
+    partition_uploads,
+)
+
 
 # ============================================================
 # Configuration
@@ -45,6 +52,14 @@ if "documents" not in st.session_state:
 
 if "active_document_id" not in st.session_state:
     st.session_state.active_document_id = None
+
+
+if "active_document_key" not in st.session_state:
+    st.session_state.active_document_key = None
+
+
+if "active_retrieval_version" not in st.session_state:
+    st.session_state.active_retrieval_version = "v3"
 
 
 if "source_mode" not in st.session_state:
@@ -103,6 +118,43 @@ def render_answer_status(message: dict) -> None:
         st.caption("Could not fully verify against the selected document")
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_evidence_asset(asset_url: str) -> bytes:
+    response = requests.get(f"{API_URL}{asset_url}", timeout=30)
+    response.raise_for_status()
+    return response.content
+
+
+def render_sources(message: dict) -> None:
+    citations = message.get("citations", [])
+    evidence = message.get("evidence", [])
+    if not citations and not evidence:
+        return
+
+    with st.expander("Sources and evidence"):
+        if evidence:
+            for item in evidence:
+                locator = item.get("locator") or {}
+                page = locator.get("page_label") or locator.get("page_start")
+                location = f"page {page}" if page else "source artifact"
+                st.markdown(
+                    f"**[{item['label']}] {item['source_name']}**  \n"
+                    f"{item['kind']} · {location} · {item['grounding_basis']}"
+                )
+                if item.get("asset_url"):
+                    try:
+                        st.image(
+                            load_evidence_asset(item["asset_url"]),
+                            caption=item["description"],
+                            use_container_width=True,
+                        )
+                    except requests.RequestException:
+                        st.caption("The stored evidence preview is unavailable.")
+        else:
+            for citation in citations:
+                st.markdown(f"- {citation}")
+
+
 # ============================================================
 # Page
 # ============================================================
@@ -136,46 +188,46 @@ uploaded_files = st.file_uploader(
 
 
 if uploaded_files and st.button("Ingest"):
-
+    v3_files, v2_files = partition_uploads(uploaded_files)
+    ingestion_results = []
     with st.spinner("Ingesting documents..."):
-
-        files_payload = [
-            (
-                "files",
+        for endpoint, files, timeout in (
+            ("/v3/ingest", v3_files, 900),
+            ("/ingest", v2_files, 300),
+        ):
+            if not files:
+                continue
+            files_payload = [
                 (
-                    f.name,
-                    f.getvalue(),
-                    f.type or "application/octet-stream",
-                ),
+                    "files",
+                    (
+                        file.name,
+                        file.getvalue(),
+                        file.type or "application/octet-stream",
+                    ),
+                )
+                for file in files
+            ]
+            response = http.post(
+                f"{API_URL}{endpoint}",
+                files=files_payload,
+                timeout=timeout,
             )
-            for f in uploaded_files
-        ]
-
-        response = http.post(
-            f"{API_URL}/ingest",
-            files=files_payload,
-            timeout=300,
-        )
-
-        if not response.ok:
-            try:
-                detail = response.json().get("detail")
-            except (ValueError, AttributeError):
-                detail = None
-            st.error(
-                detail
-                if isinstance(detail, str)
-                else f"Ingestion failed (HTTP {response.status_code})."
-            )
-            st.stop()
-
-    ingestion_results = response.json()
+            if not response.ok:
+                try:
+                    detail = response.json().get("detail")
+                except (ValueError, AttributeError):
+                    detail = None
+                st.error(
+                    detail
+                    if isinstance(detail, str)
+                    else f"Ingestion failed (HTTP {response.status_code})."
+                )
+                st.stop()
+            ingestion_results.extend(response.json())
 
     for result in ingestion_results:
-        st.success(
-            f"{result['filename']}: "
-            f"{result['chunks_indexed']} chunks indexed"
-        )
+        st.success(ingestion_summary(result))
 
     # Refresh the registry after ingestion.
     try:
@@ -187,7 +239,15 @@ if uploaded_files and st.button("Ingest"):
             st.session_state.active_document_id is None
             and ingestion_results
         ):
-            st.session_state.active_document_id = ingestion_results[0]["document_id"]
+            first = ingestion_results[0]
+            st.session_state.active_document_id = first["document_id"]
+            st.session_state.active_retrieval_version = first.get(
+                "retrieval_version", "v2"
+            )
+            st.session_state.active_document_key = (
+                f"{st.session_state.active_retrieval_version}:"
+                f"{st.session_state.active_document_id}"
+            )
 
     except requests.RequestException as exc:
         st.warning(
@@ -212,7 +272,7 @@ documents = st.session_state.documents
 
 if documents:
     document_options = {
-        f"{doc['filename']} ({doc['chunk_count']} chunks)": doc["document_id"]
+        document_label(doc): doc
         for doc in documents
         if doc.get("document_id")
     }
@@ -223,8 +283,9 @@ if documents:
         current_label = next(
             (
                 label
-                for label, document_id in document_options.items()
-                if document_id == st.session_state.active_document_id
+                for label, document in document_options.items()
+                if document_key(document)
+                == st.session_state.active_document_key
             ),
             labels[0],
         )
@@ -235,10 +296,17 @@ if documents:
             index=labels.index(current_label),
         )
 
-        selected_document_id = document_options[selected_label]
+        selected_document = document_options[selected_label]
+        selected_document_id = selected_document["document_id"]
+        selected_retrieval_version = selected_document.get(
+            "retrieval_version", "v2"
+        )
+        selected_document_key = document_key(selected_document)
 
-        if selected_document_id != st.session_state.active_document_id:
+        if selected_document_key != st.session_state.active_document_key:
             st.session_state.active_document_id = selected_document_id
+            st.session_state.active_document_key = selected_document_key
+            st.session_state.active_retrieval_version = selected_retrieval_version
 
             # A document switch changes retrieval scope. Keeping the previous
             # chat visible can be misleading, so start a clean scoped thread.
@@ -246,10 +314,16 @@ if documents:
             st.session_state.chat_history = []
 
         st.caption(
+            f"Retrieval: {st.session_state.active_retrieval_version.upper()} | "
             f"Document ID: {st.session_state.active_document_id}"
         )
 
-        if st.button("🗑️ Delete this document", type="secondary"):
+        if st.session_state.active_retrieval_version == "v3":
+            st.caption(
+                "V3 document deletion is unavailable until artifact, manifest, "
+                "and vector cleanup can run as one coordinated operation."
+            )
+        elif st.button("Delete this document", type="secondary"):
             with st.spinner("Deleting document..."):
                 delete_response = http.delete(
                     f"{API_URL}/documents/{st.session_state.active_document_id}"
@@ -257,6 +331,7 @@ if documents:
                 delete_response.raise_for_status()
 
             st.session_state.active_document_id = None
+            st.session_state.active_document_key = None
             st.session_state.session_id = str(uuid.uuid4())
             st.session_state.chat_history = []
             st.session_state.documents = load_documents()
@@ -268,9 +343,11 @@ if documents:
             "Re-ingest them with the updated pipeline."
         )
         st.session_state.active_document_id = None
+        st.session_state.active_document_key = None
 else:
     st.info("Upload and ingest a document before asking document-scoped questions.")
     st.session_state.active_document_id = None
+    st.session_state.active_document_key = None
 
 
 # ============================================================
@@ -332,10 +409,7 @@ for message in st.session_state.chat_history:
 
         st.markdown(message["content"])
 
-        if message.get("citations"):
-            with st.expander("Sources"):
-                for citation in message["citations"]:
-                    st.markdown(f"- {citation}")
+        render_sources(message)
 
         # Show grounding information only for assistant messages
         if message["role"] == "assistant":
@@ -408,6 +482,9 @@ if question:
                         "question": question,
                         "session_id": st.session_state.session_id,
                         "document_id": st.session_state.active_document_id,
+                        "retrieval_version": (
+                            st.session_state.active_retrieval_version
+                        ),
                         "source_mode": st.session_state.source_mode,
                     },
                     timeout=120,
@@ -423,6 +500,7 @@ if question:
                 verification_exhausted = data.get("verification_exhausted", False)
                 is_control = data.get("is_control", False)
                 citations = data.get("citations", [])
+                evidence = data.get("evidence", [])
                 answer_source = data.get("answer_source", "document")
                 query_relationship = data.get("query_relationship", "standalone")
                 response_format = data.get("response_format", "requested")
@@ -439,6 +517,7 @@ if question:
                 verification_exhausted = False
                 is_control = False
                 citations = []
+                evidence = []
                 answer_source = "request_failed"
                 query_relationship = "standalone"
                 response_format = "requested"
@@ -452,10 +531,7 @@ if question:
 
         st.markdown(answer)
 
-        if citations:
-            with st.expander("Sources"):
-                for citation in citations:
-                    st.markdown(f"- {citation}")
+        render_sources({"citations": citations, "evidence": evidence})
 
         render_answer_status(
             {
@@ -482,6 +558,8 @@ if question:
             "verification_exhausted": verification_exhausted,
             "is_control": is_control,
             "citations": citations,
+            "evidence": evidence,
+            "retrieval_version": st.session_state.active_retrieval_version,
             "answer_source": answer_source,
             "query_relationship": query_relationship,
             "response_format": response_format,

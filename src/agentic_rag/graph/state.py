@@ -18,6 +18,7 @@ class RequestState(TypedDict, total=False):
     question: str
     document_id: str | None
     document_name: str | None
+    retrieval_version: Literal["v2", "v3"]
     source_mode: Literal["document", "general", "auto"]
     messages: Annotated[list, add_messages]
 
@@ -128,6 +129,7 @@ class GraphInput(TypedDict, total=False):
     question: str
     document_id: str | None
     document_name: str | None
+    retrieval_version: Literal["v2", "v3"]
     source_mode: Literal["document", "general", "auto"]
     messages: Annotated[list, add_messages]
 

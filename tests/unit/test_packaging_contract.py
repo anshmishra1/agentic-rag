@@ -1,4 +1,5 @@
 from pathlib import Path
+import tomllib
 
 
 ROOT = Path(__file__).parents[2]
@@ -51,3 +52,48 @@ def test_documented_setup_files_exist() -> None:
     assert (ROOT / "scripts/create_hybrid_index.py").is_file()
     assert (ROOT / "src/agentic_rag/policies/calibrate_retrieval.py").is_file()
     assert (ROOT / "uv.lock").is_file()
+
+
+def test_selected_v3_parser_dependencies_are_exactly_pinned() -> None:
+    project = tomllib.loads(_read("pyproject.toml"))
+    dependencies = set(project["project"]["dependencies"])
+
+    assert {
+        "pymupdf==1.28.2",
+        "pymupdf4llm==1.28.2",
+        "pymupdf-layout==1.28.2",
+        "rapidocr==3.9.2",
+    } <= dependencies
+
+
+def test_gpu_runtime_provisions_triton_compiler_as_root_then_drops_privileges() -> None:
+    dockerfile = _read("Dockerfile")
+    gpu_runtime = dockerfile.split("FROM application-base AS gpu-runtime", 1)[1]
+
+    root_index = gpu_runtime.index("USER root")
+    compiler_index = gpu_runtime.index("gcc")
+    appuser_index = gpu_runtime.index("USER appuser")
+    cuda_install_index = gpu_runtime.index("uv pip install")
+    source_copy_index = gpu_runtime.index("COPY --chown=appuser:appuser src/ src/")
+    project_install_index = gpu_runtime.index("--no-deps --no-build-isolation .")
+
+    assert "libc6-dev" in gpu_runtime
+    assert root_index < compiler_index < appuser_index < cuda_install_index
+    assert cuda_install_index < source_copy_index < project_install_index
+    assert "uv sync" not in gpu_runtime
+    assert "--mount=type=cache" not in gpu_runtime[source_copy_index:]
+    assert "final_torch_cuda_build=" in gpu_runtime
+
+
+def test_v3_assets_have_an_isolated_index_and_durable_api_volume() -> None:
+    config = _read("src/agentic_rag/config.py")
+    compose = _read("docker-compose.yml")
+    template = _read(".env.example")
+    dockerfile = _read("Dockerfile")
+
+    assert 'v3_index_name: str = "agentic-rag-hybrid-v3"' in config
+    assert 'v3_asset_root: Path = Path("/app/data/v3-assets")' in config
+    assert "V3_INDEX_NAME=agentic-rag-hybrid-v3" in template
+    assert "V3_ASSET_ROOT=/app/data/v3-assets" in template
+    assert "v3_assets:/app/data/v3-assets" in compose
+    assert "mkdir -p /app/data/v3-assets" in dockerfile

@@ -27,6 +27,7 @@ jobs:
           load: true
           push: false
           tags: agentic-rag-ci:local
+          target: cpu-runtime
           cache-from: type=gha
           cache-to: type=gha,mode=max,ignore-error=true
 
@@ -44,6 +45,11 @@ jobs:
         run: |
           docker run --rm --network none agentic-rag-ci:local \
             python scripts/cache_nltk.py --verify-only
+
+      - name: Verify pinned V3 parser runtime without network access
+        run: |
+          docker run --rm --network none agentic-rag-ci:local \
+            python scripts/verify_v3_parser_runtime.py
 
       - name: Run offline unit suite
         run: |

@@ -39,6 +39,7 @@ from agentic_rag.retrieval.vectorstore import (
     retrieve_hybrid_with_scores,
 )
 from agentic_rag.retrieval.reranker import rerank_many
+from agentic_rag.retrieval.v3_reader import retrieve_v3_document
 from agentic_rag.retrieval.sparse import load_bm25_json
 from agentic_rag.ingestion.registry import get_bm25_params
 from agentic_rag.policies.retrieval import (
@@ -51,6 +52,7 @@ from agentic_rag.policies.retrieval import (
 from agentic_rag.policies.generation import (
     apply_citation_generation_limits,
     is_refusal_answer,
+    select_generation_documents,
 )
 from agentic_rag.policies.citations import (
     cited_verification_context,
@@ -333,6 +335,50 @@ def _deduplicate_candidates(
 # Retrieval
 # =============================================================
 
+def _retrieve_v3(query: str, document_id: str) -> dict:
+    """Retrieve artifact search records, then reuse the existing ranker policy."""
+
+    candidates, diagnostics = retrieve_v3_document(
+        query=query,
+        document_id=document_id,
+    )
+    candidates, duplicates_removed = _deduplicate_candidates(candidates)
+    reranked = rerank_many(
+        query,
+        {"content": candidates},
+        {"content": settings.rerank_top_k_content},
+    )
+    results = reranked.get("content", [])
+    documents = [document for document, _ in results]
+    scores = [float(score) for _, score in results]
+    metrics = calculate_retrieval_metrics(scores)
+
+    log_retrieval(
+        logger,
+        "v3 | query=%r | dense=%d | sparse=%d | rrf=%d | "
+        "deduplicated=%d | reranked=%d | top=%.4f",
+        query,
+        diagnostics["dense_count"],
+        diagnostics["sparse_count"],
+        diagnostics["rrf_count"],
+        duplicates_removed,
+        len(scores),
+        metrics["top_score"],
+        enabled=settings.retrieval_logs,
+    )
+    return {
+        "documents": documents,
+        "retrieval_scores": scores,
+        "retrieval_top_score": metrics["top_score"],
+        "retrieval_second_score": metrics["second_score"],
+        "retrieval_score_gap": metrics["score_gap"],
+        "retrieval_mean_score": metrics["mean_score"],
+        "retrieval_top_to_mean_ratio": metrics["top_to_mean_ratio"],
+        "retrieval_gap_ratio": metrics["gap_ratio"],
+        "retrieval_overview_top_score": None,
+        "retrieval_content_top_score": metrics["top_score"] if scores else None,
+    }
+
 def retrieve(state: RAGState) -> dict:
     with get_current_tracker().measure("retrieve"):
         # _separator("2. RETRIEVAL")
@@ -341,6 +387,11 @@ def retrieve(state: RAGState) -> dict:
         # print(f"Query sent to retriever:\n{query}")
 
         document_id = state.get("document_id")
+
+        if state.get("retrieval_version", "v2") == "v3":
+            if not document_id:
+                raise ValueError("V3 retrieval requires a selected document")
+            return _retrieve_v3(query, document_id)
 
         if document_id:
             overview_filter = {
@@ -855,11 +906,11 @@ def check_hallucination(state: RAGState) -> dict:
                 "citations": [],
             }
 
-        documents = state.get("documents", [])
+        documents = select_generation_documents(state.get("documents", []))
         context, citation_issues = cited_verification_context(
             documents,
             generation,
-            max_documents=settings.max_generation_context_documents,
+            max_documents=len(documents),
             max_chars=settings.max_generation_context_chars,
         )
         if citation_issues:

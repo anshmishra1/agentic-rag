@@ -1,12 +1,15 @@
 """Central application settings loaded from environment / .env."""
 
+from pathlib import Path
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from agentic_rag.model_identity import (
     CROSS_ENCODER_MODEL,
     CROSS_ENCODER_REVISION,
+    EMBEDDING_DIMENSION,
     EMBEDDING_MODEL,
     EMBEDDING_REVISION,
 )
@@ -58,10 +61,9 @@ class Settings(BaseSettings):
     aws_bedrock_region: str = "us-east-1"
 
     # Vector database
-    # The index name is the retrieval schema identity. Keep the legacy value
-    # for existing installations; migrations use a numeric suffix such as
-    # agentic-rag-hybrid-v2.
-    pinecone_index_name: str = "agentic-rag-hybrid"
+    # The index name is the retrieval schema identity. V2 is the current text
+    # runtime; later parser or embedding migrations use another numeric suffix.
+    pinecone_index_name: str = "agentic-rag-hybrid-v2"
 
     # PostgreSQL / LangGraph checkpointing
     postgres_url: str = (
@@ -72,18 +74,33 @@ class Settings(BaseSettings):
     # RAG / pipeline
     embedding_model: str = EMBEDDING_MODEL
     embedding_model_revision: str = EMBEDDING_REVISION
+    embedding_dimension: int = Field(default=EMBEDDING_DIMENSION, ge=1)
+    embedding_device: Literal["auto", "cuda", "cpu"] = "auto"
     model_local_files_only: bool = False
     # NOTE: units are TOKENS (per the embedding model's own tokenizer), not
     # characters - see ingestion/chunking.py. all-MiniLM-L6-v2's max sequence
     # length is 256 tokens; 240 leaves headroom for any tokenizer rounding.
     chunk_size: int = 240
     chunk_overlap: int = 40
-    chunking_strategy: Literal["token_window_v1", "structure_aware_v2"] = "token_window_v1"
+    chunking_strategy: Literal["token_window_v1", "structure_aware_v2"] = "structure_aware_v2"
     max_retries: int = 2
+
+    # Multimodal V3 parser. These values are part of the retrieval-schema
+    # identity once the V3 index writer is connected.
+    v3_parser_backend: Literal["pymupdf_layout"] = "pymupdf_layout"
+    v3_parser_render_dpi: int = Field(default=144, ge=72, le=600)
+    v3_parser_ocr_dpi: int = Field(default=150, ge=72, le=600)
+    v3_parser_ocr_enabled: bool = True
+    v3_index_name: str = "agentic-rag-hybrid-v3"
+    v3_asset_root: Path = Path("/app/data/v3-assets")
 
     # Conversation / generation optimization
     max_history_messages_for_generation: int = 2
+    # Direct content and whole-document overviews have separate budgets so an
+    # overview cannot silently displace a content passage retained by the
+    # reranker's recall safeguard.
     max_generation_context_documents: int = 5
+    max_generation_context_overviews: int = 1
     max_generation_context_chars: int = 12000
     max_generation_output_chars: int = 12000
 
@@ -91,11 +108,10 @@ class Settings(BaseSettings):
     # IMPORTANT: these were calibrated against raw Pinecone cosine similarity
     # scores. Hybrid search + cross-encoder reranking changed the score source
     # entirely (sigmoid-activated cross-encoder relevance, not cosine
-    # similarity) - the numbers below are a reasonable placeholder for the new
-    # scale (genuine matches from a cross-encoder+sigmoid typically land
-    # well above 0.5; clear mismatches well below 0.2), NOT a real
-    # calibration. Re-run policies/calibrate_retrieval.py against the new
-    # retrieval path before trusting these for anything but initial testing.
+    # similarity). Cross-encoder scores are ranking signals, not calibrated
+    # relevance probabilities. Ettin's measured sigmoid values are saturated,
+    # so these legacy thresholds remain provisional until positive and negative
+    # routing labels establish a replacement policy.
     retrieval_min_top_score: float = 0.30
     retrieval_strong_top_score: float = 0.60
 
@@ -116,8 +132,9 @@ class Settings(BaseSettings):
     cross_encoder_model: str = CROSS_ENCODER_MODEL
     cross_encoder_model_revision: str = CROSS_ENCODER_REVISION
     # Local reranker execution. "auto" selects CUDA when available, else CPU.
-    cross_encoder_device: str = "auto"
-    cross_encoder_batch_size: int = 32
+    cross_encoder_device: Literal["auto", "cuda", "cpu"] = "auto"
+    # Batch 8 was faster than 32 on the fixed local 15-candidate evaluation.
+    cross_encoder_batch_size: int = 8
 
     # Development
     debug: bool = False

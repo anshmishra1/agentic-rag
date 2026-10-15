@@ -11,6 +11,26 @@ relevant-evidence recall in the application's final five passages from 76% to
 retrieval-latency increase. Structure-aware chunking is therefore fixed for the
 next development stage while embeddings remain unchanged.
 
+V3 is being built beside that stable V2 baseline. The selected PyMuPDF Layout
+parser, typed artifact and search-record contracts, content-addressed asset
+store, transactional PostgreSQL manifests, isolated Pinecone writer, and
+opt-in `POST /v3/ingest` route are implemented locally. The complete
+network-disabled offline suite passes 293 tests, and a disposable PostgreSQL 16
+smoke verified DDL creation, artifact lineage, parsed-to-ready promotion, and
+retrieval-schema mismatch protection. Artifact-aware V3 hybrid retrieval now
+reuses the existing Ettin reranker and graph, `/query` accepts an explicit
+retrieval version, and Streamlit can select V2 or V3 documents and render cited
+artifact previews. The isolated V3 Pinecone index, controlled ingestion, and
+live query verification remain pending before a V3 user demo.
+
+A source-reviewed V3 acceptance suite is now ready with 49 cases over seven
+documents. Its 18-case core bounds the first Groq-backed run; all retrievable
+cases run retrieval-only first. See
+[`docs/V3_END_TO_END_EVALUATION.md`](docs/V3_END_TO_END_EVALUATION.md) for the
+questions, expected evidence, execution order, and promotion method. Exact
+machine-readable expectations live in
+[`eval_set/v3_end_to_end_questions.json`](eval_set/v3_end_to_end_questions.json).
+
 The active v2 reliability repair separates the current information need from a
 pure reformat of the previous answer, canonicalizes provider citation variants,
 and prevents unsupported motivation or exhaustive-document claims during
@@ -84,6 +104,7 @@ record_turn     |                 |       correct_generation
 
 - **Retrieval confidence gating** — a three-way policy (`generate` / `grade` / `rewrite_query`) decides whether an LLM relevance grader is necessary. Strong score distributions skip grading; any non-empty candidate set below the provisional score floor goes to semantic grading instead of a blind rewrite. Only missing or semantically irrelevant evidence triggers retrieval correction. An uncertain grader result proceeds to generation and the stricter grounding verifier remains the final acceptance gate. Rewrites receive the latest failure reason and stop with an abstention if they repeat an attempted query.
 - **Hybrid retrieval** — dense (embedding) and sparse (BM25) retrieval run independently and are fused via Reciprocal Rank Fusion, then reranked with a cross-encoder for final relevance scoring. Within the existing five content slots, the first two RRF candidates are retained as a recall safeguard; cross-encoder scores still order the selected passages. `RERANK_CONTENT_RRF_RESERVE` defaults to `2` and can be set to `0` to use pure cross-encoder selection. This is a rank-slot rule, not a score cutoff. BM25 is fit per document at ingestion time, not globally, matching the document-scoped retrieval model.
+- **Direct-first answer evidence** — retrieval keeps its global score order for confidence assessment, while answer construction preserves all five selected content passages and appends at most one whole-document overview. Generation, correction, citation labels, and grounding verification use the same selection, so an overview cannot undo the reranker's content recall safeguard.
 - **Document-scoped retrieval** — every document gets a stable, content-derived ID (a hash of its bytes), so retrieval, BM25 encoding, and vector storage are all scoped to a specific document rather than the whole corpus. Re-ingestion upserts the current vectors, updates the document's BM25 state, then removes obsolete vectors for that document.
 - **Whole-document overview chunks** — a summary generated at ingestion time and retrieved separately from content chunks, so structural questions ("what does this document cover") aren't left to chunk-level semantic search, which is the wrong granularity for that kind of question.
 - **Corrective grounding handling** — a structured verifier distinguishes a grounded answer, insufficient evidence, and unsupported generation. Verification sees only the passages cited by the answer; missing or unknown labels and uncited factual list items route to correction without an LLM verdict. Evidence problems route back to retrieval and end in an explicit abstention when retries are exhausted; a relevance grade of irrelevant also abstains after the retrieval retry budget. Generation problems receive one constrained correction using the verifier's unsupported-claim list. Malformed verifier output fails closed instead of silently approving an answer.
@@ -101,6 +122,8 @@ record_turn     |                 |       correct_generation
 | Sparse retrieval | BM25 (pinecone-text), fit per document |
 | Reranking | Cross-encoder (sentence-transformers), CUDA-accelerated when available |
 | Embeddings | HuggingFace sentence-transformers |
+| V3 PDF parsing | PyMuPDF4LLM/Layout plus conditional RapidOCR |
+| V3 artifact metadata | PostgreSQL manifests plus content-addressed local assets |
 | Conversation persistence | Postgres (Neon), via LangGraph's checkpointer |
 | Document registry | Postgres |
 | Backend | FastAPI |
@@ -119,8 +142,14 @@ src/agentic_rag/
     chunking.py                 Text splitting, document-id tagging
     pipeline.py                  Ingestion orchestration: load -> chunk -> overview -> upsert
     registry.py                  Postgres-backed document registry
+    contracts.py                 V3 artifact, search-record, locator, and schema identity
+    asset_store.py               Content-addressed local binary asset storage
+    manifest_store.py            Transactional V3 PostgreSQL metadata and lineage
+    v3_pipeline.py               Parsed -> indexed -> ready coordination
+    v3_runtime.py                Lazy opt-in V3 parser/storage/index composition
   retrieval/
     vectorstore.py              Dense + BM25 + RRF retrieval against Pinecone
+    v3_writer.py                 Isolated V3 text-proxy vector writer
     reranker.py                  Cross-encoder reranking (GPU-aware)
     sparse.py                     Per-document BM25 fit/serialize
   policies/
@@ -169,18 +198,19 @@ chunking or embedding change passes offline evaluation. Set
 The PostgreSQL document registry is index-aware. On first use it assigns
 pre-versioning rows to the legacy `agentic-rag-hybrid` index and changes the
 registry identity from `document_id` to `(index_name, document_id)`. Document
-listing, BM25 lookup, and deletion then operate only on the active index. This
-allows the same source document to be evaluated independently in v1 and v2.
+listing, BM25 lookup, and deletion then operate only on the active index. The
+legacy identity remains for migration and historical evaluation; current local
+runtime work starts from v2 and develops v3 separately.
 The registry also records the chunking strategy and rejects ingestion when an
 index already contains a different strategy.
 
-The v1 control uses `CHUNKING_STRATEGY=token_window_v1`: plain PDF extraction
-followed by the existing 240-token windows with 40-token overlap. The v2
-treatment uses `CHUNKING_STRATEGY=structure_aware_v2`: layout-preserving PDF
+The archived v1 control used `CHUNKING_STRATEGY=token_window_v1`: plain PDF
+extraction followed by 240-token windows with 40-token overlap. The current v2
+runtime uses `CHUNKING_STRATEGY=structure_aware_v2`: layout-preserving PDF
 extraction, heading detection, sentence/bullet units, section-aware packing up
-to the same 240-token embedding limit, and section/page-range metadata. Keep
-the embedding model and the other retrieval settings fixed for the first v1
-versus v2 comparison.
+to the same 240-token embedding limit, and section/page-range metadata. V1 is
+kept in source only for reproducible historical comparisons and legacy-row
+interpretation.
 
 ## Running locally
 
@@ -202,7 +232,9 @@ python scripts/local_docker.py status
 python scripts/local_docker.py stop
 ```
 
-`start` reuses existing images and containers. The runner creates a temporary
+`start` reuses existing images and containers. On a CUDA-capable local machine,
+the runner exposes the GPU only to the API and runs embedding plus Ettin
+reranking on CUDA. Use `start --cpu` for a portable recovery run. The runner creates a temporary
 Compose override that writes API run files to `logs/runs/` on the host. It
 keeps provider settings in `.env` and does not read that file itself. Model
 downloads are disabled at runtime because the pinned embedding and reranking
@@ -214,31 +246,66 @@ call). `--build api`, `--build frontend`, and `--build all` each rebuild the
 one shared application image before starting both services. The runner's
 `stop` command retains containers and the PostgreSQL volume.
 
-The Docker image uses the CPU-only PyTorch wheel on Linux, matching its CPU
-embedding and reranking runtime. Local Windows installs retain the CUDA wheel.
+The default local Docker target contains CUDA PyTorch, the exactly pinned
+PyMuPDF4LLM/Layout plus RapidOCR parser, the MiniLM embedding, and the Ettin
+reranker in one shared application image. Only model operations that support
+CUDA run on the GPU; PDF layout parsing, RapidOCR, BM25, storage, API work,
+PostgreSQL, and Streamlit remain on CPU. A process-local lock serializes local
+model inference so the 4 GiB GPU is not loaded by overlapping operations.
+The smaller `cpu-runtime` Docker target is used by CI and non-CUDA verification.
 The Dockerfile keeps uv's package cache outside image layers, so later builds
 can reuse downloads without shipping the cache in the image. A source change
 still requires rebuilding the affected service once; routine starts reuse the
 existing image. Pull requests and `main` run the locked Docker build, runtime
-import check, baked-model offline load check, and offline unit suite in
+import check, baked-model and parser offline checks, and offline unit suite in
 `.github/workflows/offline.yml` without provider credentials or network access
 during tests.
 
 The image pins exact Hugging Face revisions for
 `sentence-transformers/all-MiniLM-L6-v2` and
-`cross-encoder/ms-marco-MiniLM-L6-v2`. The first image build downloads those
+`cross-encoder/ettin-reranker-32m-v1`. The first image build downloads those
 public model files into a reusable Docker layer. API startup and CI load them
 with Hugging Face networking disabled, so a host cache is no longer required.
-Changing either model or revision is an index migration and requires a new
-versioned `PINECONE_INDEX_NAME` plus document re-ingestion.
+Changing the embedding model or revision is an index migration and requires a
+new versioned `PINECONE_INDEX_NAME` plus document re-ingestion. Changing only
+the reranker does not alter stored vectors, but it does require a matched rank,
+latency, and score-distribution comparison before routing thresholds are
+trusted.
+
+The V3 parser identity is also exact: PyMuPDF, PyMuPDF4LLM, and PyMuPDF Layout
+1.28.2 with RapidOCR 3.9.2, 144 DPI evidence renders, 150 DPI conditional OCR,
+and ignored repeating page headers/footers. A network-disabled build check
+rejects missing or different package versions before the image can be used.
+These Artifex packages report dual AGPL 3.0/commercial licensing; production
+distribution or hosted deployment remains gated on choosing a compliant path.
+
+V3 remains isolated from the default V2 route. The opt-in `POST /v3/ingest`
+boundary now lazily composes the selected parser, asset store, manifest store,
+shared embedding runtime, document-local BM25 encoder, and isolated V3 index
+writer. Importing the API or using `POST /ingest` does not construct V3 external
+clients. Its PostgreSQL manifest store
+persists schema identity, artifacts, page-to-region parent links, locators,
+search records, and `parsed`/`ready` state transactionally. Binary page and
+region assets use the dedicated `v3_assets` Compose volume; Pinecone payloads
+contain searchable text and compact provenance, never binary content. The V3
+writer receives its index explicitly and writes document-prefixed deterministic
+IDs before pruning stale IDs. A failed vector write leaves the manifest
+non-ready, so future retrieval can fail closed. The route has offline regression
+coverage, and its DDL, lineage, parsed-state hiding, ready promotion, and schema
+guard passed against a disposable PostgreSQL 16 instance. Pinecone writing and
+full parser-to-index ingestion remain unrun, and no V3 index has been created.
+The V3 reader, unified document listing, version-scoped graph invocation,
+structured evidence response, safe artifact-preview route, and Streamlit V2/V3
+selection are implemented and covered offline. V3 deletion stays unavailable
+until vector, manifest, and asset cleanup can be coordinated atomically.
 
 For direct Compose use, `docker compose up -d --no-build` starts existing
-images, but it does not mount the host model cache or log folder.
+images, but it does not add the local runner's GPU reservation or host log
+folder.
 
 The frontend is available on port 8501, the API on port 8000, and PostgreSQL
-is exposed to the host on port 5442. API startup warms the cross-encoder model,
-so its first health check can take several minutes when the model cache is
-empty.
+is exposed to the host on port 5442. API startup warms both the embedding and
+cross-encoder models; their exact revisions are already baked into the image.
 
 The API reads provider settings from `.env`. For a Groq-only local run, set
 these values in your own `.env` (along with `GROQ_API_KEY` and Pinecone
@@ -274,13 +341,16 @@ Key environment variables (see `.env.example` for the full list):
 | `GROQ_VERIFIER_REASONING_EFFORT` | Groq GPT-OSS effort for bounded fast routing, grading, rewriting, and verification calls; `low` by default (historical variable name retained) |
 | `GROUNDING_VERIFIER_MAX_TOKENS` | Verifier-only completion cap (default: 1024) |
 | `PINECONE_API_KEY`, `PINECONE_INDEX_NAME` | Vector store connection and retrieval schema version; use a name such as `agentic-rag-hybrid-v2` for migrations |
-| `CHUNKING_STRATEGY` | `token_window_v1` for the baseline or `structure_aware_v2` for the section-aware treatment; one strategy per index |
+| `CHUNKING_STRATEGY` | `structure_aware_v2` for the current runtime; archived `token_window_v1` exists only for historical comparison; one strategy per index |
 | `POSTGRES_URL` | Conversation checkpointing + document registry |
 | `EMBEDDING_MODEL`, `EMBEDDING_MODEL_REVISION` | Dense embedding model and immutable Hugging Face revision baked into Docker |
-| `CROSS_ENCODER_MODEL`, `CROSS_ENCODER_MODEL_REVISION` | Reranker model and immutable Hugging Face revision baked into Docker |
+| `EMBEDDING_DEVICE` | `auto` (default), `cuda`, or `cpu`; the local Docker runner selects CUDA unless `--cpu` is used |
+| `CROSS_ENCODER_MODEL`, `CROSS_ENCODER_MODEL_REVISION` | Reranker model and immutable Hugging Face revision baked into Docker; defaults to pinned Ettin 32M |
+| `CROSS_ENCODER_BATCH_SIZE` | Local reranking batch size; defaults to the locally measured value of 8 |
 | `MODEL_LOCAL_FILES_ONLY` | Prevent runtime model downloads; Docker sets this to `true` |
+| `MAX_GENERATION_CONTEXT_DOCUMENTS`, `MAX_GENERATION_CONTEXT_OVERVIEWS` | Direct-passage and supplemental-overview answer-context caps (defaults: 5 and 1) |
 | `RETRIEVAL_MIN_TOP_SCORE` | Provisional absolute score floor for retrieval routing (`RETRIEVAL_STRONG_TOP_SCORE` is currently unused) |
-| `CROSS_ENCODER_DEVICE` | `auto` (default), `cuda`, or `cpu` |
+| `CROSS_ENCODER_DEVICE` | `auto` (default), `cuda`, or `cpu`; the local Docker runner selects CUDA unless `--cpu` is used |
 | `MAX_RETRIES` | Cap on rewrite/retry loop iterations |
 | `DEBUG` | Verbose logging (candidate-level retrieval/rerank tables) |
 
@@ -336,10 +406,15 @@ evaluation before changing configuration.
 
 The evaluation history, index-consistency diagnosis, and cleanup safety gate
 are documented in [`docs/RETRIEVAL_EVALUATION_RATIONALE.md`](docs/RETRIEVAL_EVALUATION_RATIONALE.md).
+The separate V3 end-to-end suite covers parser evidence, retrieval and
+reranking, routing, answer formats, citations, verdicts, and latency. It is
+source reviewed but awaits exact V3 artifact IDs after controlled ingestion.
 
 ## API
 
-- `POST /query` - `{question, session_id, document_id, source_mode}` returns the answer plus `answer_source`, `query_relationship`, `information_need_source`, `response_format`, grounding status, citations, and contexts
-- `POST /ingest` - multipart file upload returns `{filename, document_id, index_name, chunking_strategy, chunks_indexed}` per file
-- `GET /documents` — list of ingested documents and their metadata
+- `POST /query` - `{question, session_id, document_id, source_mode, retrieval_version}` returns the answer plus routing fields, grounding status, citations, contexts, and additive structured V3 evidence
+- `POST /ingest` - V2 multipart upload returning `{filename, document_id, index_name, chunking_strategy, chunks_indexed}` per file
+- `POST /v3/ingest` - opt-in V3 PDF ingestion returning parser, schema, artifact, search-record, vector, and ready-state metadata
+- `GET /v3/documents/{document_id}/artifacts/{artifact_id}/asset` - return a ready cited artifact preview without exposing its storage key
+- `GET /documents` — list ready V3 manifests and existing V2 registry rows through one versioned selection contract
 - `GET /health` — liveness check

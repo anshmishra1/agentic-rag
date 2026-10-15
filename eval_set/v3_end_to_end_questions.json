@@ -1,0 +1,2131 @@
+{
+  "schema_version": 1,
+  "suite_id": "v3-end-to-end-acceptance-v1",
+  "status": "source_reviewed_pending_v3_artifact_ids",
+  "purpose": "Measure V3 parsing, retrieval, reranking, routing, answer generation, citations, verdicts, formatting, and latency with controlled and realistic user language.",
+  "execution_policy": {
+    "retrieval_only": "Run every document case with should_retrieve=true after V3 artifact IDs are attached. Do not call an LLM.",
+    "e2e_core": "First bounded live run: 18 cases across all seven documents.",
+    "e2e_extended": "Run only after reviewing the core results and provider quota."
+  },
+  "documents": [
+    {
+      "document_key": "attention",
+      "filename": "AttentionIsAllyouNeed.pdf",
+      "source_group": "research_articles",
+      "sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+      "capabilities": [
+        "native_text",
+        "figure",
+        "formula",
+        "table"
+      ]
+    },
+    {
+      "document_key": "flashattention",
+      "filename": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+      "source_group": "research_articles",
+      "sha256": "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4",
+      "capabilities": [
+        "native_text",
+        "figure",
+        "formula",
+        "algorithm"
+      ]
+    },
+    {
+      "document_key": "lora",
+      "filename": "LoRa.pdf",
+      "source_group": "research_articles",
+      "sha256": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a",
+      "capabilities": [
+        "native_text",
+        "figure",
+        "numeric_fact"
+      ]
+    },
+    {
+      "document_key": "dpo",
+      "filename": "Direct Preference Optimization.pdf",
+      "source_group": "research_articles",
+      "sha256": "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a",
+      "capabilities": [
+        "native_text",
+        "formula",
+        "proof",
+        "false_premise"
+      ]
+    },
+    {
+      "document_key": "flamingo",
+      "filename": "Flamingo a Visual Language Model.pdf",
+      "source_group": "research_articles",
+      "sha256": "27af622bf50987fd98a03451a27a670adfaeefd5218a3e990b37abc326ba63f0",
+      "capabilities": [
+        "native_text",
+        "figure",
+        "table",
+        "multimodal_architecture"
+      ]
+    },
+    {
+      "document_key": "effective_agents",
+      "filename": "Building Effective AI Agents _ Anthropic.pdf",
+      "source_group": "research_articles",
+      "sha256": "e90c896f4a5fa23453439e1553a2e8dec3bf3df69d4dd2ff02b806308728ddaf",
+      "capabilities": [
+        "native_text",
+        "workflow",
+        "multi_page_synthesis"
+      ]
+    },
+    {
+      "document_key": "ocr_fixture",
+      "filename": "eval_set/fixtures/v3_scanned_page.pdf",
+      "source_group": "repository",
+      "sha256": "c42885ebc8a2b2ddbfe18fb2f8e8fe246efb011e29ad3851c9f289f341d3e02a",
+      "capabilities": [
+        "ocr_text",
+        "page_image",
+        "figure",
+        "table",
+        "formula_label"
+      ]
+    }
+  ],
+  "coverage_requirements": {
+    "document_cases_per_document": 6,
+    "paired_styles": [
+      "controlled",
+      "natural_ambiguous"
+    ],
+    "required_interaction_styles": [
+      "controlled",
+      "natural_ambiguous",
+      "artifact_lookup",
+      "table_lookup",
+      "format_request",
+      "false_premise",
+      "unanswerable",
+      "routing",
+      "follow_up",
+      "verify_previous",
+      "control"
+    ],
+    "required_response_formats": [
+      "requested",
+      "bullets",
+      "table",
+      "ascii_flowchart",
+      "math"
+    ],
+    "required_artifact_types": [
+      "text_block",
+      "figure",
+      "table",
+      "formula",
+      "page_image"
+    ],
+    "required_grounding_bases": [
+      "direct_text",
+      "ocr_derived",
+      "table_extraction",
+      "formula_extraction",
+      "vision_description"
+    ]
+  },
+  "cases": [
+    {
+      "source_mode": "document",
+      "interaction_style": "controlled",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "3"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "encoder stack",
+          "decoder stack",
+          "masked self-attention",
+          "encoder-decoder attention",
+          "feed-forward layers"
+        ],
+        "expected_answer": "The encoder repeats self-attention and feed-forward sublayers; the decoder adds masked self-attention and attention over encoder outputs before the feed-forward sublayer.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "attn-architecture-controlled",
+      "document_key": "attention",
+      "pair_id": "attn-architecture",
+      "question": "Explain the main components of the Transformer encoder and decoder shown in Figure 1."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "natural_ambiguous",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "3"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "left encoder",
+          "right decoder",
+          "masked attention",
+          "cross-attention"
+        ],
+        "expected_answer": "Explain the left encoder and right decoder stacks in ordinary language, including the decoder mask and its connection to encoder outputs.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "attn-architecture-natural",
+      "document_key": "attention",
+      "pair_id": "attn-architecture",
+      "question": "Can you walk me through what the two sides of that big architecture picture are actually doing?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "format_request",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "math",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "4"
+        ],
+        "artifact_types": [
+          "formula",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "formula_extraction",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "Attention(Q,K,V)",
+          "sqrt(d_k)",
+          "large dot products",
+          "small softmax gradients"
+        ],
+        "expected_answer": "Scaling by sqrt(d_k) prevents large dot products from pushing softmax into regions with very small gradients; define Q, K, V, and d_k.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "attn-scaling-math",
+      "document_key": "attention",
+      "question": "Why is dot-product attention divided by the square root of the key dimension? Show the attention equation in valid LaTeX and define every symbol."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "table_lookup",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "table",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "9"
+        ],
+        "artifact_types": [
+          "table",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "table_extraction",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "base",
+          "big",
+          "65 million",
+          "213 million",
+          "25.8 BLEU",
+          "26.4 BLEU",
+          "4.92 PPL",
+          "4.33 PPL"
+        ],
+        "expected_answer": "Base: 65M parameters, 25.8 BLEU, 4.92 PPL. Big: 213M parameters, 26.4 BLEU, 4.33 PPL.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "attn-table-comparison",
+      "document_key": "attention",
+      "question": "From Table 3, compare the base and big Transformer configurations in a compact table, including parameters, development BLEU, and development perplexity."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "false_premise",
+      "execution_tier": "e2e_extended",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "3"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "masked self-attention",
+          "cannot attend to subsequent positions"
+        ],
+        "expected_answer": "Reject the premise: decoder self-attention is masked so a position can depend only on known earlier outputs.",
+        "forbidden_claims": [
+          "decoder positions can attend to future outputs"
+        ],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "attn-decoder-false-premise",
+      "document_key": "attention",
+      "question": "Why does the Transformer decoder allow each position to look at future output tokens during training?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "unanswerable",
+      "execution_tier": "e2e_extended",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "insufficient_evidence"
+        ],
+        "citations_required": false,
+        "source_pages": [],
+        "artifact_types": [],
+        "grounding_bases": [],
+        "required_concepts": [],
+        "expected_answer": "Abstain because the paper does not report RTX 2050 first-token latency.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 0
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "attn-hardware-unanswerable",
+      "document_key": "attention",
+      "question": "What first-token latency did the Transformer achieve on an RTX 2050?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "controlled",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "2",
+          "4",
+          "5"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block",
+          "formula"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text",
+          "formula_extraction"
+        ],
+        "required_concepts": [
+          "blocks of Q K V",
+          "SRAM",
+          "avoid materializing N by N matrix",
+          "recomputation"
+        ],
+        "expected_answer": "It processes blocks of Q, K, and V in SRAM, incrementally computes softmax statistics, avoids storing the full attention matrix in HBM, and recomputes intermediates during backward.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flash-tiling-controlled",
+      "document_key": "flashattention",
+      "pair_id": "flash-tiling",
+      "question": "How does FlashAttention use tiling to reduce reads and writes between HBM and on-chip SRAM?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "natural_ambiguous",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "2",
+          "5"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "more FLOPs",
+          "less HBM traffic",
+          "recomputation",
+          "memory bound"
+        ],
+        "expected_answer": "The extra recomputation costs fewer resources than repeatedly moving the large attention matrix through slow HBM, so the memory-bound operation becomes faster.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flash-tiling-natural",
+      "document_key": "flashattention",
+      "pair_id": "flash-tiling",
+      "question": "It apparently does extra work, so why does it still end up faster?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "artifact_lookup",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "2"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "Figure 1",
+          "outer loop K and V",
+          "inner loop Q",
+          "copy blocks to SRAM",
+          "output to HBM"
+        ],
+        "expected_answer": "Locate Figure 1 and explain the K/V outer loop, Q inner loop, SRAM computation, and output write to HBM.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flash-figure-lookup",
+      "document_key": "flashattention",
+      "question": "Does the paper contain a diagram showing how data moves between HBM and SRAM? Use that figure to explain the flow."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "format_request",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "ascii_flowchart",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "5"
+        ],
+        "artifact_types": [
+          "formula",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "formula_extraction",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "divide Q K V into blocks",
+          "outer K V loop",
+          "inner Q loop",
+          "softmax statistics",
+          "write O l m to HBM"
+        ],
+        "expected_answer": "A fenced ASCII flowchart faithful to Algorithm 1, with citations attached to factual nodes.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flash-algorithm-flowchart",
+      "document_key": "flashattention",
+      "question": "Turn Algorithm 1 into a concise ASCII flowchart that shows the block loops, on-chip computation, and writes back to HBM."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "false_premise",
+      "execution_tier": "e2e_extended",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1",
+          "4",
+          "5"
+        ],
+        "artifact_types": [
+          "text_block",
+          "formula"
+        ],
+        "grounding_bases": [
+          "direct_text",
+          "formula_extraction"
+        ],
+        "required_concepts": [
+          "exact attention",
+          "no discarded entries",
+          "standard softmax result"
+        ],
+        "expected_answer": "Reject the premise: FlashAttention is exact and reorganizes computation and memory movement rather than discarding attention entries.",
+        "forbidden_claims": [
+          "prunes low attention scores",
+          "approximates softmax"
+        ],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flash-approximation-false-premise",
+      "document_key": "flashattention",
+      "question": "Which attention entries does FlashAttention discard to approximate the softmax more cheaply?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "unanswerable",
+      "execution_tier": "e2e_core",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "insufficient_evidence"
+        ],
+        "citations_required": false,
+        "source_pages": [],
+        "artifact_types": [],
+        "grounding_bases": [],
+        "required_concepts": [],
+        "expected_answer": "Abstain because the paper does not report training energy in kilowatt-hours.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 0
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flash-energy-unanswerable",
+      "document_key": "flashattention",
+      "question": "How many kilowatt-hours does one FlashAttention training run consume?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "controlled",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "frozen pretrained weights",
+          "train A and B",
+          "low-rank update"
+        ],
+        "expected_answer": "LoRA freezes the pretrained weight matrix and learns two small low-rank matrices whose product supplies the task-specific update.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "lora-mechanism-controlled",
+      "document_key": "lora",
+      "pair_id": "lora-mechanism",
+      "question": "How does LoRA adapt a pretrained Transformer while keeping the original weights frozen?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "natural_ambiguous",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "frozen base model",
+          "two low-rank matrices",
+          "additive update"
+        ],
+        "expected_answer": "Explain in ordinary language that the base weights stay frozen while two trained low-rank factors form an additive update.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "lora-mechanism-natural",
+      "document_key": "lora",
+      "pair_id": "lora-mechanism",
+      "question": "So it leaves the huge model alone and only learns a couple of smaller pieces - how does that work?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "format_request",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "table",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1",
+          "2",
+          "4",
+          "5"
+        ],
+        "artifact_types": [
+          "text_block"
+        ],
+        "grounding_bases": [
+          "direct_text"
+        ],
+        "required_concepts": [
+          "10000 times fewer trainable parameters",
+          "3 times lower GPU memory",
+          "no additional inference latency",
+          "merge weights"
+        ],
+        "expected_answer": "Summarize the reported 10,000x trainable-parameter reduction, 3x GPU-memory reduction, and no added inference latency after merging the update.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "lora-efficiency-table",
+      "document_key": "lora",
+      "question": "Compare full fine-tuning and LoRA for GPT-3 175B in a table using the parameter, memory, and inference-latency claims reported by the paper."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "artifact_lookup",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "Figure 1",
+          "pretrained W frozen",
+          "A and B trained",
+          "low-rank branch added"
+        ],
+        "expected_answer": "Use Figure 1 to identify frozen W, trained A and B, and addition of the low-rank update to the original path.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "lora-figure-lookup",
+      "document_key": "lora",
+      "question": "Find the figure that shows LoRA's reparameterization. Which matrices are trained, and how is their update combined with the frozen weight path?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "false_premise",
+      "execution_tier": "e2e_extended",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1",
+          "2",
+          "4"
+        ],
+        "artifact_types": [
+          "text_block"
+        ],
+        "grounding_bases": [
+          "direct_text"
+        ],
+        "required_concepts": [
+          "merge update into weights",
+          "no additional inference latency"
+        ],
+        "expected_answer": "Reject the premise: the learned update can be merged into the pretrained weights for deployment.",
+        "forbidden_claims": [
+          "LoRA necessarily adds inference latency"
+        ],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "lora-latency-false-premise",
+      "document_key": "lora",
+      "question": "Why does LoRA necessarily add adapter-layer latency to every inference request?",
+      "conversation_id": "lora-verification-thread",
+      "turn_index": 1
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "unanswerable",
+      "execution_tier": "e2e_core",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "insufficient_evidence"
+        ],
+        "citations_required": false,
+        "source_pages": [],
+        "artifact_types": [],
+        "grounding_bases": [],
+        "required_concepts": [],
+        "expected_answer": "Abstain because this LoRA paper does not evaluate the later QLoRA method.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 0
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "lora-qlora-unanswerable",
+      "document_key": "lora",
+      "question": "According to this paper, when should I choose QLoRA instead of LoRA?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "controlled",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1",
+          "2"
+        ],
+        "artifact_types": [
+          "text_block",
+          "formula"
+        ],
+        "grounding_bases": [
+          "direct_text",
+          "formula_extraction"
+        ],
+        "required_concepts": [
+          "reward reparameterization",
+          "policy and reference policy",
+          "binary classification objective"
+        ],
+        "expected_answer": "DPO rewrites the preference objective in terms of the policy and reference policy and directly optimizes a classification loss on preferred and rejected responses.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "dpo-objective-controlled",
+      "document_key": "dpo",
+      "pair_id": "dpo-objective",
+      "question": "How does DPO optimize human preferences without separately fitting a reward model and running reinforcement learning?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "natural_ambiguous",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1",
+          "2"
+        ],
+        "artifact_types": [
+          "text_block",
+          "formula"
+        ],
+        "grounding_bases": [
+          "direct_text",
+          "formula_extraction"
+        ],
+        "required_concepts": [
+          "direct preference objective",
+          "implicit reward",
+          "no separate reward model or PPO"
+        ],
+        "expected_answer": "Explain that DPO derives an implicit reward from the policy ratio and directly trains on preference pairs.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "dpo-objective-natural",
+      "document_key": "dpo",
+      "pair_id": "dpo-objective",
+      "question": "How are they skipping the whole reward-model-plus-RL loop here?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "format_request",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "math",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "4",
+          "6"
+        ],
+        "artifact_types": [
+          "formula",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "formula_extraction",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "Bradley-Terry",
+          "reward differences",
+          "prompt-dependent partition term cancels",
+          "policy ratio"
+        ],
+        "expected_answer": "Preference probabilities depend on reward differences, so the shared prompt-only normalization term cancels; show the policy/reference-policy reward relation.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "dpo-partition-math",
+      "document_key": "dpo",
+      "question": "Explain why the partition function does not have to be estimated in DPO. Include the relevant relation in valid LaTeX and define the terms."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "format_request",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "ascii_flowchart",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "3"
+        ],
+        "artifact_types": [
+          "text_block"
+        ],
+        "grounding_bases": [
+          "direct_text"
+        ],
+        "required_concepts": [
+          "supervised fine-tuning",
+          "preference sampling",
+          "reward learning",
+          "reinforcement learning",
+          "DPO direct optimization"
+        ],
+        "expected_answer": "A cited flowchart of SFT, preference data and reward learning, then RL optimization, with the separate reward-model and RL stages identified as removed by DPO.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "dpo-rlhf-flowchart",
+      "document_key": "dpo",
+      "question": "Show the standard RLHF pipeline described by the paper as an ASCII flowchart, then mark which stages DPO removes."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "false_premise",
+      "execution_tier": "e2e_core",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1",
+          "2"
+        ],
+        "artifact_types": [
+          "text_block",
+          "formula"
+        ],
+        "grounding_bases": [
+          "direct_text",
+          "formula_extraction"
+        ],
+        "required_concepts": [
+          "does not require separate reward model",
+          "direct policy optimization"
+        ],
+        "expected_answer": "Reject the premise: removing the separately fitted reward model and RL stage is the central point of DPO.",
+        "forbidden_claims": [
+          "DPO requires a separate reward model"
+        ],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "dpo-reward-model-false-premise",
+      "document_key": "dpo",
+      "question": "Why must DPO train a separate reward model before updating the policy?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "unanswerable",
+      "execution_tier": "e2e_extended",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "insufficient_evidence"
+        ],
+        "citations_required": false,
+        "source_pages": [],
+        "artifact_types": [],
+        "grounding_bases": [],
+        "required_concepts": [],
+        "expected_answer": "Abstain because the paper does not report that inference-throughput comparison.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 0
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "dpo-throughput-unanswerable",
+      "document_key": "dpo",
+      "question": "What tokens-per-second inference throughput does DPO achieve compared with PPO?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "natural_ambiguous",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "6"
+        ],
+        "artifact_types": [
+          "formula",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "formula_extraction",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "reward equivalence class",
+          "optimal policy",
+          "reparameterization"
+        ],
+        "expected_answer": "The theorem shows an equivalent reward representation in terms of the optimal policy and reference policy, making the preference objective analytically tractable.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "dpo-theorem-natural",
+      "document_key": "dpo",
+      "question": "What is that theorem on the derivation page actually buying us?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "controlled",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "5"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "gated cross-attention dense",
+          "visual keys and values",
+          "language queries",
+          "frozen LM",
+          "tanh gate initialized to zero"
+        ],
+        "expected_answer": "New gated cross-attention and feed-forward layers are inserted between frozen LM layers; language states query visual features, and zero-initialized tanh gates preserve the original LM at initialization.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flamingo-architecture-controlled",
+      "document_key": "flamingo",
+      "pair_id": "flamingo-architecture",
+      "question": "How do Flamingo's gated cross-attention dense layers connect visual features to the frozen language model?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "natural_ambiguous",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "5"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "Perceiver visual tokens",
+          "gated cross-attention",
+          "frozen LM",
+          "zero initialized gate"
+        ],
+        "expected_answer": "Explain that visual features are resampled and introduced through newly trained gated cross-attention blocks while the original LM stays frozen and initially unchanged.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flamingo-architecture-natural",
+      "document_key": "flamingo",
+      "pair_id": "flamingo-architecture",
+      "question": "How do the pictures actually get into the frozen language model without wrecking what it already knows?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "artifact_lookup",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "5"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "Figure 4",
+          "queries from language input",
+          "keys and values from visual features"
+        ],
+        "expected_answer": "Use Figure 4 and state that language features provide queries while visual features provide keys and values.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flamingo-figure-lookup",
+      "document_key": "flamingo",
+      "question": "Locate the architecture figure for GATED XATTN-DENSE. Explain what supplies the queries, keys, and values."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "table_lookup",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "bullets",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "8"
+        ],
+        "artifact_types": [
+          "table",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "table_extraction",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "VQAv2",
+          "VATEX",
+          "VizWiz",
+          "MSRVTTQA",
+          "HatefulMemes"
+        ],
+        "expected_answer": "VQAv2, VATEX, VizWiz, MSRVTTQA, and HatefulMemes.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flamingo-results-table",
+      "document_key": "flamingo",
+      "question": "Using Table 2, list the five tasks where fine-tuned Flamingo sets a new state of the art."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "false_premise",
+      "execution_tier": "e2e_extended",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "5"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "freeze pretrained LM blocks",
+          "insert new gated layers"
+        ],
+        "expected_answer": "Reject the premise: Flamingo freezes the pretrained LM blocks and trains inserted gated cross-attention dense layers.",
+        "forbidden_claims": [
+          "fully fine-tunes every language-model layer"
+        ],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flamingo-frozen-lm-false-premise",
+      "document_key": "flamingo",
+      "question": "Why does Flamingo fully fine-tune every pretrained language-model layer when adding vision?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "unanswerable",
+      "execution_tier": "e2e_extended",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "insufficient_evidence"
+        ],
+        "citations_required": false,
+        "source_pages": [],
+        "artifact_types": [],
+        "grounding_bases": [],
+        "required_concepts": [],
+        "expected_answer": "Abstain because the paper does not report a speech-recognition word error rate.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 0
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "flamingo-wer-unanswerable",
+      "document_key": "flamingo",
+      "question": "What speech-recognition word error rate does Flamingo report?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "controlled",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "2"
+        ],
+        "artifact_types": [
+          "text_block"
+        ],
+        "grounding_bases": [
+          "direct_text"
+        ],
+        "required_concepts": [
+          "predefined code paths",
+          "model directs its own process",
+          "tool use"
+        ],
+        "expected_answer": "Workflows orchestrate LLMs through predefined code paths; agents dynamically direct their own process and tool use.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "agents-workflow-controlled",
+      "document_key": "effective_agents",
+      "pair_id": "agents-workflow",
+      "question": "How does Anthropic distinguish workflows from agents?",
+      "conversation_id": "agents-workflow-thread",
+      "turn_index": 1
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "natural_ambiguous",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "2",
+          "10"
+        ],
+        "artifact_types": [
+          "text_block"
+        ],
+        "grounding_bases": [
+          "direct_text"
+        ],
+        "required_concepts": [
+          "workflow predictability",
+          "agent flexibility",
+          "cost latency and error risk"
+        ],
+        "expected_answer": "Use fixed workflows for predictable tasks and agents when flexible model-directed decisions justify higher cost, latency, and compounding-error risk.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "agents-workflow-natural",
+      "document_key": "effective_agents",
+      "pair_id": "agents-workflow",
+      "question": "When should I keep the steps fixed, and when should I let the model decide what to do next?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "format_request",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "bullets",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "3"
+        ],
+        "artifact_types": [
+          "text_block"
+        ],
+        "grounding_bases": [
+          "direct_text"
+        ],
+        "required_concepts": [
+          "retrieval",
+          "tools",
+          "memory"
+        ],
+        "expected_answer": "Retrieval, tools, and memory.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "agents-augmented-bullets",
+      "document_key": "effective_agents",
+      "question": "What makes up the augmented LLM building block? Answer in concise bullet points."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "format_request",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "ascii_flowchart",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "8"
+        ],
+        "artifact_types": [
+          "text_block"
+        ],
+        "grounding_bases": [
+          "direct_text"
+        ],
+        "required_concepts": [
+          "generator",
+          "evaluator",
+          "feedback",
+          "repeat until acceptable"
+        ],
+        "expected_answer": "A cited generator-to-evaluator-to-feedback loop that repeats until the result meets the goal.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "agents-evaluator-flowchart",
+      "document_key": "effective_agents",
+      "question": "Explain the evaluator-optimizer workflow as an ASCII flowchart with its feedback loop."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "false_premise",
+      "execution_tier": "e2e_extended",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "2",
+          "10"
+        ],
+        "artifact_types": [
+          "text_block"
+        ],
+        "grounding_bases": [
+          "direct_text"
+        ],
+        "required_concepts": [
+          "start with simplest solution",
+          "latency and cost",
+          "compounding errors"
+        ],
+        "expected_answer": "Reject the premise: the article recommends the simplest effective design and reserves agents for cases that justify their extra cost and risk.",
+        "forbidden_claims": [
+          "agents are recommended for every application"
+        ],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "agents-always-better-false-premise",
+      "document_key": "effective_agents",
+      "question": "Why does the article recommend using autonomous agents for every application?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "unanswerable",
+      "execution_tier": "e2e_extended",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "insufficient_evidence"
+        ],
+        "citations_required": false,
+        "source_pages": [],
+        "artifact_types": [],
+        "grounding_bases": [],
+        "required_concepts": [],
+        "expected_answer": "Abstain because the article does not report a benchmark GPU.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 0
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "agents-gpu-unanswerable",
+      "document_key": "effective_agents",
+      "question": "Which GPU model did Anthropic use to benchmark the evaluator-optimizer workflow?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "controlled",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1"
+        ],
+        "artifact_types": [
+          "page_image",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "ocr_derived"
+        ],
+        "required_concepts": [
+          "ORCHID-73"
+        ],
+        "expected_answer": "ORCHID-73.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "ocr-code-controlled",
+      "document_key": "ocr_fixture",
+      "pair_id": "ocr-code",
+      "question": "What document code appears on the scanned page?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "natural_ambiguous",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1"
+        ],
+        "artifact_types": [
+          "page_image",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "ocr_derived"
+        ],
+        "required_concepts": [
+          "ORCHID-73"
+        ],
+        "expected_answer": "ORCHID-73.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "ocr-code-natural",
+      "document_key": "ocr_fixture",
+      "pair_id": "ocr-code",
+      "question": "What's the code on this thing?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "table_lookup",
+      "execution_tier": "e2e_core",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1"
+        ],
+        "artifact_types": [
+          "table",
+          "page_image",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "table_extraction",
+          "ocr_derived"
+        ],
+        "required_concepts": [
+          "Parse Ready",
+          "Retrieve Pending"
+        ],
+        "expected_answer": "Parse is Ready; Retrieve is Pending.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "ocr-status-table",
+      "document_key": "ocr_fixture",
+      "question": "Read the status table. Which stage is ready and which one is still pending?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "artifact_lookup",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1"
+        ],
+        "artifact_types": [
+          "figure",
+          "page_image",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "ocr_derived"
+        ],
+        "required_concepts": [
+          "IMAGE",
+          "TEXT",
+          "left to right"
+        ],
+        "expected_answer": "It shows an image-to-text flow, with the arrow pointing from IMAGE on the left to TEXT on the right.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "ocr-diagram-direction",
+      "document_key": "ocr_fixture",
+      "question": "What transformation does Figure 1 show, and which direction does the arrow point?"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "format_request",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "math",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1"
+        ],
+        "artifact_types": [
+          "formula",
+          "page_image",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "formula_extraction",
+          "ocr_derived"
+        ],
+        "required_concepts": [
+          "E = mc^2"
+        ],
+        "expected_answer": "Render E = mc^2 in valid LaTeX.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "ocr-formula-label",
+      "document_key": "ocr_fixture",
+      "question": "What formula label is printed on the page? Render it in valid LaTeX."
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "unanswerable",
+      "execution_tier": "e2e_extended",
+      "split": "holdout",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "insufficient_evidence"
+        ],
+        "citations_required": false,
+        "source_pages": [],
+        "artifact_types": [],
+        "grounding_bases": [],
+        "required_concepts": [],
+        "expected_answer": "Abstain because no author is shown.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 0
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "ocr-author-unanswerable",
+      "document_key": "ocr_fixture",
+      "question": "Who authored this scanned document?"
+    },
+    {
+      "source_mode": "auto",
+      "interaction_style": "routing",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "2"
+        ],
+        "artifact_types": [
+          "figure",
+          "text_block"
+        ],
+        "grounding_bases": [
+          "vision_description",
+          "direct_text"
+        ],
+        "required_concepts": [
+          "HBM bandwidth",
+          "memory-bound attention",
+          "reduce reads and writes"
+        ],
+        "expected_answer": "Use the selected FlashAttention document and explain the HBM bottleneck.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "route-auto-document",
+      "document_key": "flashattention",
+      "question": "Why does this paper care so much about HBM?"
+    },
+    {
+      "source_mode": "auto",
+      "interaction_style": "routing",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "general",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "requested",
+        "should_retrieve": false,
+        "allowed_answer_statuses": [
+          "general_answer"
+        ],
+        "citations_required": false,
+        "source_pages": [],
+        "artifact_types": [],
+        "grounding_bases": [],
+        "required_concepts": [
+          "binary search"
+        ],
+        "expected_answer": "Answer from general model knowledge without document citations.",
+        "forbidden_claims": [],
+        "max_retrievals": 0,
+        "max_rewrites": 0,
+        "max_corrections": 0
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "route-auto-general",
+      "document_key": "attention",
+      "question": "Explain binary search in simple terms."
+    },
+    {
+      "source_mode": "auto",
+      "interaction_style": "routing",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "clarify",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "prose",
+        "should_retrieve": false,
+        "allowed_answer_statuses": [
+          "clarification_required"
+        ],
+        "citations_required": false,
+        "source_pages": [],
+        "artifact_types": [],
+        "grounding_bases": [],
+        "required_concepts": [],
+        "expected_answer": "Ask what topic or prior statement the user wants explained.",
+        "forbidden_claims": [],
+        "max_retrievals": 0,
+        "max_rewrites": 0,
+        "max_corrections": 0
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "route-auto-clarify",
+      "document_key": "attention",
+      "question": "Can you explain this better?"
+    },
+    {
+      "source_mode": "auto",
+      "interaction_style": "follow_up",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "follow_up",
+        "information_need_source": "previous_information_need",
+        "response_format": "table",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "2"
+        ],
+        "artifact_types": [
+          "text_block"
+        ],
+        "grounding_bases": [
+          "direct_text"
+        ],
+        "required_concepts": [
+          "workflows",
+          "agents"
+        ],
+        "expected_answer": "Reformat the prior workflow-versus-agent answer as a compact table with citations.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "route-format-followup",
+      "document_key": "effective_agents",
+      "question": "Put that in a compact table.",
+      "conversation_id": "agents-workflow-thread",
+      "turn_index": 2,
+      "depends_on": "agents-workflow-controlled"
+    },
+    {
+      "source_mode": "auto",
+      "interaction_style": "verify_previous",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "document",
+        "query_relationship": "verify_previous",
+        "information_need_source": "previous_information_need",
+        "response_format": "requested",
+        "should_retrieve": true,
+        "allowed_answer_statuses": [
+          "answered"
+        ],
+        "citations_required": true,
+        "source_pages": [
+          "1",
+          "2",
+          "4"
+        ],
+        "artifact_types": [
+          "text_block"
+        ],
+        "grounding_bases": [
+          "direct_text"
+        ],
+        "required_concepts": [
+          "merge update into weights",
+          "no additional inference latency"
+        ],
+        "expected_answer": "Re-check the prior LoRA latency claim against the cited paper evidence.",
+        "forbidden_claims": [],
+        "max_retrievals": 2,
+        "max_rewrites": 1,
+        "max_corrections": 1
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "route-verify-followup",
+      "document_key": "lora",
+      "question": "Are you sure? Check that against the paper.",
+      "conversation_id": "lora-verification-thread",
+      "turn_index": 2,
+      "depends_on": "lora-latency-false-premise"
+    },
+    {
+      "source_mode": "document",
+      "interaction_style": "control",
+      "execution_tier": "e2e_extended",
+      "split": "development",
+      "expected": {
+        "answer_source": "control",
+        "query_relationship": "standalone",
+        "information_need_source": "current_turn",
+        "response_format": "prose",
+        "should_retrieve": false,
+        "allowed_answer_statuses": [
+          "control"
+        ],
+        "citations_required": false,
+        "source_pages": [],
+        "artifact_types": [],
+        "grounding_bases": [],
+        "required_concepts": [],
+        "expected_answer": "Return the deterministic control response without retrieval or generation.",
+        "forbidden_claims": [],
+        "max_retrievals": 0,
+        "max_rewrites": 0,
+        "max_corrections": 0
+      },
+      "review_status": "source_reviewed_pending_v3_artifact_ids",
+      "case_id": "route-control",
+      "document_key": "effective_agents",
+      "question": "Thanks, that's all."
+    }
+  ]
+}
+

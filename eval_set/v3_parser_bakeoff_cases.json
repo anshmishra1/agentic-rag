@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "description": "Fixed page-level corpus for comparing V3 PDF artifact parsers before live integration.",
+  "visual_review_status": "pending parser-backed page rendering",
+  "cases": [
+    {
+      "case_id": "attention-transformer-architecture",
+      "source_group": "research_articles",
+      "source_file": "AttentionIsAllyouNeed.pdf",
+      "sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+      "pages": [3],
+      "purpose": "Two-column reading order and the encoder-decoder architecture figure.",
+      "expectations": {
+        "minimum_artifacts": {"text_block": 1, "figure": 1},
+        "required_text_terms": ["Transformer", "encoder", "decoder"]
+      }
+    },
+    {
+      "case_id": "attention-equations-and-diagram",
+      "source_group": "research_articles",
+      "source_file": "AttentionIsAllyouNeed.pdf",
+      "sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+      "pages": [4],
+      "purpose": "Scaled dot-product and multi-head attention diagram with mathematical notation.",
+      "expectations": {
+        "minimum_artifacts": {"text_block": 1, "figure": 1, "formula": 1},
+        "required_text_terms": ["Scaled Dot-Product Attention", "Multi-Head Attention"]
+      }
+    },
+    {
+      "case_id": "attention-results-table",
+      "source_group": "research_articles",
+      "source_file": "AttentionIsAllyouNeed.pdf",
+      "sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+      "pages": [9],
+      "purpose": "Transformer architecture-variation table and surrounding interpretation.",
+      "expectations": {
+        "minimum_artifacts": {"text_block": 1, "table": 1},
+        "required_text_terms": ["Variations on the Transformer architecture"]
+      }
+    },
+    {
+      "case_id": "flashattention-tiling-figure",
+      "source_group": "research_articles",
+      "source_file": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+      "sha256": "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4",
+      "pages": [2],
+      "purpose": "HBM/SRAM tiling diagram and two-column explanatory text.",
+      "expectations": {
+        "minimum_artifacts": {"text_block": 1, "figure": 1},
+        "required_text_terms": ["FlashAttention", "tiling", "HBM"]
+      }
+    },
+    {
+      "case_id": "flashattention-algorithm",
+      "source_group": "research_articles",
+      "source_file": "FlashAttention Fast and Memory-Efficient Exact Attention.pdf",
+      "sha256": "ca7f9fda10b90fc05dd291a3accc85e9c1a4a860b99b31928dab03ed3fcb14e4",
+      "pages": [5],
+      "purpose": "Algorithm block, symbols, and nearby explanatory prose.",
+      "expectations": {
+        "minimum_artifacts": {"text_block": 1, "formula": 1},
+        "required_text_terms": ["Algorithm 1", "FlashAttention"]
+      }
+    },
+    {
+      "case_id": "lora-adapter-architecture",
+      "source_group": "research_articles",
+      "source_file": "LoRa.pdf",
+      "sha256": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a",
+      "pages": [1],
+      "purpose": "LoRA adaptation figure, rank notation, and surrounding two-column prose.",
+      "expectations": {
+        "minimum_artifacts": {"text_block": 1, "figure": 1},
+        "required_text_terms": ["reparametrization", "train A and B"]
+      }
+    },
+    {
+      "case_id": "dpo-objective-derivation",
+      "source_group": "research_articles",
+      "source_file": "Direct Preference Optimization.pdf",
+      "sha256": "92cb3a2b71362acda98a789b03d88688fd33cf5fcf13f81d2b1de30ee7d3b67a",
+      "pages": [6],
+      "purpose": "Dense mathematical derivation, theorem, and proof sketch.",
+      "expectations": {
+        "minimum_artifacts": {"text_block": 1, "formula": 1},
+        "required_text_terms": ["Theorem 1", "reward function"]
+      }
+    },
+    {
+      "case_id": "flamingo-cross-attention-architecture",
+      "source_group": "research_articles",
+      "source_file": "Flamingo a Visual Language Model.pdf",
+      "sha256": "27af622bf50987fd98a03451a27a670adfaeefd5218a3e990b37abc326ba63f0",
+      "pages": [5],
+      "purpose": "Visual-language cross-attention architecture figure and text linkage.",
+      "expectations": {
+        "minimum_artifacts": {"text_block": 1, "figure": 1},
+        "required_text_terms": ["GATED XATTN", "visual inputs"]
+      }
+    },
+    {
+      "case_id": "flamingo-results-tables",
+      "source_group": "research_articles",
+      "source_file": "Flamingo a Visual Language Model.pdf",
+      "sha256": "27af622bf50987fd98a03451a27a670adfaeefd5218a3e990b37abc326ba63f0",
+      "pages": [8],
+      "purpose": "Multiple wide result and ablation tables on one page.",
+      "expectations": {
+        "minimum_artifacts": {"text_block": 1, "table": 2},
+        "required_text_terms": ["Comparison to SotA", "Ablation studies"]
+      }
+    },
+    {
+      "case_id": "synthetic-image-only-ocr",
+      "source_group": "repository",
+      "source_file": "eval_set/fixtures/v3_scanned_page.pdf",
+      "sha256": "c42885ebc8a2b2ddbfe18fb2f8e8fe246efb011e29ad3851c9f289f341d3e02a",
+      "pages": [1],
+      "purpose": "Deterministic image-only page for OCR, table, formula-label, and diagram recovery.",
+      "expectations": {
+        "minimum_artifacts": {"text_block": 1, "page_image": 1},
+        "required_text_terms": ["ORCHID-73", "Parse", "Retrieve", "image-to-text"]
+      }
+    }
+  ]
+}

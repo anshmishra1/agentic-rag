@@ -1,6 +1,6 @@
-# Agentic RAG — Project Handoff (for a new Claude conversation)
+# Agentic RAG — Project Handoff (for a new assistant conversation)
 
-Upload this file at the start of a new chat instead of re-explaining the project. It reflects the actual current architecture, confirmed against real application logs, not assumptions.
+Use this file at the start of a new chat instead of re-explaining the project. It reflects the current source, measured evaluations, and real runtime evidence; source and Git state remain authoritative.
 
 ## What this is
 A LangGraph-orchestrated corrective RAG application — PDF/image/audio ingestion, hybrid retrieval, adaptive routing, hallucination correction. Built as Ansh's primary portfolio/interview piece. Repo: `anshmishra1/AgenticRAG` (also a fresh empty repo `anshmishra1/agentic-rag` was set up for a clean push). Runs locally on Windows, GPU-accelerated (RTX 2050, CUDA 13.0, torch 2.13).
@@ -18,33 +18,53 @@ generate → check_hallucination
 check_hallucination → grounded→END | insufficient_evidence→rewrite_query (or abstain when retries are exhausted) | unsupported→correct_generation
 correct_generation → check_hallucination (one more pass, single correction budget)
 ```
-- **Retrieval:** Pinecone (dotproduct metric index, required for hybrid), dense + BM25 sparse retrieved separately, fused via RRF, then cross-encoder reranked (ms-marco-MiniLM, CUDA-accelerated). Overview chunks (whole-doc summaries generated at ingest) retrieved separately from content chunks for structural questions.
+- **Retrieval:** Pinecone (dotproduct metric index, required for hybrid), dense + BM25 sparse retrieved separately, fused via RRF, then locally reranked by the pinned Ettin 32M model (CPU/CUDA auto-selection). Overview chunks (whole-doc summaries generated at ingest) are retrieved separately from content chunks for structural questions.
 - **Document scoping:** every doc gets a SHA-256 content-hash `document_id`; retrieval/BM25/vectors are scoped to it; re-ingestion overwrites rather than duplicates (deterministic vector IDs, content-hash based).
-- **Index migrations:** the active Pinecone index name is the retrieval schema identity. New chunking, embedding, sparse encoding, metadata, or vector-ID behavior uses a numeric versioned index such as `agentic-rag-hybrid-v2`. PostgreSQL keys BM25 and document registry state by `(index_name, document_id)`, while pre-versioning rows remain assigned to `agentic-rag-hybrid` for rollback.
-- **Versioned chunking:** `token_window_v1` preserves the original plain-PDF 240/40 token windows. `structure_aware_v2` uses layout-preserving PDF extraction, detects headings and bullets, packs complete sentence units beneath the same 240-token cap, and stores section plus page-range metadata. The registry records this strategy and prevents two strategies from sharing one index.
+- **Index migrations:** the active Pinecone index name is the retrieval schema identity. New chunking, embedding, sparse encoding, metadata, or vector-ID behavior uses a numeric versioned index such as `agentic-rag-hybrid-v2`. PostgreSQL keys BM25 and document registry state by `(index_name, document_id)`. V1 is an archived evaluation/migration reference; active local work is V2 plus the isolated V3 schema.
+- **Versioned chunking:** `structure_aware_v2` is the current runtime default. It uses layout-preserving PDF extraction, detects headings and bullets, packs complete sentence units beneath the 240-token cap, and stores section plus page-range metadata. The registry records this strategy and prevents two strategies from sharing one index. `token_window_v1` remains only for historical reproducibility and legacy-row interpretation.
 - **Current evaluation decision:** reviewed retrieval evidence improved from 76% to 92% in the final five passages with v2, so chunking and embeddings remain fixed while citation normalization, abstention classification, and difficult-passage selection are repaired. See `docs/PROJECT_PROGRESS.md` and `docs/CHUNKING_V2_BROAD_EVALUATION.md`.
 - **Citations:** generation context uses deterministic per-answer labels (`[S1]`, `[S2]`, ...); valid labels referenced by the final answer are returned by the API and displayed in Streamlit with filename/page or chunk-type provenance.
 - **Retrieval confidence gate** (`policies/retrieval.py`): absolute score floor + relative shape (top/mean ratio, gap ratio) + overview-dominance special case → decides whether to skip the LLM grader entirely.
 - **LLM providers:** tiered fallback chain (fast tier for classification/grading/rewriting, primary tier for final generation only), across Groq/Cerebras/NVIDIA/OpenRouter/Bedrock(optional), configurable order.
 - **Conversation memory:** LangGraph Postgres checkpointer (Neon), thread_id-scoped.
 - **Packaging:** Python 3.12 dependencies are locked by `uv.lock`; Docker builds from the lock file, runs as a non-root user, and Compose provides a health-checked local PostgreSQL service on host port 5442.
-- **Model provisioning:** Docker pins exact Hugging Face revisions for the MiniLM embedding model and cross-encoder, downloads them once into a cacheable image layer, and verifies both with networking disabled. API and frontend share that image; runtime startup no longer depends on a host Hugging Face cache.
+- **Model and parser provisioning:** Docker pins exact Hugging Face revisions for the MiniLM embedding model and Ettin 32M reranker, plus exact PyMuPDF, PyMuPDF4LLM, PyMuPDF Layout, and RapidOCR versions. CI verifies the selected parser with networking disabled. API and frontend share one image, while only the API receives GPU access. Embedding and reranking use the 4 GiB RTX 2050; PDF layout parsing, RapidOCR, and ordinary application work remain on CPU. CI uses the smaller CPU target.
+- **V3 persistence and query boundary:** PostgreSQL stores retrieval-schema identity, artifact/search-record metadata, page-to-region parent links, locators, BM25 state, and fail-closed `parsed`/`ready` status. The `v3_assets` Compose volume stores binary page and region assets. The isolated V3 writer and reader use explicit dependencies and document-prefixed IDs without modifying the V2 vector store. `POST /v3/ingest` remains opt-in; `/query` now accepts `retrieval_version`, reuses the existing Ettin reranker and corrective graph for ready V3 manifests, returns structured cited evidence, and keeps V2/V3 checkpoints separate. Streamlit can select both versions and preview cited artifacts. A disposable PostgreSQL 16 smoke verified the real DDL, lineage, readiness, and schema guards. The isolated Pinecone index, controlled V3 ingestion, and live query remain pending.
 - **Grounding verification:** structured JSON verdicts distinguish grounded answers, insufficient evidence, and unsupported generation. Unsupported-claim text is passed into one constrained correction; exhausted evidence retries produce a deterministic abstention rather than speculative generation.
 - **Observability:** fixed — no more unbounded `trace` accumulation in checkpointed state (was growing forever, printing the whole session's history every turn); now logger-based, with per-request + session-level PerformanceTracker via contextvars (not a module global anymore).
 
 ## Key files
-`graph/{state,nodes,edges,builder}.py`, `retrieval/{vectorstore,reranker,sparse}.py`, `policies/{retrieval,generation,conversation,grounding,calibrate_retrieval}.py`, `ingestion/{loaders,chunking,pipeline,registry}.py`, `llm/provider.py`, `api/main.py`, `app/streamlit_app.py`, `core/timing.py`.
+`graph/{state,nodes,edges,builder}.py`, `retrieval/{vectorstore,v3_writer,v3_reader,reranker,sparse}.py`, `policies/{retrieval,generation,conversation,grounding,calibrate_retrieval}.py`, `ingestion/{loaders,chunking,pipeline,registry,contracts,asset_store,manifest_store,v3_pipeline,v3_runtime}.py`, `llm/provider.py`, `api/{main,evidence}.py`, `app/{streamlit_app,streamlit_support}.py`, `core/timing.py`.
 
 ## Real bugs fixed this project (don't re-litigate these)
 Duplicate Pinecone vectors (was: random UUID vector IDs → fixed: content-hash IDs), overview chunk buried by absolute-floor check running before overview-dominance check, refusal answers ("I don't know") wrongly flagged hallucinated, `rewrite_query` losing half of compound questions because it only saw the last attempt not the original question, `classify_query_intent` shadowed-duplicate-function bug, unbounded `trace` state growth, module-global (not request-scoped) performance tracker, mislabeled "RRF" scores that were actually raw Pinecone hybrid scores.
 
 ## Open/unresolved right now
-- **Live bug, just found (2026-09-17 log + Streamlit screenshot):** the query-intent classifier misclassifies "Can you elaborate?" / "Can you elaborate on X?" as a control/conversation-ending utterance (same bucket as "thank you"), routing straight to `record_turn` and skipping retrieval+generation entirely — returns a generic "You're welcome, ask another question" for what should be a real follow-up. Root cause not yet found — need `query_classifier.py` (structured-output LLM classifier, not the old regex version) to diagnose. Related cosmetic bug: control-routed turns show "Could not fully verify against context," which is misleading since no generation/check ever ran.
-- RAGAS evaluation harness exists but has never actually been run — still effectively dead code.
-- No OCR path for scanned/image-only PDFs (PyPDFLoader only extracts embedded text).
-- Streaming responses + UI status indicator during retrieval — planned in detail, not implemented.
-- Agentic tool-use (web search, calculator, RAG-as-tool) — not started; corrective RAG loop is the current "agentic" ceiling.
-- A transient Pinecone DNS resolution error appeared once in the latest log during upsert — likely transient, watch for recurrence.
+- V3 ingestion and querying are connected locally, but the isolated index has
+  not been created and the path has not completed a live ingest/query smoke.
+  V3 deletion remains intentionally hidden until vector, manifest, and asset
+  removal is coordinated.
+- The isolated `agentic-rag-hybrid-v3` Pinecone index has not been created and
+  no real V3 document has been ingested. These are separately authorized
+  live-service operations.
+- The V3 evaluation suite is source reviewed: 49 cases across seven documents,
+  including seven controlled/natural pairs and an 18-case bounded core. It
+  covers ambiguity, follow-ups, figures/tables/formulas/OCR, false premises,
+  absent evidence, routing, citations, formats, and latency. Exact artifact and
+  search-record IDs remain pending controlled V3 ingestion; see
+  `docs/V3_END_TO_END_EVALUATION.md`.
+- Retrieval score thresholds remain provisional. Cross-encoder scores are
+  ranking signals, not calibrated probabilities.
+- PyMuPDF4LLM/Layout packages report AGPL 3.0 or commercial licensing. Local
+  evaluation can continue, but public AWS deployment requires an explicit
+  compliant licensing decision.
+- RAGAS remains legacy/dead evaluation code; current decisions use reviewed
+  passage labels, retrieval ranks, citations, answer status, and bounded live
+  checks.
+- Streaming responses, richer progress reporting, authentication, upload
+  limits, and rate limiting remain product/deployment work.
+- Agentic tool use such as web search and calculators has not been added; the
+  current system is a corrective LangGraph workflow.
 
 ## User's standing preference
 Show changed/new file contents directly in chat rather than re-zipping the whole project; only zip for the initial scaffold or when explicitly asked.

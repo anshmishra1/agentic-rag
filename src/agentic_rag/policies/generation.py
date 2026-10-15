@@ -38,12 +38,37 @@ def is_refusal_answer(text: str) -> bool:
     return any(re.match(pattern, lowered) for pattern in _REFUSAL_PATTERNS)
 
 
+def select_generation_documents(documents: list) -> list:
+    """Keep direct passages intact and add overviews as supplemental context.
+
+    Retrieval keeps its global score order for confidence assessment. Answer
+    construction has a different requirement: overview summaries must not
+    consume slots already reserved for direct content evidence. Preserve the
+    existing order within each evidence type so the reranker's decisions are
+    not changed here.
+    """
+    content_documents = []
+    overview_documents = []
+
+    for document in documents:
+        metadata = getattr(document, "metadata", {}) or {}
+        if metadata.get("type") == "overview":
+            overview_documents.append(document)
+        else:
+            content_documents.append(document)
+
+    return [
+        *content_documents[: settings.max_generation_context_documents],
+        *overview_documents[: settings.max_generation_context_overviews],
+    ]
+
+
 def apply_generation_limits(documents: list, history_messages: list) -> tuple[str, list]:
     """Trims retrieved documents and chat history to the configured budget
     before they reach the prompt. Keeps prompt size - and therefore cost and
     latency - predictable regardless of how many chunks retrieval returns or
     how long the conversation has run."""
-    limited_docs = documents[: settings.max_generation_context_documents]
+    limited_docs = select_generation_documents(documents)
 
     context = "\n\n".join(d.page_content for d in limited_docs)
     if len(context) > settings.max_generation_context_chars:
@@ -58,9 +83,10 @@ def apply_citation_generation_limits(
     history_messages: list,
 ) -> tuple[str, list, list[str]]:
     """Apply generation limits while adding deterministic source labels."""
+    limited_documents = select_generation_documents(documents)
     context, catalog = build_citation_context(
-        documents,
-        max_documents=settings.max_generation_context_documents,
+        limited_documents,
+        max_documents=len(limited_documents),
         max_chars=settings.max_generation_context_chars,
     )
     limited_history = history_messages[
