@@ -59,10 +59,11 @@ PDF cannot silently invalidate the expected evidence.
 - Required evidence covers text blocks, figures, tables, formulas, and page
   images, with direct, OCR-derived, table, formula, and visual grounding.
 
-The suite is currently marked
-`source_reviewed_pending_v3_artifact_ids`. Page-level evidence has been checked,
-but the final artifact and search-record IDs can only be attached after these
-exact files are ingested into the isolated V3 index.
+The suite remains marked `source_reviewed_pending_v3_artifact_ids`. The exact
+files have now been ingested into the isolated V3 index, but the first
+retrieval-only pass showed that several page labels omit other passages that
+validly answer the same question. Exact relevant artifact and search-record IDs
+must be reviewed and attached before the scores become promotion metrics.
 
 ## Core live run
 
@@ -217,10 +218,13 @@ complete V3 path has passed one controlled scanned-fixture smoke. That run
 exercised parser, asset storage, manifest readiness, Pinecone dense and sparse
 retrieval, weighted RRF, Ettin reranking, Groq generation and verification,
 citation resolution, structured OCR evidence, and the preview route. Cleanup
-left no fixture vectors, manifest, or assets. The next execution step is to
-ingest the hash-locked corpus, run the retrieval-only executor, and review its
-exact artifact/search-record evidence before any broader provider-backed
-evaluation.
+left no fixture vectors, manifest, or assets. The hash-locked seven-document
+corpus is now indexed and the first retrieval-only pass completed all 46 cases
+without an LLM call. It exposed two evaluation-contract gaps: page-only labels
+can reject valid support on another page, and follow-up prompts must be
+contextualized before retrieval. The next step is to attach reviewed artifact
+IDs, replay the corrected retrieval measurement, and only then run the bounded
+provider-backed evaluation.
 
 Evaluation concept matching must normalize Unicode dash variants. The first
 smoke returned the correct `ORCHID‑73` with a non-breaking hyphen; an exact

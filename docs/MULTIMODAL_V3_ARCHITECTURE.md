@@ -377,7 +377,7 @@ dependencies only when called and uses the existing serialized embedding runtime
 The query/API/UI boundary adds version-scoped checkpoint identities, ready-only
 document listing and lookup, a safe artifact asset route, and Streamlit PDF-to-V3
 routing. The focused V3 query/UI selection passes 45 tests, and the complete
-network-disabled offline suite passes 299 tests with the retrieval-only
+network-disabled offline suite passes 300 tests with the retrieval-only
 evaluator contracts and the existing Starlette deprecation warning.
 
 A disposable PostgreSQL 16 instance executed the V3 DDL and verified parsed-state
@@ -389,7 +389,9 @@ citation, OCR-derived structured evidence, bounding box, and a valid PNG preview
 The first assertion rejected Groq's non-breaking hyphen; punctuation-normalized
 validation passed on the bounded rerun. Cleanup removed 3 binary assets, 1
 manifest, and all vectors, and the disposable services were removed. The next
-action is broad retrieval-only evaluation across the hash-locked corpus; exact
-artifact/search-record IDs remain pending ingestion of those files. Local
+action is review of exact artifact/search-record relevance labels. The
+hash-locked corpus is ready and its first 46-case retrieval-only pass completed
+without errors, but page-only labels and context-free follow-ups produced false
+negative measurements that must be corrected before promotion. Local
 evaluation may proceed under the installed package terms, while public
 deployment remains gated on an explicit AGPL-or-commercial licensing decision.

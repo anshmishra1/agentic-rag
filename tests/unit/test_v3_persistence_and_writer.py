@@ -463,6 +463,23 @@ def test_v3_writer_rejects_embedding_dimension_before_index_access() -> None:
     assert index.events == []
 
 
+def test_v3_writer_keeps_dense_record_when_sparse_encoding_is_empty() -> None:
+    schema, run = _run()
+
+    payloads = build_vector_payloads(
+        index_name="agentic-rag-hybrid-v3",
+        source_name="paper.pdf",
+        schema=schema,
+        run=run,
+        dense_vectors=[[0.1, 0.2, 0.3]],
+        sparse_vectors=[{"indices": [], "values": []}],
+    )
+
+    assert payloads[0]["values"] == [0.1, 0.2, 0.3]
+    assert "sparse_values" not in payloads[0]
+    assert payloads[0]["metadata"]["record_id"] == run.records[0].record_id
+
+
 def test_pipeline_marks_ready_only_after_successful_vector_write() -> None:
     schema, run = _run()
     calls: list[str] = []

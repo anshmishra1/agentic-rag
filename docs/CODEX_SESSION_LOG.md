@@ -467,3 +467,40 @@ PR #35 documented the first V3 live smoke and was squash-merged at `7e919c1`; lo
 Positive retrieval quality is measured only where the suite has reviewed page, artifact-type, or grounding-basis labels; those constraints must match the same candidate. Unanswerable cases remain visible but are excluded from positive hit-rate denominators instead of being misreported as retrieval misses. Per-case errors are retained and cause a nonzero command exit. Shared candidate deduplication was moved from the graph node into `retrieval/candidates.py` without changing its identity or first-RRF-occurrence behavior, preventing the evaluator and runtime from drifting.
 
 Nineteen focused reader, evaluator, deduplication, and query-node tests passed. The complete offline suite passed 299 tests in the existing application image with networking disabled, no `.env` mount, and the existing Starlette dependency warning. No PostgreSQL, Pinecone, Groq, ingestion, query, model download, or index write occurred. At this review checkpoint the changes remained uncommitted for IDE inspection. Next: ingest the six hash-locked research PDFs plus the repository fixture into V3, execute the 46 retrieval cases, review exact record/artifact evidence and ranking failures, then run the bounded 18-case provider-backed core only after retrieval defects are understood.
+
+## 84. V3 corpus ingestion, sparse-vector repair, and first retrieval measurement (local review checkpoint)
+
+PR #36 merged the retrieval evaluator at `f8d10ec`; local `main` and
+`origin/main` were synchronized before starting `fix/v3-empty-sparse-vector`.
+Rebuilt the shared GPU image from the merged source using cached dependency,
+CUDA, parser, and model layers. Ingested the seven hash-locked evaluation PDFs
+through `POST /v3/ingest`. Six documents completed immediately. FlashAttention
+failed because one valid dense search record had no BM25 terms and the writer
+sent Pinecone an explicit empty sparse vector, which Pinecone rejects.
+
+The focused repair now omits the optional `sparse_values` field when BM25 emits
+no indices or values, while retaining the dense vector and artifact provenance.
+A regression test covers this exact payload. Twenty-four focused V3 writer and
+ingestion tests passed, followed by the complete 300-test network-disabled
+offline suite. After rebuilding only the changed source layer, FlashAttention
+ingested successfully with 500 records. All seven ready manifests then matched
+their Pinecone vector counts exactly: 169, 500, 278, 325, 531, 212, and 7.
+
+The retrieval-only executor completed all 46 cases with no errors and no LLM
+calls. Across 39 positive page-labelled cases, preliminary metrics were 34/39
+candidate page hits, 19/39 reranker hits at rank 1, 25/39 at rank 3, 26/39 at
+rank 5, and 27/39 production-selection hits. Mean measured retrieval time was
+0.779 seconds and mean reranking time was 0.194 seconds. These are diagnostic
+numbers, not promotion scores: local evidence inspection showed that several
+reported misses retrieved valid support from relevant pages omitted by the
+page-only labels, and two follow-up prompts were evaluated without their prior
+conversation context. Correct evidence also entered the candidate pool but
+fell outside final selection in several remaining cases, which is the real
+reranker/selection review set.
+
+The repaired writer and its test remain uncommitted for IDE review. PostgreSQL
+and the V3 corpus remain available locally; the API is stopped. Next: attach
+reviewed relevant artifact/search-record IDs, make follow-up evaluation
+context-aware, rerun retrieval-only metrics, and change retrieval or reranking
+only if that corrected evidence still demonstrates a defect. The bounded Groq
+run remains deferred until this gate is trustworthy.
