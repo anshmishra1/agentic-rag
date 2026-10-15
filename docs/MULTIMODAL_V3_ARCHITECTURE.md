@@ -5,12 +5,11 @@ artifact/search-record persistence, and the isolated V3 text-proxy writer are
 implemented locally for review. Docling, vanilla PyMuPDF, and PyMuPDF4LLM with
 PyMuPDF Layout were measured against the fixed corpus with networking disabled.
 PyMuPDF Layout is selected; Docling's bounded CUDA path remains fallback
-evidence. An opt-in V3 API ingestion boundary is implemented but has not been
-executed against Pinecone. Its manifest path passed a disposable PostgreSQL 16
-DDL and transaction smoke. Artifact-aware hybrid retrieval, graph dispatch,
+evidence. The opt-in V3 API ingestion boundary has now completed one controlled
+Pinecone and Groq smoke after its manifest path passed a disposable PostgreSQL
+16 DDL and transaction smoke. Artifact-aware hybrid retrieval, graph dispatch,
 structured API evidence, unified V2/V3 selection, and Streamlit artifact
-previews are implemented and verified offline; live V3 ingestion and querying
-remain pending.
+previews are implemented; broad corpus evaluation remains pending.
 
 ## Why V3 exists
 
@@ -316,8 +315,9 @@ in `docs/V3_PARSER_COMPARISON.md`.
    remains a deployment gate.
 4. **V3 text-proxy ingestion** - the durable manifest/asset boundary, isolated
    vector writer, and lazy `POST /v3/ingest` composition are implemented. The
-   PostgreSQL boundary passed a disposable real-service smoke. Pinecone
-   validation and one controlled ingestion remain pending.
+   PostgreSQL boundary passed a disposable real-service smoke, and the isolated
+   Pinecone path passed one controlled parser-to-ready ingestion with complete
+   cleanup.
 5. **Artifact-aware retrieval/API/UI** - implemented locally. The reader scopes
    V3 dense and sparse candidates by document and retrieval schema, reuses the
    existing Ettin reranker and corrective graph, returns additive structured
@@ -382,13 +382,14 @@ deprecation warning.
 
 A disposable PostgreSQL 16 instance executed the V3 DDL and verified parsed-state
 hiding, ready promotion, persisted parent/record lineage, and schema-mismatch
-protection. The container, network, and test script were removed; no persistent
-database was migrated. No Pinecone index, provider call, live ingestion, or query
-occurred. Groq remains the configured LLM provider. The next action is review,
-then isolated V3 index creation and one controlled V3 ingestion followed by the
-first live artifact-aware query. Page-level expected evidence has been reviewed
-and the per-document suite is ready; exact artifact/search-record IDs remain
-pending ingestion of the hash-locked files. No V3 index is created before
-explicit live-service authorization. Local evaluation may proceed under the
-installed package terms, while public deployment remains gated on an explicit
-AGPL-or-commercial licensing decision.
+protection. The isolated 384-dimensional dot-product V3 index was then created.
+A controlled scanned fixture produced 8 artifacts, 7 search records/vectors,
+ready status, and an answered/grounded Groq response for `ORCHID-73` with page-1
+citation, OCR-derived structured evidence, bounding box, and a valid PNG preview.
+The first assertion rejected Groq's non-breaking hyphen; punctuation-normalized
+validation passed on the bounded rerun. Cleanup removed 3 binary assets, 1
+manifest, and all vectors, and the disposable services were removed. The next
+action is broad retrieval-only evaluation across the hash-locked corpus; exact
+artifact/search-record IDs remain pending ingestion of those files. Local
+evaluation may proceed under the installed package terms, while public
+deployment remains gated on an explicit AGPL-or-commercial licensing decision.

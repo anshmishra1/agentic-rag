@@ -17,12 +17,13 @@ in the linked reports.
 | V3 evidence model | V2 could not represent figures, tables, formulas, OCR, or exact artifact lineage | Typed artifacts, search records, source locators, grounding lineage, stable identities, and a content-addressed asset boundary were implemented |
 | Parser selection | Full Docling was accurate but too slow; vanilla PyMuPDF was fast but missed OCR and structured evidence | A fixed ten-case bakeoff selected PyMuPDF4LLM/Layout plus conditional RapidOCR: 54/54 screening checks, deterministic IDs, and about 14x lower mean case time than full CPU Docling |
 | V3 packaged boundary | Parser and model drift, GPU startup defects, partial cross-store writes | Exact parser/model versions are baked into the promoted image; PostgreSQL manifests, isolated V3 vector writing, and lazy `POST /v3/ingest` coordination are implemented |
-| Current checkpoint | Needed a user-facing path from V3 records to grounded answers and inspectable artifacts | 293 network-disabled offline tests pass; V3 retrieval, graph dispatch, API evidence, unified selection, and Streamlit previews are connected while the real Pinecone/Groq run remains pending |
+| Current checkpoint | Needed live proof from a parsed V3 artifact to a grounded answer and inspectable source | PR #34 merged; the isolated V3 index exists; a scanned-PDF smoke indexed 7 OCR records and returned an answered, grounded, cited `ORCHID-73` response with a valid PNG preview; cleanup left 0 test vectors |
 | V3 acceptance definition | Prior manual prompts mixed retrieval, generation, and routing failures and did not cover realistic ambiguity consistently | A hash-locked, source-reviewed 49-case suite now spans seven documents, seven controlled/natural pairs, seven negative cases, and an 18-case bounded end-to-end core |
 
 The current V2 application remains the stable comparison baseline. The V3
-ingestion and query path is now connected locally but remains opt-in until its
-Pinecone index, controlled ingestion, live smoke, and matched evaluation pass.
+ingestion and query path is connected and has passed its first controlled live
+smoke, but remains opt-in until the matched retrieval and answer evaluation
+establishes its quality and latency across the reviewed corpus.
 
 ## Delivered foundations
 
@@ -287,20 +288,18 @@ Detailed evidence: `docs/CHUNKING_V2_BROAD_EVALUATION.md`.
 
 ## Current V3 execution sequence
 
-1. **Review the local V3 boundary.** Keep the current worktree uncommitted until
-   its parser, persistence, writer, API, Docker, tests, and documentation are
-   reviewed together.
+1. **Review and publish the V3 boundary - complete.** PR #34 merged at
+   `b594ef4`; the locked CPU workflow and local cached GPU build passed.
 2. **Connect artifact-aware retrieval and presentation - complete locally.**
    The V3 reader, existing reranker/graph integration, additive API evidence,
    unified document selection, safe asset route, and Streamlit preview path are
    implemented. Live retrieval quality is intentionally not claimed yet.
-3. **Create an isolated V3 index.** Provision `agentic-rag-hybrid-v3` with the
-   current 384-dimensional embedding and `dotproduct` metric. Never write V3
-   records into the populated V2 index.
-4. **Run one controlled V3 ingestion.** Use one reviewed PDF to exercise the
-   real parser, asset volume, PostgreSQL manifest transaction, BM25 state,
-   embeddings, and Pinecone writer. Inspect exact counts, schema identity,
-   locators, ready state, and stale-ID behavior.
+3. **Create an isolated V3 index - complete.** `agentic-rag-hybrid-v3` uses the
+   current 384-dimensional embedding and `dotproduct` metric; V2 was untouched.
+4. **Run one controlled V3 ingestion/query - complete.** The scanned fixture
+   produced 8 artifacts, 7 search records/vectors, ready status, a grounded and
+   cited OCR answer, structured locator evidence, and a valid preview. Cleanup
+   removed 3 binary assets, 1 manifest, and all test vectors.
 5. **Generate a reviewed question set for each selected document - complete.**
    The 49-case suite pairs controlled and natural wording and records expected
    pages, evidence types, concepts, statuses, citations, formats, and retry
@@ -432,11 +431,11 @@ cross-encoder scores are still ranking signals rather than probabilities.
 
 1. Keep the 293-test network-disabled suite and disposable PostgreSQL smoke
    green while integrating live V3 storage.
-2. Create and inspect the isolated V3 index before any document writes.
-3. Complete one parser-to-ready controlled ingestion with exact schema,
-   artifact, search-record, vector, and locator evidence.
-4. Exercise retrieval/API/UI against the controlled ready V3 document without
-   changing the V2 comparison path.
+2. Keep the isolated V3 index separate from the populated V2 index.
+3. Preserve the successful parser-to-ready and live query smoke as the minimum
+   regression boundary.
+4. Run the reviewed corpus through retrieval-only evaluation before expanding
+   the bounded Groq run.
 5. Preserve the now-frozen page-level evidence and abstention labels; attach
    exact artifact and search-record IDs after controlled V3 ingestion.
 6. Compare V2 and V3 on the same documents and information needs, reporting
