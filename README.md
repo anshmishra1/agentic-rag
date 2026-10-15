@@ -15,7 +15,7 @@ V3 is being built beside that stable V2 baseline. The selected PyMuPDF Layout
 parser, typed artifact and search-record contracts, content-addressed asset
 store, transactional PostgreSQL manifests, isolated Pinecone writer, and
 opt-in `POST /v3/ingest` route are implemented locally. The complete
-network-disabled offline suite passes 299 tests, and a disposable PostgreSQL 16
+network-disabled offline suite passes 300 tests, and a disposable PostgreSQL 16
 smoke verified DDL creation, artifact lineage, parsed-to-ready promotion, and
 retrieval-schema mismatch protection. Artifact-aware V3 hybrid retrieval now
 reuses the existing Ettin reranker and graph, `/query` accepts an explicit
@@ -24,7 +24,11 @@ artifact previews. The isolated `agentic-rag-hybrid-v3` index now exists, and a
 controlled scanned-PDF smoke completed parser-to-ready ingestion, hybrid
 retrieval, Ettin reranking, a grounded Groq answer, a page citation, structured
 OCR evidence, and a valid PNG preview. Its test vectors, manifest, and assets
-were removed after verification. Broad matched V2/V3 evaluation remains.
+were removed after verification. The seven-document V3 corpus is now ready in
+the isolated index, and the first 46-case retrieval-only pass completed with no
+runtime errors or LLM calls. Its page-level scores are preliminary because the
+run exposed incomplete page labels and two context-free follow-up cases; exact
+artifact labels and context-aware reruns are the next evaluation gate.
 
 A source-reviewed V3 acceptance suite is now ready with 49 cases over seven
 documents. Its 18-case core bounds the first Groq-backed run; all retrievable

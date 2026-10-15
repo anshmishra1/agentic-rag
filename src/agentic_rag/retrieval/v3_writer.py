@@ -152,19 +152,20 @@ def build_vector_payloads(
                 "dense vector dimension does not match retrieval schema"
             )
         artifact = artifacts[record.artifact_id]
-        payloads.append(
-            {
-                "id": vector_id_for_record(record),
-                "values": values,
-                "sparse_values": _validate_sparse(sparse),
-                "metadata": _metadata(
-                    index_name=index_name,
-                    source_name=source_name,
-                    record=record,
-                    artifact=artifact,
-                ),
-            }
-        )
+        sparse_values = _validate_sparse(sparse)
+        payload = {
+            "id": vector_id_for_record(record),
+            "values": values,
+            "metadata": _metadata(
+                index_name=index_name,
+                source_name=source_name,
+                record=record,
+                artifact=artifact,
+            ),
+        }
+        if sparse_values["values"]:
+            payload["sparse_values"] = sparse_values
+        payloads.append(payload)
     return payloads
 
 

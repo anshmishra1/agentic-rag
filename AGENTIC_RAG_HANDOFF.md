@@ -47,14 +47,16 @@ Duplicate Pinecone vectors (was: random UUID vector IDs → fixed: content-hash 
 - The V3 evaluation suite is source reviewed: 49 cases across seven documents,
   including seven controlled/natural pairs and an 18-case bounded core. It
   covers ambiguity, follow-ups, figures/tables/formulas/OCR, false premises,
-  absent evidence, routing, citations, formats, and latency. Exact artifact and
-  search-record IDs remain pending controlled V3 ingestion; see
+  absent evidence, routing, citations, formats, and latency. The corpus is now
+  ingested; exact artifact and search-record labels remain pending review; see
   `docs/V3_END_TO_END_EVALUATION.md`.
 - The V3 retrieval-only executor is implemented. It reuses the production
   hybrid reader and Ettin reranker, emits no passage text, and records exact
   record/artifact IDs, provenance, per-stage ranks/scores, production
-  selection, and latency without calling an LLM. It has not yet been run on the
-  six-document research corpus because those V3 manifests are not yet ready.
+  selection, and latency without calling an LLM. Its first 46-case corpus run
+  completed without errors. Page-only labels undercounted valid evidence and
+  two follow-up cases lacked prior-turn context, so its preliminary rates are
+  diagnostic rather than promotion metrics.
 - Retrieval score thresholds remain provisional. Cross-encoder scores are
   ranking signals, not calibrated probabilities.
 - PyMuPDF4LLM/Layout packages report AGPL 3.0 or commercial licensing. Local
