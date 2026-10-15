@@ -13,7 +13,6 @@ The existing document_id-scoped retrieval and provider tiers are preserved.
 """
 from __future__ import annotations
 
-import hashlib
 import re
 import json
 from concurrent.futures import ThreadPoolExecutor
@@ -39,6 +38,7 @@ from agentic_rag.retrieval.vectorstore import (
     retrieve_hybrid_with_scores,
 )
 from agentic_rag.retrieval.reranker import rerank_many
+from agentic_rag.retrieval.candidates import deduplicate_candidates
 from agentic_rag.retrieval.v3_reader import retrieve_v3_document
 from agentic_rag.retrieval.sparse import load_bm25_json
 from agentic_rag.ingestion.registry import get_bm25_params
@@ -266,71 +266,6 @@ def _top_score_for_type(results: list[tuple], chunk_type: str) -> float | None:
     ]
     return max(scores) if scores else None
 
-def _normalize_chunk_text(text: str) -> str:
-    """Normalize chunk text for stable query-time deduplication."""
-
-    return " ".join(text.lower().split())
-
-
-def _candidate_identity(doc) -> tuple:
-    """Build a stable identity for a retrieved chunk.
-
-    This intentionally operates only at query time. It does not modify
-    ingestion, indexing, chunk IDs, or persisted data.
-    """
-
-    metadata = doc.metadata
-
-    document_id = metadata.get("document_id", "")
-    chunk_type = metadata.get("type", "")
-    page = metadata.get(
-        "page_label",
-        metadata.get("page", ""),
-    )
-
-    normalized_text = _normalize_chunk_text(
-        doc.page_content
-    )
-
-    content_hash = hashlib.sha256(
-        normalized_text.encode("utf-8")
-    ).hexdigest()[:16]
-
-    return (
-        document_id,
-        chunk_type,
-        str(page),
-        content_hash,
-    )
-
-
-def _deduplicate_candidates(
-    candidates: list[tuple],
-) -> tuple[list[tuple], int]:
-    """Remove duplicate chunks while preserving ranking order.
-
-    The first occurrence wins because RRF already sorted candidates by
-    relevance before this function is called.
-    """
-
-    seen = set()
-    deduplicated = []
-    removed = 0
-
-    for candidate in candidates:
-        doc = candidate[0]
-
-        identity = _candidate_identity(doc)
-
-        if identity in seen:
-            removed += 1
-            continue
-
-        seen.add(identity)
-        deduplicated.append(candidate)
-
-    return deduplicated, removed
-
 # =============================================================
 # Retrieval
 # =============================================================
@@ -342,7 +277,7 @@ def _retrieve_v3(query: str, document_id: str) -> dict:
         query=query,
         document_id=document_id,
     )
-    candidates, duplicates_removed = _deduplicate_candidates(candidates)
+    candidates, duplicates_removed = deduplicate_candidates(candidates)
     reranked = rerank_many(
         query,
         {"content": candidates},
@@ -472,8 +407,8 @@ def retrieve(state: RAGState) -> dict:
         # ---------------------------------------------------------
         # Query-time candidate deduplication
         # ---------------------------------------------------------
-        overview_candidates, overview_duplicates_removed = _deduplicate_candidates(overview_candidates)
-        content_candidates, content_duplicates_removed = _deduplicate_candidates(content_candidates)
+        overview_candidates, overview_duplicates_removed = deduplicate_candidates(overview_candidates)
+        content_candidates, content_duplicates_removed = deduplicate_candidates(content_candidates)
 
         print("\n" + "-" * 70)
         print("HYBRID CANDIDATE DEDUPLICATION")

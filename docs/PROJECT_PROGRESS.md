@@ -210,13 +210,16 @@ routes PDFs to V3, preserves V2 for current image/audio inputs, tracks the
 retrieval version with each selection, and renders cited artifact metadata and
 page/region previews. V3 deletion is deferred until vectors, manifest rows, and
 binary assets can be removed as one coordinated operation. The focused query/UI
-selection passed 45 tests and the complete offline suite passed 293 tests.
+selection passed 45 tests. With the retrieval-only evaluator contracts, the
+complete offline suite now passes 299 tests.
 
 V1 is no longer an active runtime target; its source path remains only for
-historical reproducibility and legacy metadata. The next gate is review of the
-opt-in ingestion boundary, followed by creation of the isolated V3 index, one
-controlled ingestion, artifact-aware retrieval/API/UI, and a matched V2/V3
-shadow evaluation. Design,
+historical reproducibility and legacy metadata. The isolated V3 index and one
+controlled full-path smoke are complete. The retrieval-only executor now
+reuses the production reader, shared candidate deduplication, and Ettin
+reranker while recording exact IDs, provenance, ranks, scores, production
+selection, and latency without provider calls. The next gate is to ingest the
+frozen corpus and inspect that report before the bounded Groq core. Design,
 measurement limits, and promotion gates are documented in
 `docs/MULTIMODAL_V3_ARCHITECTURE.md`.
 
@@ -429,7 +432,7 @@ cross-encoder scores are still ranking signals rather than probabilities.
 
 ## Verification gates
 
-1. Keep the 293-test network-disabled suite and disposable PostgreSQL smoke
+1. Keep the 299-test network-disabled suite and disposable PostgreSQL smoke
    green while integrating live V3 storage.
 2. Keep the isolated V3 index separate from the populated V2 index.
 3. Preserve the successful parser-to-ready and live query smoke as the minimum
@@ -450,6 +453,10 @@ cross-encoder scores are still ranking signals rather than probabilities.
 - `eval_set/chunking_broad_reviewed_cases.json` - reviewed broad cases.
 - `eval_set/chunking_broad_v1_pairs.json` - v1 chunk labels.
 - `eval_set/chunking_broad_v2_pairs.json` - v2 chunk labels.
+- `eval_set/v3_end_to_end_questions.json` - V3 page, artifact, grounding,
+  answer, citation, routing, format, and latency expectations.
+- `scripts/evaluate_v3_retrieval.py` - explicit retrieval-only V3 evidence
+  collection with no provider calls or passage text in its report.
 
 The full response payloads and extracted passage catalogs remain under ignored
 `logs/evaluation/` because they can contain document text.

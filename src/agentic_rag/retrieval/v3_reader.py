@@ -186,10 +186,13 @@ def retrieve_v3_hybrid_with_scores(
                 "vector_id": item["vector_id"],
                 "rrf_score": item["rrf_score"],
                 "dense_rank": item["dense_rank"],
+                "dense_score": item["dense_score"],
                 "sparse_rank": item["sparse_rank"],
+                "sparse_score": item["sparse_score"],
                 "artifact_id": item["document"].metadata.get("artifact_id"),
                 "record_id": item["document"].metadata.get("record_id"),
                 "artifact_kind": item["document"].metadata.get("artifact_kind"),
+                "grounding_basis": item["document"].metadata.get("grounding_basis"),
                 "page": item["document"].metadata.get("page_label"),
             }
             for rank, item in enumerate(ranked[:candidate_k], start=1)
