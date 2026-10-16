@@ -5,6 +5,26 @@ Use this file at the start of a new chat instead of re-explaining the project. I
 ## What this is
 A LangGraph-orchestrated corrective RAG application — PDF/image/audio ingestion, hybrid retrieval, adaptive routing, hallucination correction. Built as Ansh's primary portfolio/interview piece. Repo: `anshmishra1/AgenticRAG` (also a fresh empty repo `anshmishra1/agentic-rag` was set up for a clean push). Runs locally on Windows, GPU-accelerated (RTX 2050, CUDA 13.0, torch 2.13).
 
+## Current release checkpoint (2026-10-16)
+
+- V3 uses PyMuPDF4LLM/Layout plus conditional RapidOCR to preserve text blocks,
+  figures, tables, formula regions, page images, locators, and grounding lineage.
+- PR #39 added token-safe V3 search records and evidence-aware final selection.
+  Search proxies are capped at 240 MiniLM tokens while their source artifacts
+  and citation locators remain whole.
+- The reviewed seven-document corpus was hash verified and freshly ingested
+  under schema `multimodal_v3:441428c54fceb4fd`. PostgreSQL and Pinecone agree
+  on 2,208 search records/vectors linked to 2,203 immutable artifacts.
+- The former FlashAttention Figure 1 miss now succeeds through the public API:
+  the planner requests visual evidence, final selection retains the page 2
+  figure and supporting text, both are cited, and verification returns
+  `answered` and `grounded` without exhausting retries.
+- PR #40 repaired the Streamlit container import path. Its required locked-image
+  build and complete offline workflow passed. Application containers are
+  intentionally stopped until the manual V3 release-candidate run.
+- The latest complete network-disabled offline gate passed 312 tests. This is a
+  regression contract, not a claim of production answer accuracy.
+
 ## IMPORTANT: two divergent project histories exist
 A separately-maintained `PROJECT.md` handoff doc (written for local-Ollama/other-tool sessions) describes a **simpler** architecture with no hybrid search, no cross-encoder, no `correct_generation` node — and explicitly lists those as "not yet done" / "don't add them just because they sound advanced." **That document is stale relative to what's actually running.** A real application log from 2026-09-17 confirms the advanced architecture below (dense+sparse query representation, `route_after_retrieval_assessment`, `grounding_diagnosis`/`correction_attempted`) is the live one. Trust logs/source over either handoff doc when they conflict.
 
@@ -30,7 +50,7 @@ correct_generation → check_hallucination (one more pass, single correction bud
 - **Packaging:** Python 3.12 dependencies are locked by `uv.lock`; Docker builds from the lock file, runs as a non-root user, and Compose provides a health-checked local PostgreSQL service on host port 5442.
 - **Model and parser provisioning:** Docker pins exact Hugging Face revisions for the MiniLM embedding model and Ettin 32M reranker, plus exact PyMuPDF, PyMuPDF4LLM, PyMuPDF Layout, and RapidOCR versions. CI verifies the selected parser with networking disabled. API and frontend share one image, while only the API receives GPU access. Embedding and reranking use the 4 GiB RTX 2050; PDF layout parsing, RapidOCR, and ordinary application work remain on CPU. CI uses the smaller CPU target.
 - **V3 persistence and query boundary:** PostgreSQL stores retrieval-schema identity, artifact/search-record metadata, page-to-region parent links, locators, BM25 state, and fail-closed `parsed`/`ready` status. The `v3_assets` Compose volume stores binary page and region assets. The isolated V3 writer and reader use explicit dependencies and document-prefixed IDs without modifying the V2 vector store. `POST /v3/ingest` remains opt-in; `/query` accepts `retrieval_version`, reuses the existing Ettin reranker and corrective graph for ready V3 manifests, returns structured cited evidence, and keeps V2/V3 checkpoints separate. Streamlit can select both versions and preview cited artifacts. PR #34 merged; the isolated V3 index exists; a controlled scanned-PDF ingest/query returned a grounded, cited OCR answer and valid preview, then removed all test vectors, manifest rows, and assets.
-- **V3 evidence-selection repair (offline validated):** the next schema splits only oversized searchable proxies at 240 MiniLM tokens while keeping source artifacts and citation locators whole. Query planning carries `text|visual|table|formula|mixed`; structured questions reserve two existing context slots for matching RRF candidates plus one same-page caption/explanation, and a filtered artifact lookup runs only when the ordinary candidate pool lacks the requested form. Ettin and Groq remain text-proxy models, so raw-pixel or spatial claims still require an explicit representation or must be qualified/abstained. The complete 312-test network-disabled suite passed; fresh V3 ingestion and live application comparison remain required.
+- **V3 evidence-selection repair (merged and live checked):** the current schema splits only oversized searchable proxies at 240 MiniLM tokens while keeping source artifacts and citation locators whole. Query planning carries `text|visual|table|formula|mixed`; structured questions reserve two existing context slots for matching RRF candidates plus one same-page caption/explanation, and a filtered artifact lookup runs only when the ordinary candidate pool lacks the requested form. Ettin and Groq remain text-proxy models, so raw-pixel or spatial claims still require an explicit representation or must be qualified/abstained. The complete 312-test network-disabled suite and the formerly failing FlashAttention visual-evidence replay passed; the broader manual release-candidate run remains.
 - **Grounding verification:** structured JSON verdicts distinguish grounded answers, insufficient evidence, and unsupported generation. Unsupported-claim text is passed into one constrained correction; exhausted evidence retries produce a deterministic abstention rather than speculative generation.
 - **Observability:** fixed — no more unbounded `trace` accumulation in checkpointed state (was growing forever, printing the whole session's history every turn); now logger-based, with per-request + session-level PerformanceTracker via contextvars (not a module global anymore).
 
@@ -41,23 +61,26 @@ correct_generation → check_hallucination (one more pass, single correction bud
 Duplicate Pinecone vectors (was: random UUID vector IDs → fixed: content-hash IDs), overview chunk buried by absolute-floor check running before overview-dominance check, refusal answers ("I don't know") wrongly flagged hallucinated, `rewrite_query` losing half of compound questions because it only saw the last attempt not the original question, `classify_query_intent` shadowed-duplicate-function bug, unbounded `trace` state growth, module-global (not request-scoped) performance tracker, mislabeled "RRF" scores that were actually raw Pinecone hybrid scores.
 
 ## Open/unresolved right now
-- V3 ingestion and querying passed one controlled live fixture. Broad matched
-  retrieval and bounded answer evaluation across the reviewed corpus remains.
-  V3 deletion remains intentionally hidden until vector, manifest, and asset
+- The token-safe V3 corpus and targeted visual-evidence replay are complete.
+  The broader manual release-candidate run across routing, formats, negatives,
+  citations, and answer verdicts remains the next quality gate.
+- V3 deletion remains intentionally hidden until vector, manifest, and asset
   removal is coordinated in the product API.
 - The V3 evaluation suite is source reviewed: 49 cases across seven documents,
   including seven controlled/natural pairs and an 18-case bounded core. It
   covers ambiguity, follow-ups, figures/tables/formulas/OCR, false premises,
-  absent evidence, routing, citations, formats, and latency. The corpus is now
-  ingested; exact artifact and search-record labels remain pending review; see
-  `docs/V3_END_TO_END_EVALUATION.md`.
+  absent evidence, routing, citations, formats, and latency. All 16 answerable
+  core cases have exact reviewed artifact/search-record labels, but token-safe
+  segmentation changed record identities; those exact record labels must be
+  regenerated before the next automated batch. Stable artifact labels remain
+  valid. See `docs/V3_END_TO_END_EVALUATION.md`.
 - The V3 retrieval-only executor is implemented. It reuses the production
   hybrid reader and Ettin reranker, emits no passage text, and records exact
   record/artifact IDs, provenance, per-stage ranks/scores, production
-  selection, and latency without calling an LLM. Its first 46-case corpus run
-  completed without errors. Page-only labels undercounted valid evidence and
-  two follow-up cases lacked prior-turn context, so its preliminary rates are
-  diagnostic rather than promotion metrics.
+  selection, and latency without calling an LLM. The corrected 18-case core
+  established 16/16 candidate recall, 15/16 rerank hit@3 and hit@5, and 15/16
+  production selection before the evidence-lane repair. The manual run will
+  determine broader answer and citation behavior under the repaired schema.
 - Retrieval score thresholds remain provisional. Cross-encoder scores are
   ranking signals, not calibrated probabilities.
 - PyMuPDF4LLM/Layout packages report AGPL 3.0 or commercial licensing. Local

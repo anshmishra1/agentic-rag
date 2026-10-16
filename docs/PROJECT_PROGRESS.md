@@ -1,6 +1,6 @@
 # AgenticRAG project progress
 
-Updated: 2026-10-15
+Updated: 2026-10-16
 
 This document is the concise project status. Detailed chronological decisions
 remain in `docs/CODEX_SESSION_LOG.md`; evaluation methods and measurements live
@@ -17,13 +17,16 @@ in the linked reports.
 | V3 evidence model | V2 could not represent figures, tables, formulas, OCR, or exact artifact lineage | Typed artifacts, search records, source locators, grounding lineage, stable identities, and a content-addressed asset boundary were implemented |
 | Parser selection | Full Docling was accurate but too slow; vanilla PyMuPDF was fast but missed OCR and structured evidence | A fixed ten-case bakeoff selected PyMuPDF4LLM/Layout plus conditional RapidOCR: 54/54 screening checks, deterministic IDs, and about 14x lower mean case time than full CPU Docling |
 | V3 packaged boundary | Parser and model drift, GPU startup defects, partial cross-store writes | Exact parser/model versions are baked into the promoted image; PostgreSQL manifests, isolated V3 vector writing, and lazy `POST /v3/ingest` coordination are implemented |
-| Current checkpoint | Needed live proof from a parsed V3 artifact to a grounded answer and inspectable source | PR #34 merged; the isolated V3 index exists; a scanned-PDF smoke indexed 7 OCR records and returned an answered, grounded, cited `ORCHID-73` response with a valid PNG preview; cleanup left 0 test vectors |
+| Current checkpoint | Needed a token-safe, evidence-aware V3 release candidate and proof that a required visual artifact survives final ranking | PR #39 merged; seven hash-verified documents are ready under the new schema with PostgreSQL/Pinecone agreement on 2,208 records, and the former FlashAttention Figure 1 miss now returns cited page-2 text plus figure evidence with an answered, grounded verdict |
 | V3 acceptance definition | Prior manual prompts mixed retrieval, generation, and routing failures and did not cover realistic ambiguity consistently | A hash-locked, source-reviewed 49-case suite now spans seven documents, seven controlled/natural pairs, seven negative cases, and an 18-case bounded end-to-end core |
 
-The current V2 application remains the stable comparison baseline. The V3
-ingestion and query path is connected and has passed its first controlled live
-smoke, but remains opt-in until the matched retrieval and answer evaluation
-establishes its quality and latency across the reviewed corpus.
+V2 remains the stable comparison baseline. V3 is now a connected release
+candidate rather than only a storage/parser prototype: its token-safe corpus is
+freshly indexed, the targeted visual-evidence regression passed through the
+public API, and the Streamlit container startup path is repaired. V3 remains
+opt-in until the broader manual release-candidate run records routing, answer,
+citation, negative-query, format, and latency outcomes across the reviewed
+corpus.
 
 ## Delivered foundations
 
@@ -40,7 +43,7 @@ establishes its quality and latency across the reviewed corpus.
   previous retrieval schema.
 - Added reproducible, source-reviewed retrieval evaluation datasets and reports.
 
-## Multimodal retrieval V3 (local review checkpoint)
+## Multimodal retrieval V3 (release-candidate checkpoint)
 
 V3 implementation has started with the storage-neutral contracts required to
 keep source artifacts separate from searchable representations. The new model

@@ -1,15 +1,15 @@
 # Multimodal retrieval V3
 
-Status: contracts, parser comparison, selected-parser packaging, transactional
-artifact/search-record persistence, and the isolated V3 text-proxy writer are
-implemented locally for review. Docling, vanilla PyMuPDF, and PyMuPDF4LLM with
-PyMuPDF Layout were measured against the fixed corpus with networking disabled.
-PyMuPDF Layout is selected; Docling's bounded CUDA path remains fallback
-evidence. The opt-in V3 API ingestion boundary has now completed one controlled
-Pinecone and Groq smoke after its manifest path passed a disposable PostgreSQL
-16 DDL and transaction smoke. Artifact-aware hybrid retrieval, graph dispatch,
-structured API evidence, unified V2/V3 selection, and Streamlit artifact
-previews are implemented; broad corpus evaluation remains pending.
+Status: the V3 contracts, measured parser choice, selected-parser packaging,
+transactional artifact/search-record persistence, hybrid reader/writer, graph
+dispatch, structured API evidence, and Streamlit previews are implemented and
+merged. PyMuPDF4LLM/Layout with conditional RapidOCR is selected from the fixed
+parser comparison; Docling remains measured fallback evidence. The token-safe
+seven-document corpus is ready under schema
+`multimodal_v3:441428c54fceb4fd`, and PostgreSQL/Pinecone agree on 2,208 search
+records linked to 2,203 source artifacts. The former FlashAttention Figure 1
+selection miss now passes through the public API with cited visual and text
+evidence. The broader manual release-candidate run remains pending.
 
 ## Why V3 exists
 
@@ -323,8 +323,8 @@ in `docs/V3_PARSER_COMPARISON.md`.
    existing Ettin reranker and corrective graph, returns additive structured
    evidence for cited records, and renders stored previews while preserving V2
    citation strings. Coordinated V3 deletion remains pending.
-5a. **Evidence-aware selection repair** - implemented locally and pending the
-   final validation gate. Query plans now declare the required source form
+5a. **Evidence-aware selection repair** - merged and targeted-live checked.
+   Query plans now declare the required source form
    (`text`, `visual`, `table`, `formula`, or `mixed`). Ordinary text questions
    retain the existing path. Structured questions preserve a bounded number of
    matching RRF candidates plus a same-page caption/explanation inside the
@@ -376,14 +376,13 @@ verdict logic instead of being treated as one undifferentiated answer failure.
 
 ## Current boundary
 
-The next V3 schema uses `artifact_search_record_v2` and
+The current V3 schema uses `artifact_search_record_v2` and
 `artifact_structure_v3_token_safe_240`. PyMuPDF Layout artifacts remain whole
 and keep their stable source locator, asset, and citation identity. Only an
 oversized searchable representation is split into zero-overlap segments below
 MiniLM's safe 240-token input budget; every segment links back to the same
-artifact and records its parent record plus stable segment position. This is an
-index migration and therefore requires re-ingesting the V3 documents before the
-next live run.
+artifact and records its parent record plus stable segment position. This index
+migration is complete for the frozen seven-document corpus.
 
 Ettin and the Groq generation/verifier path remain text-mediated. They rank and
 verify native text, OCR, captions, table Markdown, and formula text rather than
@@ -399,7 +398,8 @@ wiring, citations, grounding, API contracts, and their existing regressions.
 The complete network-disabled suite passed 312 tests with one existing Starlette
 dependency warning. It used the existing local application image, mounted this
 worktree read-only, and did not load `.env` or contact any service. Image rebuild,
-fresh V3 ingestion, and the manual live comparison remain pending.
+fresh V3 ingestion, and one targeted live comparison subsequently completed;
+the broader manual release-candidate run remains pending.
 
 The promoted local image contains the exact selected PyMuPDF Layout runtime,
 CUDA MiniLM/Ettin support, and a writable V3 asset-volume target. PostgreSQL DDL
@@ -414,18 +414,18 @@ routing. The focused V3 query/UI selection passes 45 tests, and the complete
 network-disabled offline suite passes 312 tests with the retrieval-only
 evaluator contracts and the existing Starlette deprecation warning.
 
-A disposable PostgreSQL 16 instance executed the V3 DDL and verified parsed-state
-hiding, ready promotion, persisted parent/record lineage, and schema-mismatch
-protection. The isolated 384-dimensional dot-product V3 index was then created.
-A controlled scanned fixture produced 8 artifacts, 7 search records/vectors,
-ready status, and an answered/grounded Groq response for `ORCHID-73` with page-1
-citation, OCR-derived structured evidence, bounding box, and a valid PNG preview.
-The first assertion rejected Groq's non-breaking hyphen; punctuation-normalized
-validation passed on the bounded rerun. Cleanup removed 3 binary assets, 1
-manifest, and all vectors, and the disposable services were removed. The next
-action is review of exact artifact/search-record relevance labels. The
-hash-locked corpus is ready and its first 46-case retrieval-only pass completed
-without errors, but page-only labels and context-free follow-ups produced false
-negative measurements that must be corrected before promotion. Local
-evaluation may proceed under the installed package terms, while public
-deployment remains gated on an explicit AGPL-or-commercial licensing decision.
+The frozen seven-document corpus was hash verified and re-ingested after a
+digest-locked removal of the previous schema. All manifests are ready;
+PostgreSQL record counts match both manifest vector counts and Pinecone prefix
+counts. The artifact total remains stable while token-safe segmentation raises
+the searchable record count from 2,022 to 2,208. Stable artifact IDs still match
+the reviewed evidence, while exact search-record labels must be regenerated
+where segmentation changed record identity.
+
+One bounded public-API replay targeted the former FlashAttention Figure 1 miss.
+The planner required visual evidence, final selection retained the page 2 figure
+and its supporting text, the answer cited both, and verification returned
+`answered` and `grounded` without exhausting retries. This is direct evidence
+for the repaired failure, not a broad accuracy claim. Local evaluation may
+continue under the installed package terms, while public deployment remains
+gated on an explicit AGPL-or-commercial licensing decision.
