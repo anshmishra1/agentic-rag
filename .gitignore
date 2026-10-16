@@ -89,14 +89,8 @@ dist/
 # ============================================================
 
 .cache/
-.cache/
 huggingface_cache/
 sentence_transformers/
 temp.pdf
 dot_md/
-logs/
-requirements.txt
-requirement_file.txt 
 rough.ipynb
-DockerFile
-docker-compose.yml

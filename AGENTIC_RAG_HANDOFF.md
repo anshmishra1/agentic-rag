@@ -22,7 +22,7 @@ A LangGraph-orchestrated corrective RAG application — PDF/image/audio ingestio
 - PR #40 repaired the Streamlit container import path. Its required locked-image
   build and complete offline workflow passed. Application containers are
   intentionally stopped until the manual V3 release-candidate run.
-- The latest complete network-disabled offline gate passed 312 tests. This is a
+- The latest complete network-disabled offline gate passed 314 tests. This is a
   regression contract, not a claim of production answer accuracy.
 
 ## IMPORTANT: two divergent project histories exist
@@ -50,7 +50,7 @@ correct_generation → check_hallucination (one more pass, single correction bud
 - **Packaging:** Python 3.12 dependencies are locked by `uv.lock`; Docker builds from the lock file, runs as a non-root user, and Compose provides a health-checked local PostgreSQL service on host port 5442.
 - **Model and parser provisioning:** Docker pins exact Hugging Face revisions for the MiniLM embedding model and Ettin 32M reranker, plus exact PyMuPDF, PyMuPDF4LLM, PyMuPDF Layout, and RapidOCR versions. CI verifies the selected parser with networking disabled. API and frontend share one image, while only the API receives GPU access. Embedding and reranking use the 4 GiB RTX 2050; PDF layout parsing, RapidOCR, and ordinary application work remain on CPU. CI uses the smaller CPU target.
 - **V3 persistence and query boundary:** PostgreSQL stores retrieval-schema identity, artifact/search-record metadata, page-to-region parent links, locators, BM25 state, and fail-closed `parsed`/`ready` status. The `v3_assets` Compose volume stores binary page and region assets. The isolated V3 writer and reader use explicit dependencies and document-prefixed IDs without modifying the V2 vector store. `POST /v3/ingest` remains opt-in; `/query` accepts `retrieval_version`, reuses the existing Ettin reranker and corrective graph for ready V3 manifests, returns structured cited evidence, and keeps V2/V3 checkpoints separate. Streamlit can select both versions and preview cited artifacts. PR #34 merged; the isolated V3 index exists; a controlled scanned-PDF ingest/query returned a grounded, cited OCR answer and valid preview, then removed all test vectors, manifest rows, and assets.
-- **V3 evidence-selection repair (merged and live checked):** the current schema splits only oversized searchable proxies at 240 MiniLM tokens while keeping source artifacts and citation locators whole. Query planning carries `text|visual|table|formula|mixed`; structured questions reserve two existing context slots for matching RRF candidates plus one same-page caption/explanation, and a filtered artifact lookup runs only when the ordinary candidate pool lacks the requested form. Ettin and Groq remain text-proxy models, so raw-pixel or spatial claims still require an explicit representation or must be qualified/abstained. The complete 312-test network-disabled suite and the formerly failing FlashAttention visual-evidence replay passed; the broader manual release-candidate run remains.
+- **V3 evidence-selection repair (merged and live checked):** the current schema splits only oversized searchable proxies at 240 MiniLM tokens while keeping source artifacts and citation locators whole. Query planning carries `text|visual|table|formula|mixed`; structured questions reserve two existing context slots for matching RRF candidates plus one same-page caption/explanation, and a filtered artifact lookup runs only when the ordinary candidate pool lacks the requested form. Ettin and Groq remain text-proxy models, so raw-pixel or spatial claims still require an explicit representation or must be qualified/abstained. The complete 314-test network-disabled suite and the formerly failing FlashAttention visual-evidence replay passed; the broader manual release-candidate run remains.
 - **Grounding verification:** structured JSON verdicts distinguish grounded answers, insufficient evidence, and unsupported generation. Unsupported-claim text is passed into one constrained correction; exhausted evidence retries produce a deterministic abstention rather than speculative generation.
 - **Observability:** fixed — no more unbounded `trace` accumulation in checkpointed state (was growing forever, printing the whole session's history every turn); now logger-based, with per-request + session-level PerformanceTracker via contextvars (not a module global anymore).
 
@@ -86,9 +86,10 @@ Duplicate Pinecone vectors (was: random UUID vector IDs → fixed: content-hash 
 - PyMuPDF4LLM/Layout packages report AGPL 3.0 or commercial licensing. Local
   evaluation can continue, but public AWS deployment requires an explicit
   compliant licensing decision.
-- RAGAS remains legacy/dead evaluation code; current decisions use reviewed
-  passage labels, retrieval ranks, citations, answer status, and bounded live
-  checks.
+- The dead RAGAS runner and its runtime dependencies were removed. The original
+  80-question JSON remains as source material for the maintained dataset audit
+  and retrieval-label preparation tools. Current decisions use reviewed passage
+  labels, retrieval ranks, citations, answer status, and bounded live checks.
 - Streaming responses, richer progress reporting, authentication, upload
   limits, and rate limiting remain product/deployment work.
 - Agentic tool use such as web search and calculators has not been added; the

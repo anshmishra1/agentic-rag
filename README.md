@@ -1,34 +1,36 @@
 # Agentic RAG
 
-A production-grade, corrective Retrieval-Augmented Generation system built on LangGraph. Rather than a fixed retrieve-then-generate pipeline, the graph adaptively routes each query through relevance grading, query rewriting, hallucination checking, and constrained regeneration — deciding at each step whether the evidence is strong enough to proceed, or whether the query, the retrieval, or the answer itself needs correcting first.
+A production-oriented corrective Retrieval-Augmented Generation system built on
+LangGraph. Rather than a fixed retrieve-then-generate pipeline, the graph
+adaptively routes each query through relevance grading, query rewriting,
+grounding verification, and constrained regeneration. The current V3 release
+candidate extends that flow with artifact-aware evidence for text, figures,
+tables, formulas, and OCR-derived content.
 
 ## Current project status
 
-The current retrieval schema uses the versioned `agentic-rag-hybrid-v2` index
-with `structure_aware_v2` chunking. In the reviewed v1/v2 evaluation, v2 raised
+The V2 comparison baseline uses the versioned `agentic-rag-hybrid-v2` index with
+`structure_aware_v2` chunking. In the reviewed v1/v2 evaluation, v2 raised
 relevant-evidence recall in the application's final five passages from 76% to
 92% and improved final ranking MRR from 0.647 to 0.703 without a material
-retrieval-latency increase. Structure-aware chunking is therefore fixed for the
-next development stage while embeddings remain unchanged.
+retrieval-latency increase. Structure-aware chunking remains fixed for that
+baseline while embeddings remain unchanged.
 
-V3 is being built beside that stable V2 baseline. The selected PyMuPDF Layout
-parser, typed artifact and search-record contracts, content-addressed asset
-store, transactional PostgreSQL manifests, isolated Pinecone writer, and
-opt-in `POST /v3/ingest` route are implemented locally. The complete
-network-disabled offline suite passes 312 tests, and a disposable PostgreSQL 16
-smoke verified DDL creation, artifact lineage, parsed-to-ready promotion, and
-retrieval-schema mismatch protection. Artifact-aware V3 hybrid retrieval now
-reuses the existing Ettin reranker and graph, `/query` accepts an explicit
-retrieval version, and Streamlit can select V2 or V3 documents and render cited
-artifact previews. The isolated `agentic-rag-hybrid-v3` index now exists, and a
-controlled scanned-PDF smoke completed parser-to-ready ingestion, hybrid
-retrieval, Ettin reranking, a grounded Groq answer, a page citation, structured
-OCR evidence, and a valid PNG preview. Its test vectors, manifest, and assets
-were removed after verification. The seven-document V3 corpus is now ready in
-the isolated index, and the first 46-case retrieval-only pass completed with no
-runtime errors or LLM calls. Its page-level scores are preliminary because the
-run exposed incomplete page labels and two context-free follow-up cases; exact
-artifact labels and context-aware reruns are the next evaluation gate.
+V3 is now a connected release candidate beside that stable V2 baseline. The
+selected PyMuPDF Layout parser, conditional RapidOCR fallback, typed artifact
+and token-safe search-record contracts, content-addressed asset store,
+transactional PostgreSQL manifests, isolated Pinecone reader/writer, and
+`POST /v3/ingest` route are connected through the API and Streamlit. The current
+network-disabled offline suite passes 314 tests.
+
+Seven hash-verified documents are ready in `agentic-rag-hybrid-v3` under the
+current schema. PostgreSQL and Pinecone agree on 2,208 search records linked to
+2,203 stable source artifacts. A targeted public-API replay of the former
+FlashAttention Figure 1 miss now returns cited page-2 text plus figure evidence
+with an answered, grounded verdict. The broader manual release-candidate run
+across routing, natural questions, formats, negative cases, citations, and
+latency remains the promotion gate. V2 remains available as the comparison and
+rollback baseline.
 
 A source-reviewed V3 acceptance suite is now ready with 49 cases over seven
 documents. Its 18-case core bounds the first Groq-backed run; all retrievable
@@ -286,11 +288,11 @@ rejects missing or different package versions before the image can be used.
 These Artifex packages report dual AGPL 3.0/commercial licensing; production
 distribution or hosted deployment remains gated on choosing a compliant path.
 
-V3 remains isolated from the default V2 route. The opt-in `POST /v3/ingest`
-boundary now lazily composes the selected parser, asset store, manifest store,
+V3 uses a separate retrieval schema and index from V2. The `POST /v3/ingest`
+boundary lazily composes the selected parser, asset store, manifest store,
 shared embedding runtime, document-local BM25 encoder, and isolated V3 index
-writer. Importing the API or using `POST /ingest` does not construct V3 external
-clients. Its PostgreSQL manifest store
+writer. Importing the API or using the V2 `POST /ingest` route does not
+construct V3 external clients. Its PostgreSQL manifest store
 persists schema identity, artifacts, page-to-region parent links, locators,
 search records, and `parsed`/`ready` state transactionally. Binary page and
 region assets use the dedicated `v3_assets` Compose volume; Pinecone payloads
@@ -299,9 +301,9 @@ writer receives its index explicitly and writes document-prefixed deterministic
 IDs before pruning stale IDs. A failed vector write leaves the manifest
 non-ready, so future retrieval can fail closed. The route has offline regression
 coverage, and its DDL, lineage, parsed-state hiding, ready promotion, and schema
-guard passed against a disposable PostgreSQL 16 instance. Pinecone writing and
-the full parser-to-index path have now passed one controlled live smoke against
-the isolated V3 index.
+guard passed against a disposable PostgreSQL 16 instance. The complete
+seven-document corpus has since been migrated into the token-safe schema, and
+the targeted Figure 1 replay verified the public query and evidence path.
 The V3 reader, unified document listing, version-scoped graph invocation,
 structured evidence response, safe artifact-preview route, and Streamlit V2/V3
 selection are implemented and covered offline. V3 deletion stays unavailable
