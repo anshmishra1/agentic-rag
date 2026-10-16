@@ -34,6 +34,7 @@ services:
       - "8501:8501"
     environment:
       - RAG_API_URL=http://api:8000
+      - PYTHONPATH=/app
     env_file: .env
     depends_on:
       api:
