@@ -18,6 +18,7 @@ from typing import Any
 from agentic_rag.evaluation.v3_retrieval import (
     assess_case,
     build_candidate_rows,
+    resolve_retrieval_query,
     select_retrieval_cases,
     summarize,
 )
@@ -40,13 +41,17 @@ def collect_case(
     case: dict[str, Any],
     *,
     document_id: str,
+    cases_by_id: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     from agentic_rag.config import settings
     from agentic_rag.retrieval.candidates import deduplicate_candidates
     from agentic_rag.retrieval.reranker import rerank_many
     from agentic_rag.retrieval.v3_reader import retrieve_v3_document
 
-    query = case["question"]
+    query, query_source_case_id = resolve_retrieval_query(
+        case,
+        cases_by_id=cases_by_id,
+    )
     started = time.perf_counter()
     with redirect_stdout(io.StringIO()):
         retrieval_started = time.perf_counter()
@@ -75,6 +80,10 @@ def collect_case(
         "execution_tier": case["execution_tier"],
         "split": case["split"],
         "interaction_style": case["interaction_style"],
+        "query_resolution": {
+            "information_need_source": case["expected"]["information_need_source"],
+            "source_case_id": query_source_case_id,
+        },
         "status": "ok",
         "retrieval_schema_id": diagnostics["retrieval_schema_id"],
         "counts": {
@@ -100,16 +109,22 @@ def collect(
     cases: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     documents = {document["document_key"]: document for document in suite["documents"]}
+    cases_by_id = {case["case_id"]: case for case in suite["cases"]}
     results = []
     for case in cases:
         document_id = documents[case["document_key"]]["sha256"]
         try:
-            result = collect_case(case, document_id=document_id)
+            result = collect_case(
+                case,
+                document_id=document_id,
+                cases_by_id=cases_by_id,
+            )
             assessment = result["assessment"]
             print(
                 f"{case['case_id']}: candidates={result['counts']['rrf']} "
                 f"selected={result['counts']['selected']} "
-                f"evidence_hit={assessment['candidate_evidence_hit']} "
+                f"coarse_hit={assessment['candidate_coarse_evidence_hit']} "
+                f"exact_labelled={assessment['exact_support_labelled']} "
                 f"rerank_rank={assessment['best_rerank_rank']}"
             )
         except Exception as exc:

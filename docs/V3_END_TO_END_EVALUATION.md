@@ -59,11 +59,11 @@ PDF cannot silently invalidate the expected evidence.
 - Required evidence covers text blocks, figures, tables, formulas, and page
   images, with direct, OCR-derived, table, formula, and visual grounding.
 
-The suite remains marked `source_reviewed_pending_v3_artifact_ids`. The exact
-files have now been ingested into the isolated V3 index, but the first
-retrieval-only pass showed that several page labels omit other passages that
-validly answer the same question. Exact relevant artifact and search-record IDs
-must be reviewed and attached before the scores become promotion metrics.
+The overall suite remains marked `source_reviewed_pending_v3_artifact_ids`
+because the 31 extended cases still need exact evidence review. The 18-case
+core now has a separate `core_exact_ids_reviewed_extended_pending` retrieval
+status: all 16 answerable cases carry reviewed search-record and artifact IDs,
+and the two unanswerable cases deliberately carry none.
 
 ## Core live run
 
@@ -163,10 +163,11 @@ candidate order plus the records selected for the production context budget.
 Use `--tier e2e_core` or repeated `--case-id` options for a smaller diagnostic
 run. A failed case is retained with its error type and causes a nonzero exit.
 
-Cases with reviewed pages, artifact types, or grounding bases contribute to
-retrieval quality metrics. The seven unanswerable cases remain visible but do
-not contribute to positive hit rates: absence of a labelled relevant record is
-not evidence that arbitrary returned candidates are correct or incorrect.
+Only cases with exact reviewed search-record or artifact IDs contribute to
+retrieval quality metrics. Page, artifact type, and grounding basis remain
+coarse diagnostics. Unanswerable or not-yet-labelled cases remain visible but
+do not contribute to positive hit rates: absence of a positive label is not
+evidence that arbitrary returned candidates are correct or incorrect.
 
 ### Pass 2: bounded end to end
 
@@ -213,18 +214,23 @@ safety regression.
 
 ## Current execution boundary
 
-The dataset, source labels, and retrieval-only executor are ready, and the
-complete V3 path has passed one controlled scanned-fixture smoke. That run
-exercised parser, asset storage, manifest readiness, Pinecone dense and sparse
-retrieval, weighted RRF, Ettin reranking, Groq generation and verification,
-citation resolution, structured OCR evidence, and the preview route. Cleanup
-left no fixture vectors, manifest, or assets. The hash-locked seven-document
-corpus is now indexed and the first retrieval-only pass completed all 46 cases
-without an LLM call. It exposed two evaluation-contract gaps: page-only labels
-can reject valid support on another page, and follow-up prompts must be
-contextualized before retrieval. The next step is to attach reviewed artifact
-IDs, replay the corrected retrieval measurement, and only then run the bounded
-provider-backed evaluation.
+The hash-locked seven-document corpus is indexed and the core evaluation gate is
+now trustworthy. Exact lineage validation resolved 39 reviewed record/artifact
+pairs. The corrected 18-case retrieval run completed without an LLM call:
+candidate recall was 16/16, rerank hit@3 and hit@5 were 15/16, production
+selection was 15/16, and mean reciprocal rerank was 0.725. The only selection
+miss is the explicit FlashAttention figure lookup. A structured-artifact probe
+found the figure, but Ettin ranked the correct figure and caption at 10 and 11;
+global rank fusion or a larger RRF reserve regressed passing text cases.
+
+The live API and Streamlit services are healthy with all seven V3 documents
+ready. One bounded architecture query completed retrieval, Groq generation,
+citations, and structured evidence, but the verifier incorrectly rejected a
+parent list claim whose count and child components were supported by separate
+cited passages. The next gate is therefore a focused claim/citation verifier
+repair and replay of that saved case, followed by the remaining bounded core
+provider run. Visual-slot retrieval is a separate measured improvement for the
+one figure miss.
 
 Evaluation concept matching must normalize Unicode dash variants. The first
 smoke returned the correct `ORCHID‑73` with a non-breaking hyphen; an exact

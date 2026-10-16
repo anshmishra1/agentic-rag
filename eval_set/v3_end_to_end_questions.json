@@ -172,13 +172,24 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_339d88ff3726d885148fdf13ac874d957305526be460089d9984df84be1bfaa2",
+          "record_7448f4c6258c6ae195a4a8a2fc49d187dc2ebb7a4364769d38df29dd0bd5afd9",
+          "record_dd9138cc78637aa3857517ac595ae99b626498fb61304c3662dc1f37b01290b3"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_7b7cbcb7c46b3405d2c5d49d9b5eaa381ca0573c8f6f988d67e6114a67e038d1",
+          "artifact_377f7d221dcb634a51c4a5cf8b9775fac6ddb683ef4e49ce382ec47a940b5462",
+          "artifact_ddc3fe3eb1c3f061c6eda6fbd6fa6700adb97dc075b7315d82fc1749bfb1be73"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "attn-architecture-controlled",
       "document_key": "attention",
       "pair_id": "attn-architecture",
-      "question": "Explain the main components of the Transformer encoder and decoder shown in Figure 1."
+      "question": "Explain the main components of the Transformer encoder and decoder shown in Figure 1.",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -260,12 +271,23 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_2834998498b5e6ec972210e2face1279a3afa69141c2ef6726a78ad8b20b5e5d",
+          "record_2f1ec247b7843733f264ea440e08ea66ff1ad983ec1683696f8a4326daf45c82",
+          "record_63a269c01ad4e464f397a7b8dbbf1939e0cd95675255459332ab38bda2ab928f"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_cfd9c5ddb0b978fe1fd78f112d06eacf5eb71e9b006b0ca64d63ca718a6ff0a8",
+          "artifact_aca9a6020edb4b99433e1aa9724d48bb8fdcf37561b0ed6baef1247c0e1e1466",
+          "artifact_7a6a0fe234f58a709eea4afaed79288e95607c009fa7612ccb3c3f48578873a2"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "attn-scaling-math",
       "document_key": "attention",
-      "question": "Why is dot-product attention divided by the square root of the key dimension? Show the attention equation in valid LaTeX and define every symbol."
+      "question": "Why is dot-product attention divided by the square root of the key dimension? Show the attention equation in valid LaTeX and define every symbol.",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -307,12 +329,19 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_ac4120967fcffe169f176c6995b22a5f753a18deae768e477f7a76b061a36b9b"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_98558ffe3798edf894f35cec8cf134bb735ec3eb5d1e4dfc2cff9a91ab3e001b"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "attn-table-comparison",
       "document_key": "attention",
-      "question": "From Table 3, compare the base and big Transformer configurations in a compact table, including parameters, development BLEU, and development perplexity."
+      "question": "From Table 3, compare the base and big Transformer configurations in a compact table, including parameters, development BLEU, and development perplexity.",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -427,13 +456,26 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_b9341af57cd434abac3ae493be425218ff5e6d1369073cde78119f79b3bbe829",
+          "record_9a232d6d8784e3816f226a148d0e404c4463342cc74750ea5caf00261da4c8d9",
+          "record_f1058e4337649642e90f0fe99375622c3bd0076df87e842e7669f59ee29eb836",
+          "record_12e67c00faeeb6bef1b683cde61e1d4e3c8c6fa6051bfa14de7b855788fe0ad3"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_ce1d79b8caaaa9bc4185ac97b9ab6cac881a5f71025d4d3527cde5dc62a9e8bd",
+          "artifact_3543dd1796b1c37ae6ada0ac32392bf845b1a26f71fb4b2920c3767f18b62f33",
+          "artifact_b527794895bb89bec76b541fd946d3fbb5b2316e299f254cc28d49d47279c09b",
+          "artifact_6b05fdd7140e663165981fc2ee2972e2844ed0fec4e63c31bc646e58657df827"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "flash-tiling-controlled",
       "document_key": "flashattention",
       "pair_id": "flash-tiling",
-      "question": "How does FlashAttention use tiling to reduce reads and writes between HBM and on-chip SRAM?"
+      "question": "How does FlashAttention use tiling to reduce reads and writes between HBM and on-chip SRAM?",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -517,12 +559,21 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_9a232d6d8784e3816f226a148d0e404c4463342cc74750ea5caf00261da4c8d9",
+          "record_a3289b7c3b2f7ce93faf1e04628568db4a304e1acc9dab8462ce1415b81c42bf"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_3543dd1796b1c37ae6ada0ac32392bf845b1a26f71fb4b2920c3767f18b62f33",
+          "artifact_cda6f3a2bf3590b34590ff725e147e856b8ad05a07e9106c993f0162e5b0dae7"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "flash-figure-lookup",
       "document_key": "flashattention",
-      "question": "Does the paper contain a diagram showing how data moves between HBM and SRAM? Use that figure to explain the flow."
+      "question": "Does the paper contain a diagram showing how data moves between HBM and SRAM? Use that figure to explain the flow.",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -561,12 +612,23 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_e99276289dc6f6ca03924ae5fbe89fcd3262f616d7c045ddfc97687b34c11469",
+          "record_8b0f94d9ee71083fe7a1b31898fd9c5a8bcd0f7970fcc87ca293ba1a4ff23a5a",
+          "record_1be80b86889d9629692f9e6f921b9421fe9844ca7f7527ed199741a0931145ac"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_672738c568bd60526e2f3d6514df88a1eaf0e94d2b4113e0473f08d5a35533f4",
+          "artifact_6c602f1c0aa06bbdb4a26ab207f7531c3882e5737e44325d2a369f37173039a3",
+          "artifact_728f6f143f38feed74622d518bafa92b8025e5d6bf1f318c86d540e960081efa"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "flash-algorithm-flowchart",
       "document_key": "flashattention",
-      "question": "Turn Algorithm 1 into a concise ASCII flowchart that shows the block loops, on-chip computation, and writes back to HBM."
+      "question": "Turn Algorithm 1 into a concise ASCII flowchart that shows the block loops, on-chip computation, and writes back to HBM.",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -643,7 +705,8 @@
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "flash-energy-unanswerable",
       "document_key": "flashattention",
-      "question": "How many kilowatt-hours does one FlashAttention training run consume?"
+      "question": "How many kilowatt-hours does one FlashAttention training run consume?",
+      "retrieval_review_status": "not_applicable_unanswerable"
     },
     {
       "source_mode": "document",
@@ -680,13 +743,22 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_232e77309d21a6ed9049dcf30211f50d876cab2e020367917deec980eb2a5612",
+          "record_afa8740739726311c2514526a581d768acfccdd049c4ac2a99c0fcdec6867a71"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_1c9e72bde0395fd78e94f6e4bc5577307003c5fe7f9787e3956baaa3bdb06d89",
+          "artifact_4be4e4531f2e6e02dd70a7b5d8de91e363e262dea5b47e0f2d156a6e26feb2da"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "lora-mechanism-controlled",
       "document_key": "lora",
       "pair_id": "lora-mechanism",
-      "question": "How does LoRA adapt a pretrained Transformer while keeping the original weights frozen?"
+      "question": "How does LoRA adapt a pretrained Transformer while keeping the original weights frozen?",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -768,12 +840,23 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_afa8740739726311c2514526a581d768acfccdd049c4ac2a99c0fcdec6867a71",
+          "record_f9066a95ad1b02b0db62086403451c93be81da4e163c510a6e87bdbf499a35cd",
+          "record_c2bebcefa6b106be54d395230cb4d97409d67265388c067a5c9294aadd77d094"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_4be4e4531f2e6e02dd70a7b5d8de91e363e262dea5b47e0f2d156a6e26feb2da",
+          "artifact_3c338b5d2cbcd55091ed92580752c3a238c4c098281019f7d30dce736cfb9045",
+          "artifact_fab420057707ad2ef41e3cdcd9b03ac8dbba9286a0ac9a89b0493c7f70e89761"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "lora-efficiency-table",
       "document_key": "lora",
-      "question": "Compare full fine-tuning and LoRA for GPT-3 175B in a table using the parameter, memory, and inference-latency claims reported by the paper."
+      "question": "Compare full fine-tuning and LoRA for GPT-3 175B in a table using the parameter, memory, and inference-latency claims reported by the paper.",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -891,7 +974,8 @@
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "lora-qlora-unanswerable",
       "document_key": "lora",
-      "question": "According to this paper, when should I choose QLoRA instead of LoRA?"
+      "question": "According to this paper, when should I choose QLoRA instead of LoRA?",
+      "retrieval_review_status": "not_applicable_unanswerable"
     },
     {
       "source_mode": "document",
@@ -1018,12 +1102,23 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_fb0ed1a80a442df2102cb43865867f629584b7d3259e56fa731c90ac8f88235c",
+          "record_8cdbbf7a08ddbe1de4d01a312bbca9ce14c79453f5293e59e2b630cf3affccfa",
+          "record_f07194b253ce0630d3ca570f168d1b8cfd2a93aefd9eb5f79120c037d2b575c8"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_2ebdb0e0c51146388f7be4e37f44f1b830b13cfc054639eb7248d1a0a023ff6f",
+          "artifact_b7d32e9856196349d9b544f2d236b3780eca4eed6f54cc6a29ab9b3620f99ddd",
+          "artifact_8b9ff4f446b24d0264530adc00152f8e631868f40ffb1105cedb45f920ac00bc"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "dpo-partition-math",
       "document_key": "dpo",
-      "question": "Explain why the partition function does not have to be estimated in DPO. Include the relevant relation in valid LaTeX and define the terms."
+      "question": "Explain why the partition function does not have to be estimated in DPO. Include the relevant relation in valid LaTeX and define the terms.",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -1104,12 +1199,23 @@
         ],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_477c850e7581be547136ee0b1f4ff17e893d297493630e51ee59b539683d8fa9",
+          "record_b757ffeb1b4aa36b887af75bd507885283c867909e7df7035a50c9c5ba1e4980",
+          "record_c64ab746ac5e4ba8c4d16f19e6c9de8dc2d9369f715f472e3af59735f672c410"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_d0e3f2f12ae1ee32aa98a0ee70a913977988bf60814a8edb0579173ad75f1dad",
+          "artifact_112a39fe6f60ae4b50d75501800b2f04ded99a01b9fdd33348c69fd032305529",
+          "artifact_c278c743f4ad2e4261d9f32b77a1084d75748257ac5dd4221ce07ddf6d7bab12"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "dpo-reward-model-false-premise",
       "document_key": "dpo",
-      "question": "Why must DPO train a separate reward model before updating the policy?"
+      "question": "Why must DPO train a separate reward model before updating the policy?",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -1220,13 +1326,24 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_0a6b0bc8204e9686f377d57eeab42eadb8034f30934e55698f7383fa20e1a907",
+          "record_04fea8ba72d7748b25bd60e2bc5448b13895f29119964ff26617fdc896ab827f",
+          "record_9bff5a82686256d2eff7a0ab72e74c7199cc08dd50a57ba23a855893ed87916d"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_6d54b7d4242d3453bf46a9fc392eeffe4ff83c2ff98d01e045bde5c9b6c10ccd",
+          "artifact_4898fa29b98d241635546f86a1aaff838d75b0c38b201241cb7c77030bd1e04d",
+          "artifact_f2866c25e1f73f86859387e1147b2c4abab98f1a4e92cbb45ec3a743f7ae6d61"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "flamingo-architecture-controlled",
       "document_key": "flamingo",
       "pair_id": "flamingo-architecture",
-      "question": "How do Flamingo's gated cross-attention dense layers connect visual features to the frozen language model?"
+      "question": "How do Flamingo's gated cross-attention dense layers connect visual features to the frozen language model?",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -1351,12 +1468,23 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_50e8ae2a551623bde494e3056bc42e561150688bbbd01014d6b7bc89be0fb5cf",
+          "record_625a0a041d4a960e713defdeb71dd93550121d215b89a6ebd9694873251da41f",
+          "record_f739dd4d1b0453c7a39bd26b6e9ee72afd005a2cdc5f5ec363f65dbcd8b04db6"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_314b8fc2768dd2301a66fcec8d02a05ec2110f09240dfc4088af0b05339b069e",
+          "artifact_c1586b76bddb7d088a68c266e3c7065fdaf6830e04e71de7423d9ee1ed646326",
+          "artifact_afdfab1dd32dc0d707f49733a5736d618f5bd65eb61c4dcb3f0938a96dcbbdda"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "flamingo-results-table",
       "document_key": "flamingo",
-      "question": "Using Table 2, list the five tasks where fine-tuned Flamingo sets a new state of the art."
+      "question": "Using Table 2, list the five tasks where fine-tuned Flamingo sets a new state of the art.",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -1464,7 +1592,17 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_1d0824ee2ea183fb6246ae52d98c8ba0d78ffb06c0f12643c66cd365687e3293",
+          "record_4c063624c897386525492ac8ae1bcac92edf3e67a70e231b86af47c2c25de4f7",
+          "record_f9d90e5860354c638a2411080284db6ae6734610713e4bb4f04f45c928db0811"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_459a82363d22b34b798e1bf5a275b8d9651999844096290fab3c5a9fa4ebe161",
+          "artifact_f8940dbb7bef5a192e6919b550a71cde2c9744966bcddc471064082dc55f13ea",
+          "artifact_9ead102ea6079a2cabe15b908db711de85a09c17b265b42541ffaa05b9d71d94"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "agents-workflow-controlled",
@@ -1472,7 +1610,8 @@
       "pair_id": "agents-workflow",
       "question": "How does Anthropic distinguish workflows from agents?",
       "conversation_id": "agents-workflow-thread",
-      "turn_index": 1
+      "turn_index": 1,
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -1590,12 +1729,19 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_82809eb3c7c9bda83e9d69e2af4882801d3c64a40809f2640b552295f8ebcc3e"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_7a4ef4ac932418c1423b3369944c785750932088c80bacaaba0f51ce8108ed17"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "agents-evaluator-flowchart",
       "document_key": "effective_agents",
-      "question": "Explain the evaluator-optimizer workflow as an ASCII flowchart with its feedback loop."
+      "question": "Explain the evaluator-optimizer workflow as an ASCII flowchart with its feedback loop.",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -1702,13 +1848,20 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_99a35e37a0c031504e09460fcac78aee4b049ce13c32924bb94f1d0a5b177ff5"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_f6ef25d616f265a0feda4276c484f46efedf3d0ff5c71c4616e48ba6d8cb44c3"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "ocr-code-controlled",
       "document_key": "ocr_fixture",
       "pair_id": "ocr-code",
-      "question": "What document code appears on the scanned page?"
+      "question": "What document code appears on the scanned page?",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -1785,12 +1938,19 @@
         "forbidden_claims": [],
         "max_retrievals": 2,
         "max_rewrites": 1,
-        "max_corrections": 1
+        "max_corrections": 1,
+        "relevant_record_ids": [
+          "record_0bc840962d7a54df8d40e1ab7da1a4acb53198351421bd3cfb57460094d997c0"
+        ],
+        "relevant_artifact_ids": [
+          "artifact_43ad7ae3dc18b5a762f07909329cfc0089f70f56f99629bde7108901200a16c7"
+        ]
       },
       "review_status": "source_reviewed_pending_v3_artifact_ids",
       "case_id": "ocr-status-table",
       "document_key": "ocr_fixture",
-      "question": "Read the status table. Which stage is ready and which one is still pending?"
+      "question": "Read the status table. Which stage is ready and which one is still pending?",
+      "retrieval_review_status": "exact_ids_reviewed"
     },
     {
       "source_mode": "document",
@@ -2126,6 +2286,6 @@
       "document_key": "effective_agents",
       "question": "Thanks, that's all."
     }
-  ]
+  ],
+  "retrieval_label_status": "core_exact_ids_reviewed_extended_pending"
 }
-
