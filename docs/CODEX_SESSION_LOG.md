@@ -652,3 +652,17 @@ network-disabled container. The application services remain stopped. The fix
 was published through PR #40 after the required Docker/offline workflow passed;
 the squash merge is `6d78af1`. Next: publish this readiness record, synchronize
 the runnable checkout, then begin the manual V3 release-candidate questions.
+
+## 90. Current public project handoff (documentation checkpoint)
+
+PR #41 published the token-safe migration and live-readiness record at
+`074f9ca` after the required Docker/offline workflow passed. Rebuilt the public
+project handoff, V3 architecture status, and concise progress page from that
+merged source rather than publishing the older local interview draft. The docs
+now identify the current token-safe schema, seven ready documents, 2,208
+PostgreSQL/Pinecone records linked to 2,203 artifacts, the successful targeted
+FlashAttention Figure 1 replay, the 312-test offline gate, and the remaining
+manual release-candidate and production work. No source, runtime configuration,
+service, provider, index, or stored document was changed. Next: publish this
+documentation update, synchronize the primary checkout, and run the manual V3
+release candidate when the user is ready.
