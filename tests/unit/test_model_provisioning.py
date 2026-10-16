@@ -60,6 +60,13 @@ def test_compose_uses_one_built_application_image() -> None:
     assert compose.count("target: gpu-runtime") == 1
 
 
+def test_compose_exposes_repository_root_to_streamlit_frontend() -> None:
+    compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+
+    assert "streamlit run app/streamlit_app.py" in compose
+    assert "PYTHONPATH=/app" in compose
+
+
 def test_local_runner_does_not_hide_baked_models_with_host_cache() -> None:
     path = ROOT / "scripts/local_docker.py"
     spec = importlib.util.spec_from_file_location("local_docker_under_test", path)
