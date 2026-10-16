@@ -610,3 +610,45 @@ ingestion, query, re-indexing, or image build occurred. `git diff --check` passe
 Changes remain uncommitted for IDE review. Next: build the cached application
 image once, freshly ingest the V3 corpus under the new schema, and perform the
 manual V3 release-candidate comparison.
+
+## 88. Token-safe V3 corpus migration and live readiness
+
+Published the reviewed token-safe evidence-selection work through PR #39; the
+squash merge is `cd93710`. Rebuilt the shared GPU application image once as
+`agentic-rag-app:local`, reusing its heavy dependency layers. Before migration,
+an exact, read-only inventory confirmed the reviewed seven-document V3 corpus,
+2,022 vectors, 2,022 search records, and 2,203 immutable artifacts under schema
+`multimodal_v3:87e1dab6261b21f6`. A digest-locked cleanup then removed only
+those seven manifests, their V3 vectors, derived rows, and stored assets. The
+same seven hash-verified PDFs were freshly ingested under token-safe schema
+`multimodal_v3:441428c54fceb4fd` without overview generation or LLM calls.
+
+All seven manifests are `ready`. PostgreSQL and Pinecone independently agree on
+2,208 search records/vectors, while the artifact total remains 2,203; the extra
+records are the intended token-safe segments, not duplicate source artifacts.
+API and Streamlit health checks passed on the rebuilt image. One bounded live
+application query replayed the former FlashAttention Figure 1 selection miss.
+The planner required visual evidence, final selection retained both the page 2
+text block and page 2 figure, the answer cited both, and verification returned
+`answered`, `grounded`, with no exhausted retry. This exercises PostgreSQL,
+Pinecone, Ettin, Groq, citations, and grounding through the public `/query`
+endpoint. Stable artifact IDs still match the reviewed evidence; token-safe
+segmentation intentionally changed record IDs, so automated exact-record labels
+must be regenerated before the next batch evaluation. Next: manual V3 testing
+through Streamlit, followed by one recorded release-candidate assessment.
+
+## 89. Streamlit container import-path repair (local review checkpoint)
+
+The first browser load after the V3 migration exposed a frontend-only startup
+error: Streamlit placed `/app/app` on its script path, while the UI imports
+`app.streamlit_support` from the repository root. Added `PYTHONPATH=/app` to the
+frontend Compose environment. The running frontend alone was recreated with the
+same shared image; the API, PostgreSQL, V3 corpus, and image were unchanged.
+Compose validation passed without environment resolution, API and Streamlit
+health endpoints returned `ok`, and a targeted Streamlit `AppTest` loaded the
+actual page script with zero exceptions. A focused offline packaging contract
+now requires the frontend to expose `/app`; it passed alone in an ephemeral,
+network-disabled container. The application services remain stopped. The fix
+was published through PR #40 after the required Docker/offline workflow passed;
+the squash merge is `6d78af1`. Next: publish this readiness record, synchronize
+the runnable checkout, then begin the manual V3 release-candidate questions.
