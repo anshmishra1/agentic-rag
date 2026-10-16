@@ -93,6 +93,13 @@ class Settings(BaseSettings):
     v3_parser_ocr_enabled: bool = True
     v3_index_name: str = "agentic-rag-hybrid-v3"
     v3_asset_root: Path = Path("/app/data/v3-assets")
+    # Search proxies share MiniLM's 256-token encoder. The smaller payload
+    # leaves room for tokenizer special tokens and prevents silent truncation.
+    v3_search_record_max_tokens: int = Field(default=240, ge=32, le=240)
+    # Context capacity reserved for the source form explicitly requested by
+    # the user. This is a slot budget, not a relevance-score threshold.
+    v3_required_evidence_slots: int = Field(default=2, ge=1, le=5)
+    v3_evidence_companion_slots: int = Field(default=1, ge=0, le=2)
 
     # Conversation / generation optimization
     max_history_messages_for_generation: int = 2

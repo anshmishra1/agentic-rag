@@ -114,6 +114,7 @@ def retrieve_v3_hybrid_with_scores(
     candidate_k: int,
     rrf_k: int,
     alpha: float,
+    artifact_kinds: frozenset[str] | None = None,
 ) -> tuple[list[tuple[Document, float]], dict[str, Any]]:
     """Retrieve one ready V3 document through dense and sparse text proxies."""
 
@@ -135,8 +136,7 @@ def retrieve_v3_hybrid_with_scores(
     sparse_encoder = sparse_loader(bm25_params) if bm25_params else None
     representation = query_builder(query, sparse_encoder)
     dense_query = list(representation.dense)
-    retrieval_filter = {
-        "$and": [
+    filter_terms: list[dict[str, Any]] = [
             {"document_id": {"$eq": document_id}},
             {
                 "retrieval_schema_id": {
@@ -144,8 +144,12 @@ def retrieve_v3_hybrid_with_scores(
                 }
             },
             {"type": {"$eq": "content"}},
-        ]
-    }
+    ]
+    if artifact_kinds:
+        filter_terms.append(
+            {"artifact_kind": {"$in": sorted(artifact_kinds)}}
+        )
+    retrieval_filter = {"$and": filter_terms}
 
     dense_response = index.query(
         vector=dense_query,
@@ -180,6 +184,7 @@ def retrieve_v3_hybrid_with_scores(
         "dense_count": len(dense_matches),
         "sparse_count": len(sparse_matches),
         "rrf_count": len(fused),
+        "artifact_kinds": sorted(artifact_kinds or ()),
         "rrf": [
             {
                 "rank": rank,
@@ -220,6 +225,7 @@ def retrieve_v3_document(
     *,
     query: str,
     document_id: str,
+    artifact_kinds: frozenset[str] | None = None,
 ) -> tuple[list[tuple[Document, float]], dict[str, Any]]:
     """Application wrapper around the explicit, independently testable reader."""
 
@@ -239,4 +245,5 @@ def retrieve_v3_document(
         candidate_k=settings.hybrid_candidate_k,
         rrf_k=settings.rrf_k,
         alpha=settings.hybrid_alpha,
+        artifact_kinds=artifact_kinds,
     )

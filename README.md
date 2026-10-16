@@ -15,7 +15,7 @@ V3 is being built beside that stable V2 baseline. The selected PyMuPDF Layout
 parser, typed artifact and search-record contracts, content-addressed asset
 store, transactional PostgreSQL manifests, isolated Pinecone writer, and
 opt-in `POST /v3/ingest` route are implemented locally. The complete
-network-disabled offline suite passes 300 tests, and a disposable PostgreSQL 16
+network-disabled offline suite passes 312 tests, and a disposable PostgreSQL 16
 smoke verified DDL creation, artifact lineage, parsed-to-ready promotion, and
 retrieval-schema mismatch protection. Artifact-aware V3 hybrid retrieval now
 reuses the existing Ettin reranker and graph, `/query` accepts an explicit
@@ -350,6 +350,9 @@ Key environment variables (see `.env.example` for the full list):
 | `GROUNDING_VERIFIER_MAX_TOKENS` | Verifier-only completion cap (default: 1024) |
 | `PINECONE_API_KEY`, `PINECONE_INDEX_NAME` | Vector store connection and retrieval schema version; use a name such as `agentic-rag-hybrid-v2` for migrations |
 | `CHUNKING_STRATEGY` | `structure_aware_v2` for the current runtime; archived `token_window_v1` exists only for historical comparison; one strategy per index |
+| `V3_SEARCH_RECORD_MAX_TOKENS` | Maximum MiniLM-token length for one V3 searchable representation; oversized proxies split while their source artifact remains whole (default: 240) |
+| `V3_REQUIRED_EVIDENCE_SLOTS` | Existing five-record answer-context slots reserved for the explicitly requested figure/table/formula lane; this is not a score threshold (default: 2) |
+| `V3_EVIDENCE_COMPANION_SLOTS` | Nearby same-page text/caption slots retained for a selected structured artifact inside the same context budget (default: 1) |
 | `POSTGRES_URL` | Conversation checkpointing + document registry |
 | `EMBEDDING_MODEL`, `EMBEDDING_MODEL_REVISION` | Dense embedding model and immutable Hugging Face revision baked into Docker |
 | `EMBEDDING_DEVICE` | `auto` (default), `cuda`, or `cpu`; the local Docker runner selects CUDA unless `--cpu` is used |
@@ -414,7 +417,12 @@ evaluation before changing configuration.
 
 The evaluation history, index-consistency diagnosis, and cleanup safety gate
 are documented in [`docs/RETRIEVAL_EVALUATION_RATIONALE.md`](docs/RETRIEVAL_EVALUATION_RATIONALE.md).
-The separate V3 end-to-end suite covers parser evidence, retrieval and
+The V3 schema uses token-safe artifact search records. It preserves complete
+figures, tables, formulas, page assets, and source locators while splitting only
+an oversized searchable text proxy beneath the embedding model's input limit.
+Query planning carries a typed evidence requirement so structured-source
+questions retain a bounded artifact lane without changing ordinary text
+selection. The separate V3 end-to-end suite covers parser evidence, retrieval and
 reranking, routing, answer formats, citations, verdicts, and latency. Its
 retrieval-only executor reuses the production V3 reader and Ettin reranker,
 records IDs, provenance, dense/sparse/RRF/reranker signals, and stage latency,
@@ -432,7 +440,7 @@ See [`docs/V3_END_TO_END_EVALUATION.md`](docs/V3_END_TO_END_EVALUATION.md).
 
 ## API
 
-- `POST /query` - `{question, session_id, document_id, source_mode, retrieval_version}` returns the answer plus routing fields, grounding status, citations, contexts, and additive structured V3 evidence
+- `POST /query` - `{question, session_id, document_id, source_mode, retrieval_version}` returns the answer plus routing fields, the planned evidence requirement, grounding status, citations, contexts, and additive structured V3 evidence
 - `POST /ingest` - V2 multipart upload returning `{filename, document_id, index_name, chunking_strategy, chunks_indexed}` per file
 - `POST /v3/ingest` - opt-in V3 PDF ingestion returning parser, schema, artifact, search-record, vector, and ready-state metadata
 - `GET /v3/documents/{document_id}/artifacts/{artifact_id}/asset` - return a ready cited artifact preview without exposing its storage key

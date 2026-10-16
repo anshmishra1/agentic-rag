@@ -57,10 +57,18 @@ def citation_description(document, index: int) -> str:
     source = _source_name(document)
     page = _page_value(document)
     chunk_type = str(document.metadata.get("type") or "content")
+    artifact_kind = str(document.metadata.get("artifact_kind") or "").strip()
+    grounding_basis = str(document.metadata.get("grounding_basis") or "").strip()
+
+    evidence_suffix = ""
+    if artifact_kind:
+        evidence_suffix = f", {artifact_kind.replace('_', ' ')} evidence"
+        if grounding_basis:
+            evidence_suffix += f" ({grounding_basis.replace('_', ' ')})"
 
     if page is not None:
-        return f"{label} {source}, page {page}"
-    return f"{label} {source}, {chunk_type}"
+        return f"{label} {source}, page {page}{evidence_suffix}"
+    return f"{label} {source}, {chunk_type}{evidence_suffix}"
 
 
 def _labeled_blocks(

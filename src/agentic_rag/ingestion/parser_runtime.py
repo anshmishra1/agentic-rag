@@ -13,7 +13,8 @@ from agentic_rag.ingestion.parsers.pymupdf_layout_adapter import (
 
 
 SELECTED_V3_PARSER = "pymupdf_layout"
-V3_CHUNKING_STRATEGY = "artifact_structure_v3"
+V3_CHUNKING_STRATEGY = "artifact_structure_v3_token_safe"
+V3_REPRESENTATION_CONTRACT = "artifact_search_record_v2"
 
 
 def build_v3_parser(
@@ -54,6 +55,7 @@ def build_v3_retrieval_schema(
     embedding_model: str,
     embedding_revision: str,
     embedding_dimension: int,
+    search_record_max_tokens: int = 240,
 ) -> RetrievalSchema:
     """Bind the selected parser and embedding identity into one V3 schema."""
 
@@ -61,7 +63,10 @@ def build_v3_retrieval_schema(
         parser_name=parser.name,
         parser_revision=parser.revision,
         parser_options=parser.parser_options,
-        chunking_strategy=V3_CHUNKING_STRATEGY,
+        chunking_strategy=(
+            f"{V3_CHUNKING_STRATEGY}_{search_record_max_tokens}"
+        ),
+        representation_contract=V3_REPRESENTATION_CONTRACT,
         text_embedding_model=embedding_model,
         text_embedding_revision=embedding_revision,
         text_embedding_dimension=embedding_dimension,

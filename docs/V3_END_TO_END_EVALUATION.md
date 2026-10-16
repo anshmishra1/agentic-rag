@@ -214,6 +214,19 @@ safety regression.
 
 ## Current execution boundary
 
+The next evaluation run must use the token-safe V3 schema and freshly ingested
+records; results from the earlier schema remain historical controls. The query
+report must also record `evidence_requirement`, whether the selected context
+satisfied it, artifact kind, representation kind, and grounding basis. The
+FlashAttention Figure 1 case is the primary regression target: its reviewed
+figure evidence must survive final selection without reducing the already
+passing text cases. Formula and table cases must confirm that an output-format
+request is not mistaken for a source-evidence request.
+
+No incremental verification will run while this release package is being
+implemented. The next execution is one consolidated offline gate immediately
+before the cached image build and manual live test.
+
 The hash-locked seven-document corpus is indexed and the core evaluation gate is
 now trustworthy. Exact lineage validation resolved 39 reviewed record/artifact
 pairs. The corrected 18-case retrieval run completed without an LLM call:
@@ -227,10 +240,13 @@ The live API and Streamlit services are healthy with all seven V3 documents
 ready. One bounded architecture query completed retrieval, Groq generation,
 citations, and structured evidence, but the verifier incorrectly rejected a
 parent list claim whose count and child components were supported by separate
-cited passages. The next gate is therefore a focused claim/citation verifier
-repair and replay of that saved case, followed by the remaining bounded core
-provider run. Visual-slot retrieval is a separate measured improvement for the
-one figure miss.
+cited passages. A focused prompt repair now treats parent and child items as
+separate atomic claims while retaining the ban on uncited support. In two direct
+live controls, the saved supported answer became `grounded` and a deliberately
+invented claim remained `unsupported`. The next gate is a full application
+replay after the repair is merged into the running image, followed by the
+remaining bounded core provider run. Visual-slot retrieval is a separate
+measured improvement for the one figure miss.
 
 Evaluation concept matching must normalize Unicode dash variants. The first
 smoke returned the correct `ORCHID‑73` with a non-breaking hyphen; an exact

@@ -164,3 +164,36 @@ def test_v3_reader_can_use_dense_only_when_sparse_state_is_absent() -> None:
     assert len(index.calls) == 1
     assert len(results) == 2
     assert diagnostics["sparse_count"] == 0
+
+
+def test_v3_reader_adds_artifact_lane_without_weakening_document_scope() -> None:
+    manifest = _manifest()
+    manifest["bm25_params"] = None
+    store = _ManifestStore(manifest)
+    index = _Index()
+
+    _, diagnostics = retrieve_v3_hybrid_with_scores(
+        query="explain the figure",
+        document_id="doc-1",
+        index_name="agentic-rag-hybrid-v3",
+        index=index,
+        manifest_store=store,
+        query_builder=lambda query, encoder: SimpleNamespace(
+            dense=[0.1, 0.2, 0.3], sparse=None
+        ),
+        sparse_loader=lambda *_: pytest.fail("sparse state should not load"),
+        candidate_k=5,
+        rrf_k=60,
+        alpha=0.5,
+        artifact_kinds=frozenset({"figure", "image"}),
+    )
+
+    assert index.calls[0]["filter"] == {
+        "$and": [
+            {"document_id": {"$eq": "doc-1"}},
+            {"retrieval_schema_id": {"$eq": "multimodal_v3:schema"}},
+            {"type": {"$eq": "content"}},
+            {"artifact_kind": {"$in": ["figure", "image"]}},
+        ]
+    }
+    assert diagnostics["artifact_kinds"] == ["figure", "image"]

@@ -17,6 +17,7 @@ SourceMode = Literal["document", "general", "auto"]
 AnswerSource = Literal["document", "general", "control", "clarify"]
 QueryRelationship = Literal["standalone", "follow_up", "verify_previous"]
 InformationNeedSource = Literal["current_turn", "previous_information_need"]
+EvidenceRequirement = Literal["text", "visual", "table", "formula", "mixed"]
 ResponseFormat = Literal[
     "requested",
     "prose",
@@ -38,6 +39,7 @@ class QueryPlan(BaseModel):
     standalone_query: str | None
     needs_clarification: bool
     information_need_source: InformationNeedSource = "current_turn"
+    evidence_requirement: EvidenceRequirement = "text"
 
 
 _FORMAT_PATTERNS: tuple[tuple[ResponseFormat, re.Pattern[str]], ...] = (
@@ -112,6 +114,38 @@ _DOCUMENT_ARTIFACT_LOOKUP = re.compile(
     r".{0,80}\b(?:in|from)\s+(?:the\s+)?(?:document|paper)\b)",
     re.I,
 )
+
+_EXPLICIT_EVIDENCE_REFERENCE = re.compile(
+    r"\b(?:figure|fig\.?|diagram|image|illustration|plot|chart|table|"
+    r"equation|formula)\s*(?:[A-Z]?\d+|[IVX]+)?\b",
+    re.I,
+)
+
+
+def detect_explicit_evidence_requirement(question: str) -> EvidenceRequirement:
+    """Classify explicit artifact references without a semantic-router call.
+
+    This is a small document ontology, not a catalogue of complete user
+    phrases. Ambiguous and conversational turns remain the semantic planner's
+    responsibility.
+    """
+
+    references = {
+        match.group(0).strip().casefold()
+        for match in _EXPLICIT_EVIDENCE_REFERENCE.finditer(question)
+    }
+    if not references:
+        return "text"
+
+    requirements: set[EvidenceRequirement] = set()
+    for reference in references:
+        if reference.startswith(("table",)):
+            requirements.add("table")
+        elif reference.startswith(("equation", "formula")):
+            requirements.add("formula")
+        else:
+            requirements.add("visual")
+    return next(iter(requirements)) if len(requirements) == 1 else "mixed"
 
 
 def detect_response_format(question: str) -> ResponseFormat:
@@ -190,15 +224,20 @@ def direct_query_plan(
             response_format=detect_response_format(question),
             standalone_query=question.strip(),
             needs_clarification=False,
+            evidence_requirement="text",
         )
 
     if source_mode == "document" and not history:
+        retrieval_query = retrieval_query_without_format_request(question)
         return QueryPlan(
             source="document",
             relationship="standalone",
             response_format=detect_response_format(question),
-            standalone_query=retrieval_query_without_format_request(question),
+            standalone_query=retrieval_query,
             needs_clarification=False,
+            evidence_requirement=detect_explicit_evidence_requirement(
+                retrieval_query
+            ),
         )
 
     return None
@@ -271,7 +310,13 @@ def build_query_plan_prompt(
         "document is an evidence request, not an output-format instruction. "
         "Use ascii_flowchart only when the user asks you to create or render a "
         "textual diagram.\n"
-        "10. Use source=clarify and needs_clarification=true when the source "
+        "10. evidence_requirement describes the source evidence needed to "
+        "answer: text for ordinary passages, visual for a figure/diagram/image, "
+        "table for an existing source table, formula for an existing equation, "
+        "and mixed only when more than one of those source forms is required. "
+        "A requested output table or flowchart does not change the evidence "
+        "requirement.\n"
+        "11. Use source=clarify and needs_clarification=true when the source "
         "cannot be determined safely.\n\n"
         f"source_mode: {source_mode}\n"
         f"document_selected: {str(document_selected).lower()}\n"
@@ -308,6 +353,9 @@ def enforce_query_plan(
 
     data = plan.model_dump()
     explicit_format = detect_response_format(question)
+    explicit_evidence = detect_explicit_evidence_requirement(
+        retrieval_query_without_format_request(question)
+    )
 
     if is_document_artifact_lookup(question):
         data["response_format"] = "requested"
@@ -320,6 +368,9 @@ def enforce_query_plan(
     }:
         data["source"] = source_mode
         data["needs_clarification"] = False
+
+    if data["source"] == "document" and explicit_evidence != "text":
+        data["evidence_requirement"] = explicit_evidence
 
     if data["source"] == "document" and not document_selected:
         data.update(
@@ -365,6 +416,7 @@ def enforce_query_plan(
 
     if data["source"] in {"general", "control", "clarify"}:
         data["standalone_query"] = None
+        data["evidence_requirement"] = "text"
 
     if data["source"] == "clarify":
         data["needs_clarification"] = True

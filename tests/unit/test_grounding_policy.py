@@ -4,11 +4,32 @@ from types import SimpleNamespace
 import pytest
 
 from agentic_rag.policies.grounding import (
+    build_grounding_verifier_prompt,
     citation_issue_result,
     grounding_result,
     parse_grounding_response,
     verifier_response_diagnostics,
 )
+
+
+def test_verifier_prompt_keeps_parent_and_child_claim_ownership_separate() -> None:
+    answer = (
+        "- Each encoder layer contains two sublayers [S5]:\n"
+        "  1. Multi-head self-attention [S1].\n"
+        "  2. A position-wise feed-forward network [S3]."
+    )
+
+    prompt = build_grounding_verifier_prompt(
+        question="Explain the encoder.",
+        context="[S1] attention\n[S3] feed-forward\n[S5] two sublayers",
+        answer=answer,
+    )
+
+    assert "parent statement and every child item are separate claim units" in prompt
+    assert "Do not merge parent and child text into one claim" in prompt
+    assert "Multiple labels on one unit may jointly support it" in prompt
+    assert "Do not use an uncited source or general knowledge" in prompt
+    assert answer in prompt
 
 
 @pytest.mark.parametrize(

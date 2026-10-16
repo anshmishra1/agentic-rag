@@ -132,6 +132,60 @@ def test_v3_request_uses_artifact_reader_and_existing_reranker(monkeypatch) -> N
     assert result["retrieval_content_top_score"] == 0.75
 
 
+def test_v3_visual_request_keeps_visual_evidence_after_reranking(monkeypatch) -> None:
+    nodes, _, _ = _load_nodes(monkeypatch)
+    text = Document(
+        page_content="surrounding explanation",
+        metadata={
+            "record_id": "text-1",
+            "artifact_id": "artifact-text",
+            "artifact_kind": "text_block",
+            "page_label": "2",
+            "parent_artifact_id": "page-2",
+        },
+    )
+    figure = Document(
+        page_content="figure description",
+        metadata={
+            "record_id": "figure-1",
+            "artifact_id": "artifact-figure",
+            "artifact_kind": "figure",
+            "page_label": "2",
+            "parent_artifact_id": "page-2",
+        },
+    )
+    candidates = [(text, 0.02), (figure, 0.01)]
+    reader_calls = []
+
+    def retrieve_v3_document(**kwargs):
+        reader_calls.append(kwargs)
+        return candidates, {"dense_count": 2, "sparse_count": 2, "rrf_count": 2}
+
+    def rerank_many(query, groups, limits):
+        assert groups == {"v3_candidates": candidates}
+        return {"v3_candidates": [(text, 0.95), (figure, 0.10)]}
+
+    monkeypatch.setattr(nodes, "retrieve_v3_document", retrieve_v3_document)
+    monkeypatch.setattr(nodes, "rerank_many", rerank_many)
+
+    result = _tracked_call(
+        nodes.retrieve,
+        {
+            "question": "Explain Figure 2",
+            "document_id": "doc-1",
+            "retrieval_version": "v3",
+            "evidence_requirement": "visual",
+        },
+    )
+
+    assert reader_calls == [{"query": "Explain Figure 2", "document_id": "doc-1"}]
+    assert {doc.metadata["record_id"] for doc in result["documents"]} == {
+        "text-1",
+        "figure-1",
+    }
+    assert result["retrieval_evidence_requirement_satisfied"] is True
+
+
 def test_are_you_sure_becomes_document_verification(monkeypatch) -> None:
     router_content = json.dumps(
         {

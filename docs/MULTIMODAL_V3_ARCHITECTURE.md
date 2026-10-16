@@ -323,6 +323,15 @@ in `docs/V3_PARSER_COMPARISON.md`.
    existing Ettin reranker and corrective graph, returns additive structured
    evidence for cited records, and renders stored previews while preserving V2
    citation strings. Coordinated V3 deletion remains pending.
+5a. **Evidence-aware selection repair** - implemented locally and pending the
+   final validation gate. Query plans now declare the required source form
+   (`text`, `visual`, `table`, `formula`, or `mixed`). Ordinary text questions
+   retain the existing path. Structured questions preserve a bounded number of
+   matching RRF candidates plus a same-page caption/explanation inside the
+   five-record generation budget, with a
+   filtered artifact query used only when the ordinary candidate set contains
+   no matching source form. Missing required evidence follows the existing
+   retry and abstention path.
 6. **Shadow evaluation** - ingest the same corpus into v2 and v3 and compare
    text, figure, table, formula, scan, image, audio, citation, latency, and
    negative-query outcomes.
@@ -367,6 +376,31 @@ verdict logic instead of being treated as one undifferentiated answer failure.
 
 ## Current boundary
 
+The next V3 schema uses `artifact_search_record_v2` and
+`artifact_structure_v3_token_safe_240`. PyMuPDF Layout artifacts remain whole
+and keep their stable source locator, asset, and citation identity. Only an
+oversized searchable representation is split into zero-overlap segments below
+MiniLM's safe 240-token input budget; every segment links back to the same
+artifact and records its parent record plus stable segment position. This is an
+index migration and therefore requires re-ingesting the V3 documents before the
+next live run.
+
+Ettin and the Groq generation/verifier path remain text-mediated. They rank and
+verify native text, OCR, captions, table Markdown, and formula text rather than
+raw pixels. The new evidence requirement is therefore a retrieval and
+sufficiency constraint, not a claim that the models became natively visual.
+Visual or spatial details absent from a searchable representation must still be
+qualified or rejected. A separate visual embedding or vision-verification lane
+remains conditional on a measured miss after this release candidate.
+
+The consolidated offline release gate exercised token-safe segmentation,
+evidence classification and selection, filtered artifact retrieval, graph
+wiring, citations, grounding, API contracts, and their existing regressions.
+The complete network-disabled suite passed 312 tests with one existing Starlette
+dependency warning. It used the existing local application image, mounted this
+worktree read-only, and did not load `.env` or contact any service. Image rebuild,
+fresh V3 ingestion, and the manual live comparison remain pending.
+
 The promoted local image contains the exact selected PyMuPDF Layout runtime,
 CUDA MiniLM/Ettin support, and a writable V3 asset-volume target. PostgreSQL DDL
 and repository code now preserve schema identity, artifacts, search records,
@@ -377,7 +411,7 @@ dependencies only when called and uses the existing serialized embedding runtime
 The query/API/UI boundary adds version-scoped checkpoint identities, ready-only
 document listing and lookup, a safe artifact asset route, and Streamlit PDF-to-V3
 routing. The focused V3 query/UI selection passes 45 tests, and the complete
-network-disabled offline suite passes 300 tests with the retrieval-only
+network-disabled offline suite passes 312 tests with the retrieval-only
 evaluator contracts and the existing Starlette deprecation warning.
 
 A disposable PostgreSQL 16 instance executed the V3 DDL and verified parsed-state

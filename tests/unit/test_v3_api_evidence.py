@@ -53,7 +53,7 @@ def test_only_cited_v3_documents_become_structured_evidence() -> None:
         "kind": "figure",
         "grounding_basis": "vision_description",
         "source_name": "paper.pdf",
-        "description": "[S1] paper.pdf, page 2",
+        "description": "[S1] paper.pdf, page 2, figure evidence (vision description)",
         "locator": {
             "page_start": 2,
             "page_end": 2,

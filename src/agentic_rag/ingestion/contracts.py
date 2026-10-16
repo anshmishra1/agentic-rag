@@ -398,6 +398,10 @@ class SearchRecord:
                     "search_text_sha256": sha256_text(self.search_text),
                     "grounding_basis": self.grounding_basis.value,
                     "retrieval_schema_id": self.retrieval_schema_id,
+                    # Segments of one artifact can contain repeated text. The
+                    # stable position disambiguates them without changing the
+                    # artifact identity used by citations.
+                    "segment_index": self.metadata.get("segment_index"),
                 },
             ),
         )

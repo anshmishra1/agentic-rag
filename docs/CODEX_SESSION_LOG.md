@@ -542,3 +542,71 @@ claim-granularity false negative rather than a missing-evidence failure. Current
 changes remain uncommitted for IDE review. Next: commit the evaluation contract
 after review, then make a separate focused verifier repair and replay this saved
 case before the rest of the bounded provider-backed core.
+
+## 86. Verifier claim-unit repair (local review checkpoint)
+
+Committed the reviewed exact-evidence baseline as `82e978e`, opened PR #38,
+and merged it after the required `Offline build and tests` workflow passed. The
+squash merge is `3063e91`; the focused verifier branch was rebased onto that
+exact `origin/main` state before implementation.
+
+The saved V3 architecture checkpoint proved that retrieval was not the cause of
+the final `unsupported` status: the rejected statement's parent count and child
+components were supported by separate cited passages. The verifier prompt had
+not defined citation ownership for nested lists, allowing the model to merge a
+parent and its children into one claim. Moved prompt construction into the pure
+grounding policy and defined factual sentences/list items as atomic units.
+Parent summaries and child details are now checked separately, multiple labels
+on one unit may jointly support it, faithful paraphrases remain valid, and
+uncited sources plus general knowledge remain forbidden.
+
+Forty-nine focused grounding, verifier, citation, and graph-routing tests passed
+with Docker networking disabled and no `.env` mount. Two bounded Groq-only
+controls then reused the saved question and cited context without Pinecone or
+ingestion calls. The previously false-rejected answer returned `grounded` with
+an empty unsupported-claims list; a deliberately invented quantum-memory claim
+returned `unsupported` and identified that claim. Both responses parsed and
+finished normally. The changes remain uncommitted for IDE review. Next: run the
+complete offline suite, review and publish the repair, rebuild only the cached
+source layer, replay the full V3 application query, then continue the bounded
+core evaluation.
+
+## 87. Token-safe V3 evidence selection (offline validation checkpoint)
+
+The user requested that incremental verification stop until one final offline
+gate immediately before the manual live application run. On the existing
+uncommitted evidence-correctness branch, added a typed evidence requirement to
+query planning and flat graph state; explicit first-turn artifact references
+use a small source-form ontology without another router call, while existing
+semantic plans classify conversational turns. V3 retrieval keeps the ordinary
+text path unchanged, conditionally preserves matching figure/table/formula
+records plus a same-page caption/explanation inside the existing five-record
+budget, issues a filtered artifact
+query only when that form is absent, and routes missing required evidence
+through retry and abstention. Grading, generation, citations, API diagnostics,
+and grounding now carry artifact kind and grounding basis while explicitly
+limiting visual claims to what the text proxy states.
+
+Also versioned the V3 representation as `artifact_search_record_v2` with
+`artifact_structure_v3_token_safe_240`. Oversized searchable representations
+are split below MiniLM's input ceiling with zero overlap and stable segment
+lineage; original artifacts, assets, locators, and citation identities remain
+whole. This requires a fresh V3 ingestion before the next live comparison.
+The consolidated gate first ran 79 focused contracts and exposed one real
+document-generation defect: the new evidence instruction was referenced from
+the document prompt but defined in the general-answer node. It also exposed
+three stale or incorrectly isolated test expectations. The prompt variable was
+moved to the document node, the tests were corrected to exercise the public
+planner contract, an artifact-filter fixture was isolated from BM25, and the
+structured-evidence expectation was aligned with the richer provenance label.
+The four affected files then passed 35 tests.
+
+The complete network-disabled offline suite passed 312 tests in the existing
+local application image with the worktree mounted read-only and no `.env` mount.
+The only warning is the existing Starlette `BlockingPortal` deprecation. The
+repository virtual environment remains unusable because its uv-managed Python
+3.12 executable is missing. No PostgreSQL, Pinecone, Groq, model download,
+ingestion, query, re-indexing, or image build occurred. `git diff --check` passed.
+Changes remain uncommitted for IDE review. Next: build the cached application
+image once, freshly ingest the V3 corpus under the new schema, and perform the
+manual V3 release-candidate comparison.

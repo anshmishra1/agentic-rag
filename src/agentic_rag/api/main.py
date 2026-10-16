@@ -96,6 +96,7 @@ class QueryResponse(BaseModel):
     query_relationship: str = "standalone"
     information_need_source: str = "current_turn"
     response_format: str = "requested"
+    evidence_requirement: str = "text"
     retrieval_version: Literal["v2", "v3"] = "v2"
     evidence: list[EvidenceResponse] = Field(default_factory=list)
 
@@ -233,6 +234,7 @@ def query(
             information_need_source=result.get(
                 "information_need_source", "current_turn"
             ),
+            evidence_requirement=result.get("evidence_requirement", "text"),
         )
 
         contexts = [doc.page_content for doc in result.get("documents", [])]
@@ -258,6 +260,7 @@ def query(
                 "information_need_source", "current_turn"
             ),
             response_format=result.get("response_format", "requested"),
+            evidence_requirement=result.get("evidence_requirement", "text"),
             retrieval_version=request.retrieval_version,
             evidence=evidence,
     )
