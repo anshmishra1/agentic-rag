@@ -504,3 +504,41 @@ reviewed relevant artifact/search-record IDs, make follow-up evaluation
 context-aware, rerun retrieval-only metrics, and change retrieval or reranking
 only if that corrected evidence still demonstrates a defect. The bounded Groq
 run remains deferred until this gate is trustworthy.
+
+## 85. Exact V3 core evidence baseline and live verifier finding (local review checkpoint)
+
+After PR #37 merged at `c6fd18e`, started the merged API, Streamlit, and
+PostgreSQL services from the existing shared GPU image without rebuilding.
+Both health endpoints passed, and `/documents` exposed seven ready V3 manifests
+whose PostgreSQL record counts matched the indexed corpus. The application is
+available at `http://localhost:8501` while these services remain running.
+
+Repaired the evaluation contract before tuning retrieval. Sixteen answerable
+`e2e_core` cases now carry exact human-reviewed search-record and artifact IDs;
+the two unanswerable core cases intentionally have no positive IDs. PostgreSQL
+validated all 39 record/artifact pairs and their document lineage. Exact IDs,
+not page/type/basis intersections, now define retrieval quality, and declared
+presentation follow-ups reuse their dependency's information need. The focused
+offline evaluator contracts passed 16 tests.
+
+The corrected retrieval-only core run completed 18/18 cases with no errors and
+no LLM call. Across 16 answerable cases, candidate exact hit was 100%, reranker
+hit@1 was 56.25%, hit@3 and hit@5 were 93.75%, production selection was 93.75%,
+and mean reciprocal rerank was 0.725. Mean CPU retrieval, reranking, and total
+times were 1.454, 0.738, and 2.192 seconds. The only final-selection miss was
+the FlashAttention Figure 1 lookup. A separate structured-artifact probe found
+the direct figure at lane rank 2, but Ettin placed the relevant figure and
+caption at ranks 10 and 11. Offline rank-policy replay showed that larger global
+RRF reserves and rank fusion lose passing text cases, so no global threshold or
+selection change was made.
+
+One bounded live V3 architecture query then exercised Pinecone/PostgreSQL
+retrieval, Ettin, Groq generation and correction, citations, the verifier, and
+structured API evidence. Retrieval returned the reviewed support and the API
+resolved four cited records, but the final status was `unsupported`. The saved
+checkpoint showed one rejected compound list claim whose count and child items
+were jointly supported by separate cited passages. This isolates a verifier
+claim-granularity false negative rather than a missing-evidence failure. Current
+changes remain uncommitted for IDE review. Next: commit the evaluation contract
+after review, then make a separate focused verifier repair and replay this saved
+case before the rest of the bounded provider-backed core.

@@ -30,6 +30,7 @@ def test_v3_end_to_end_suite_has_the_reviewed_scope() -> None:
     assert suite["schema_version"] == 1
     assert suite["suite_id"] == "v3-end-to-end-acceptance-v1"
     assert suite["status"] == "source_reviewed_pending_v3_artifact_ids"
+    assert suite["retrieval_label_status"] == "core_exact_ids_reviewed_extended_pending"
     assert len(suite["documents"]) == 7
     assert len(cases) == 49
     assert Counter(case["execution_tier"] for case in cases) == {
@@ -175,3 +176,30 @@ def test_repository_fixture_hash_matches_the_reviewed_manifest() -> None:
 
     assert source_path.is_file()
     assert hashlib.sha256(source_path.read_bytes()).hexdigest() == document["sha256"]
+
+
+def test_answerable_core_cases_have_exact_reviewed_retrieval_ids() -> None:
+    core = [
+        case
+        for case in _load_suite()["cases"]
+        if case["execution_tier"] == "e2e_core"
+    ]
+    answerable = [case for case in core if case["expected"]["source_pages"]]
+    unanswerable = [case for case in core if not case["expected"]["source_pages"]]
+
+    assert len(answerable) == 16
+    assert len(unanswerable) == 2
+    for case in answerable:
+        expected = case["expected"]
+        record_ids = expected["relevant_record_ids"]
+        artifact_ids = expected["relevant_artifact_ids"]
+        assert case["retrieval_review_status"] == "exact_ids_reviewed"
+        assert record_ids and len(record_ids) == len(set(record_ids))
+        assert artifact_ids and len(artifact_ids) == len(set(artifact_ids))
+        assert len(record_ids) == len(artifact_ids)
+        assert all(record_id.startswith("record_") for record_id in record_ids)
+        assert all(artifact_id.startswith("artifact_") for artifact_id in artifact_ids)
+    for case in unanswerable:
+        assert case["retrieval_review_status"] == "not_applicable_unanswerable"
+        assert "relevant_record_ids" not in case["expected"]
+        assert "relevant_artifact_ids" not in case["expected"]

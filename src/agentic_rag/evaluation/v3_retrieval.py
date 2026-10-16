@@ -34,6 +34,30 @@ def select_retrieval_cases(
     return selected
 
 
+def resolve_retrieval_query(
+    case: dict[str, Any],
+    *,
+    cases_by_id: dict[str, dict[str, Any]],
+) -> tuple[str, str]:
+    """Resolve the information need that production should send to retrieval."""
+
+    expected = case["expected"]
+    if expected["information_need_source"] == "current_turn":
+        return case["question"], case["case_id"]
+    if expected["information_need_source"] != "previous_information_need":
+        raise ValueError("unsupported information_need_source")
+
+    dependency_id = case.get("depends_on")
+    if not dependency_id or dependency_id not in cases_by_id:
+        raise ValueError(
+            f"{case['case_id']} requires a valid depends_on case for retrieval"
+        )
+    dependency = cases_by_id[dependency_id]
+    if dependency.get("document_key") != case.get("document_key"):
+        raise ValueError("dependent retrieval cases must use the same document")
+    return resolve_retrieval_query(dependency, cases_by_id=cases_by_id)
+
+
 def build_candidate_rows(
     *,
     candidates: list[tuple[Any, float]],
@@ -90,13 +114,16 @@ def build_candidate_rows(
 
 
 def assess_case(case: dict[str, Any], candidates: list[dict[str, Any]]) -> dict[str, Any]:
-    """Score page, artifact, and grounding labels for one retrieval case."""
+    """Score exact reviewed evidence and retain coarse provenance diagnostics."""
 
     expected = case["expected"]
     pages = {str(page) for page in expected["source_pages"]}
     artifact_types = set(expected["artifact_types"])
     grounding_bases = set(expected["grounding_bases"])
-    support_labelled = bool(pages or artifact_types or grounding_bases)
+    relevant_record_ids = set(expected.get("relevant_record_ids", []))
+    relevant_artifact_ids = set(expected.get("relevant_artifact_ids", []))
+    coarse_support_labelled = bool(pages or artifact_types or grounding_bases)
+    exact_support_labelled = bool(relevant_record_ids or relevant_artifact_ids)
 
     def page_hit(row: dict[str, Any]) -> bool:
         return not pages or str(row.get("page")) in pages
@@ -107,10 +134,21 @@ def assess_case(case: dict[str, Any], candidates: list[dict[str, Any]]) -> dict[
     def basis_hit(row: dict[str, Any]) -> bool:
         return not grounding_bases or row.get("grounding_basis") in grounding_bases
 
-    def evidence_hit(row: dict[str, Any]) -> bool:
-        return support_labelled and page_hit(row) and type_hit(row) and basis_hit(row)
+    def coarse_evidence_hit(row: dict[str, Any]) -> bool:
+        return (
+            coarse_support_labelled
+            and page_hit(row)
+            and type_hit(row)
+            and basis_hit(row)
+        )
 
-    matching = [row for row in candidates if evidence_hit(row)]
+    def exact_evidence_hit(row: dict[str, Any]) -> bool:
+        return exact_support_labelled and (
+            row.get("record_id") in relevant_record_ids
+            or row.get("artifact_id") in relevant_artifact_ids
+        )
+
+    matching = [row for row in candidates if exact_evidence_hit(row)]
     best_rrf = min((row["rrf_rank"] for row in matching), default=None)
     best_rerank = min((row["rerank_rank"] for row in matching), default=None)
     best_selected = min(
@@ -118,12 +156,18 @@ def assess_case(case: dict[str, Any], candidates: list[dict[str, Any]]) -> dict[
         default=None,
     )
     return {
-        "support_labelled": support_labelled,
-        "candidate_page_hit": support_labelled and any(page_hit(row) for row in candidates),
-        "candidate_artifact_type_hit": support_labelled
+        "support_labelled": exact_support_labelled,
+        "exact_support_labelled": exact_support_labelled,
+        "coarse_support_labelled": coarse_support_labelled,
+        "candidate_page_hit": coarse_support_labelled
+        and any(page_hit(row) for row in candidates),
+        "candidate_artifact_type_hit": coarse_support_labelled
         and any(type_hit(row) for row in candidates),
-        "candidate_grounding_basis_hit": support_labelled
+        "candidate_grounding_basis_hit": coarse_support_labelled
         and any(basis_hit(row) for row in candidates),
+        "candidate_coarse_evidence_hit": any(
+            coarse_evidence_hit(row) for row in candidates
+        ),
         "candidate_evidence_hit": bool(matching),
         "best_rrf_rank": best_rrf,
         "best_rerank_rank": best_rerank,
@@ -146,7 +190,7 @@ def _latency_summary(values: list[float]) -> dict[str, float]:
 
 
 def summarize(results: list[dict[str, Any]]) -> dict[str, Any]:
-    """Aggregate only reviewed support cases into quality metrics."""
+    """Aggregate quality only for cases with exact reviewed evidence IDs."""
 
     successful = [row for row in results if row.get("status") == "ok"]
     labelled = [row for row in successful if row["assessment"]["support_labelled"]]
@@ -157,15 +201,16 @@ def summarize(results: list[dict[str, Any]]) -> dict[str, Any]:
         "cases_failed": len(errors),
         "reviewed_support_cases": len(labelled),
         "unanswerable_or_unlabelled_cases": len(successful) - len(labelled),
+        "coarse_page_labelled_cases": sum(
+            bool(row["assessment"].get("coarse_support_labelled"))
+            for row in successful
+        ),
         "failures_by_type": dict(sorted(Counter(row.get("error_type") for row in errors).items())),
     }
     if labelled:
         summary["quality"] = {
             field: sum(bool(row["assessment"][field]) for row in labelled) / len(labelled)
             for field in (
-                "candidate_page_hit",
-                "candidate_artifact_type_hit",
-                "candidate_grounding_basis_hit",
                 "candidate_evidence_hit",
                 "rerank_hit_at_1",
                 "rerank_hit_at_3",

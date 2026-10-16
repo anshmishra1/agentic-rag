@@ -159,3 +159,46 @@ revealed an index-consistency issue that could distort reranker results.
 We fixed or bounded each issue at its own layer, used development data for
 decisions and holdout data for checking them, and did not tune thresholds
 until passage-level evidence could justify it.
+
+## V3 exact-evidence baseline (2026-10-15)
+
+The first V3 report used page, artifact type, and grounding basis as if their
+intersection were a gold relevance label. That was too coarse: a page can hold
+several unrelated records, while a valid answer may also appear on a reviewed
+page that was not listed. Follow-up prompts such as "put that in a table" were
+also sent to retrieval without their earlier information need. Both defects
+could make a good retriever look wrong.
+
+The corrected evaluator now uses exact, human-reviewed V3 search-record and
+artifact IDs for quality metrics. Page, type, and grounding labels remain as
+diagnostics. Presentation-only follow-ups resolve the information need from
+their declared dependency before retrieval. Sixteen answerable core cases now
+have exact labels; the two core unanswerable cases deliberately have no
+positive IDs. PostgreSQL validation confirmed all 39 record/artifact pairs,
+their lineage, and their document hashes before measurement.
+
+The corrected 18-case core run completed without errors and without an LLM
+call. Across the 16 answerable cases, exact evidence reached the candidate pool
+in 16/16 cases, ranked first in 9/16, ranked within the first three in 15/16,
+and survived the production five-record selection in 15/16. Mean reciprocal
+rerank was 0.725. Mean CPU retrieval, reranking, and combined time were 1.454,
+0.738, and 2.192 seconds respectively; the cold maximum was 9.916 seconds.
+These numbers describe this reviewed core set, not all future documents.
+
+The sole selection miss is the FlashAttention Figure 1 lookup. A read-only
+structured-artifact probe recovered the direct figure record at lane rank 2,
+but Ettin placed the correct figure and caption at cross-encoder ranks 10 and
+11. Increasing the global RRF reserve or blending RRF and cross-encoder ranks
+lost already-passing text cases, so a global rank-policy change is rejected.
+The evidence supports a future visual-evidence lane with its own bounded final
+slot, driven by a typed evidence requirement rather than a phrase list.
+
+A bounded live V3 architecture question then exercised the full application.
+Retrieval, Groq generation, citations, and four structured evidence records all
+completed, but the final verifier returned `unsupported`. Its only listed
+claim was supported jointly by the cited encoder, feed-forward, and decoder
+passages. This isolates a verifier granularity false negative: the prompt
+treated a parent list statement and its separately cited child items as one
+claim. The next runtime repair should make claim units and citation ownership
+explicit, then replay this saved case before expanding the provider-backed
+suite.
