@@ -25,7 +25,8 @@ from agentic_rag.ingestion.parser_runtime import (
     build_v3_parser,
     build_v3_retrieval_schema,
 )
-from agentic_rag.ingestion.parsers.base import ParserAdapter
+from agentic_rag.ingestion.parsers.base import ParseRun, ParserAdapter
+from agentic_rag.ingestion.record_segmentation import segment_parse_run_records
 from agentic_rag.ingestion.v3_pipeline import persist_and_index_parse_run
 from agentic_rag.model_identity import canonical_model_name
 from agentic_rag.retrieval.sparse import dump_bm25_json, fit_bm25
@@ -101,6 +102,7 @@ class V3IngestionRuntime:
         page_selector: Callable[[Path], tuple[int, ...]] = _all_pdf_pages,
         sparse_factory: Callable[[list[str]], Any] = fit_bm25,
         sparse_serializer: Callable[[Any], str] = dump_bm25_json,
+        record_segmenter: Callable[[ParseRun], ParseRun] | None = None,
     ) -> None:
         self.parser = parser
         self.schema = schema
@@ -112,6 +114,7 @@ class V3IngestionRuntime:
         self.page_selector = page_selector
         self.sparse_factory = sparse_factory
         self.sparse_serializer = sparse_serializer
+        self.record_segmenter = record_segmenter or (lambda run: run)
         if not self.index_name:
             raise ValueError("V3 index name must be nonempty")
 
@@ -131,6 +134,7 @@ class V3IngestionRuntime:
             schema=self.schema,
             asset_store=self.asset_store,
         )
+        run = self.record_segmenter(run)
         texts = [record.search_text for record in run.records]
         if not texts:
             raise ValueError("V3 parser produced no searchable records")
@@ -181,6 +185,7 @@ def build_v3_ingestion_runtime() -> V3IngestionRuntime:
         embedding_model=canonical_model_name(settings.embedding_model),
         embedding_revision=settings.embedding_model_revision,
         embedding_dimension=settings.embedding_dimension,
+        search_record_max_tokens=settings.v3_search_record_max_tokens,
     )
     pinecone = Pinecone(api_key=settings.pinecone_api_key)
     return V3IngestionRuntime(
@@ -191,6 +196,13 @@ def build_v3_ingestion_runtime() -> V3IngestionRuntime:
         index=pinecone.Index(index_name),
         index_name=index_name,
         embedder=_SharedTextEmbedder(),
+        record_segmenter=lambda run: segment_parse_run_records(
+            run,
+            embedding_model=settings.embedding_model,
+            embedding_revision=settings.embedding_model_revision,
+            local_files_only=settings.model_local_files_only,
+            max_tokens=settings.v3_search_record_max_tokens,
+        ),
     )
 
 

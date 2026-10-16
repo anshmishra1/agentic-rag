@@ -38,6 +38,7 @@ class QueryState(TypedDict, total=False):
     query_relationship: Literal["standalone", "follow_up", "verify_previous"] | str
     information_need_source: Literal["current_turn", "previous_information_need"] | str
     response_format: str
+    evidence_requirement: Literal["text", "visual", "table", "formula", "mixed"] | str
     semantic_router_used: bool
     routing_parse_success: bool | None
     needs_clarification: bool
@@ -64,6 +65,7 @@ class RetrievalState(TypedDict, total=False):
     retrieval_evidence_strength: str | None
     retrieval_decision_reason: str | None
     relevance_grade: str | None
+    retrieval_evidence_requirement_satisfied: bool | None
 
 
 # =============================================================
@@ -146,3 +148,4 @@ class GraphOutput(TypedDict, total=False):
     query_relationship: str
     information_need_source: str
     response_format: str
+    evidence_requirement: str

@@ -100,6 +100,9 @@ def _metadata(
         "page_label": locator.page_label,
         "start_ms": locator.start_ms,
         "end_ms": locator.end_ms,
+        "parent_record_id": record.metadata.get("parent_record_id"),
+        "segment_index": record.metadata.get("segment_index"),
+        "segment_count": record.metadata.get("segment_count"),
     }
     metadata.update(
         {key: value for key, value in optional.items() if value is not None}

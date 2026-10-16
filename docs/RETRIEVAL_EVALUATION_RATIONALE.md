@@ -202,3 +202,41 @@ treated a parent list statement and its separately cited child items as one
 claim. The next runtime repair should make claim units and citation ownership
 explicit, then replay this saved case before expanding the provider-backed
 suite.
+
+The focused verifier repair now defines a factual sentence or list item as one
+atomic claim unit. A hierarchical list's parent and children are evaluated
+separately, multiple citations on one unit may jointly support it, and neither
+uncited passages nor general knowledge may be used. Two bounded Groq controls
+reused the saved evidence: the previously rejected supported answer returned
+`grounded`, while an invented quantum-memory claim returned `unsupported` with
+that exact claim identified. This validates the intended correction and its
+false-positive guard; the complete application still needs a replay after the
+fix is merged into the running image.
+
+## V3 evidence-selection decision
+
+The exact baseline showed 16/16 candidate recall but only 15/16 production
+selection: the FlashAttention Figure 1 evidence existed in the candidate pool
+and at structured-lane rank 2, then fell outside Ettin's five-record output.
+Global RRF reservation and rank fusion regressed passing text cases, so the
+repair is conditional rather than global. A typed evidence requirement now
+selects a bounded artifact lane only for questions that require a figure,
+table, formula, or mixed structured evidence. Two requested-form slots are
+retained from RRF order, one same-page companion may be retained for context,
+and the remaining context budget is filled by Ettin.
+If the normal candidate set lacks that artifact form, one filtered fallback
+query is allowed; absence after selection fails through retry and abstention.
+
+The same work package closes a separate representation risk. V3 layout records
+previously had no enforced token ceiling even though MiniLM accepts 256 tokens.
+The next schema splits only oversized search proxies at 240 tokens with no
+synthetic overlap, while the original artifact and its citation locator remain
+unchanged. Because searchable text and record IDs change, the seven-document V3
+corpus must be re-ingested before comparing the new selection behavior.
+
+The agreed consolidated offline gate now passes all 312 unit contracts with
+Docker networking disabled and no `.env` mount. This verifies representation,
+selection, routing, citation, and grounding behavior under controlled inputs.
+No retrieval-quality improvement is claimed yet: the new schema still requires
+fresh V3 ingestion followed by the same labeled retrieval and live application
+comparison.

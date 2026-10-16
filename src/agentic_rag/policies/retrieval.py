@@ -108,6 +108,11 @@ def build_rewrite_prompt(
             "The answer could not be fully supported; search for the specific "
             "mechanism, stages, definitions, or relationships needed to answer."
         )
+    elif reason == "required_evidence_missing":
+        guidance = (
+            "The requested source form was not present in the selected evidence; "
+            "search for its label, caption, symbols, or surrounding explanation."
+        )
     elif reason.startswith("top_score_below_floor"):
         guidance = (
             "The match was weak; correct wording or use more specific "

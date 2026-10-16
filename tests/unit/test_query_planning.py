@@ -5,6 +5,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from agentic_rag.policies.query_planning import (
     QueryPlan,
     build_query_plan_prompt,
+    detect_explicit_evidence_requirement,
     detect_response_format,
     direct_query_plan,
     enforce_query_plan,
@@ -68,6 +69,19 @@ def test_explicit_format_detection_is_limited_to_presentation() -> None:
         )
         == "Compare the methods"
     )
+
+
+def test_explicit_evidence_detection_ignores_requested_output_format() -> None:
+    flowchart_plan = direct_query_plan("Explain it as a flowchart", [], "document")
+    table_plan = direct_query_plan("Compare them in a table", [], "document")
+
+    assert flowchart_plan is not None
+    assert flowchart_plan.evidence_requirement == "text"
+    assert table_plan is not None
+    assert table_plan.evidence_requirement == "text"
+    assert detect_explicit_evidence_requirement("Explain Figure 2") == "visual"
+    assert detect_explicit_evidence_requirement("What is reported in Table 3?") == "table"
+    assert detect_explicit_evidence_requirement("Explain Equation 4") == "formula"
 
 
 def test_document_conversation_uses_semantic_router() -> None:
@@ -304,4 +318,5 @@ def test_groq_router_schema_is_strict_and_closed() -> None:
         "standalone_query",
         "needs_clarification",
         "information_need_source",
+        "evidence_requirement",
     }

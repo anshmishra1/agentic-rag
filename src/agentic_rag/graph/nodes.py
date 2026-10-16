@@ -49,6 +49,11 @@ from agentic_rag.policies.retrieval import (
     is_repeated_rewrite,
     parse_relevance_grade,
 )
+from agentic_rag.policies.evidence import (
+    evidence_requirement_is_satisfied,
+    required_artifact_kinds,
+    select_required_evidence,
+)
 from agentic_rag.policies.generation import (
     apply_citation_generation_limits,
     is_refusal_answer,
@@ -62,6 +67,7 @@ from agentic_rag.policies.citations import (
 from agentic_rag.core.timing import get_current_tracker#, set_current_tracker, reset_current_tracker
 from agentic_rag.policies.grounding import (
     ABSTENTION_RESPONSE,
+    build_grounding_verifier_prompt,
     citation_issue_result,
     grounding_result,
     verifier_response_diagnostics,
@@ -130,6 +136,8 @@ def _fresh_turn_state() -> dict:
         "query_relationship": "standalone",
         "information_need_source": "current_turn",
         "response_format": "requested",
+        "evidence_requirement": "text",
+        "retrieval_evidence_requirement_satisfied": None,
         "semantic_router_used": False,
         "routing_parse_success": None,
         "needs_clarification": False,
@@ -201,6 +209,7 @@ def contextualize_question(state: RAGState) -> dict:
             relationship=plan.relationship,
             information_need_source=plan.information_need_source,
             response_format=plan.response_format,
+            evidence_requirement=plan.evidence_requirement,
             semantic_router_used=semantic_router_used,
             routing_parse_success=routing_parse_success,
             needs_clarification=plan.needs_clarification,
@@ -216,6 +225,7 @@ def contextualize_question(state: RAGState) -> dict:
         "query_relationship": plan.relationship,
         "information_need_source": plan.information_need_source,
         "response_format": plan.response_format,
+        "evidence_requirement": plan.evidence_requirement,
         "semantic_router_used": semantic_router_used,
         "routing_parse_success": routing_parse_success,
         "needs_clarification": plan.needs_clarification,
@@ -270,7 +280,11 @@ def _top_score_for_type(results: list[tuple], chunk_type: str) -> float | None:
 # Retrieval
 # =============================================================
 
-def _retrieve_v3(query: str, document_id: str) -> dict:
+def _retrieve_v3(
+    query: str,
+    document_id: str,
+    evidence_requirement: str,
+) -> dict:
     """Retrieve artifact search records, then reuse the existing ranker policy."""
 
     candidates, diagnostics = retrieve_v3_document(
@@ -278,26 +292,71 @@ def _retrieve_v3(query: str, document_id: str) -> dict:
         document_id=document_id,
     )
     candidates, duplicates_removed = deduplicate_candidates(candidates)
-    reranked = rerank_many(
-        query,
-        {"content": candidates},
-        {"content": settings.rerank_top_k_content},
+    required_kinds = required_artifact_kinds(evidence_requirement)
+
+    # The ordinary top-k query usually contains the requested artifact. Only
+    # issue a filtered fallback query when that lane is absent, keeping the
+    # common text path and its latency unchanged.
+    has_required_candidate = evidence_requirement_is_satisfied(
+        [document for document, _ in candidates],
+        evidence_requirement,
     )
-    results = reranked.get("content", [])
+    if required_kinds and not has_required_candidate:
+        lane_candidates, lane_diagnostics = retrieve_v3_document(
+            query=query,
+            document_id=document_id,
+            artifact_kinds=required_kinds,
+        )
+        candidates, lane_duplicates = deduplicate_candidates(
+            [*candidates, *lane_candidates]
+        )
+        duplicates_removed += lane_duplicates
+        diagnostics["evidence_lane_rrf_count"] = lane_diagnostics["rrf_count"]
+    else:
+        diagnostics["evidence_lane_rrf_count"] = 0
+
+    if required_kinds:
+        scored = rerank_many(
+            query,
+            {"v3_candidates": candidates},
+            {"v3_candidates": len(candidates)},
+        ).get("v3_candidates", [])
+        results = select_required_evidence(
+            scored,
+            candidates,
+            requirement=evidence_requirement,
+            top_k=settings.rerank_top_k_content,
+            required_slots=settings.v3_required_evidence_slots,
+            companion_slots=settings.v3_evidence_companion_slots,
+        )
+    else:
+        results = rerank_many(
+            query,
+            {"content": candidates},
+            {"content": settings.rerank_top_k_content},
+        ).get("content", [])
+
     documents = [document for document, _ in results]
     scores = [float(score) for _, score in results]
     metrics = calculate_retrieval_metrics(scores)
+    requirement_satisfied = evidence_requirement_is_satisfied(
+        documents,
+        evidence_requirement,
+    )
 
     log_retrieval(
         logger,
         "v3 | query=%r | dense=%d | sparse=%d | rrf=%d | "
-        "deduplicated=%d | reranked=%d | top=%.4f",
+        "deduplicated=%d | reranked=%d | requirement=%s | "
+        "requirement_satisfied=%s | top=%.4f",
         query,
         diagnostics["dense_count"],
         diagnostics["sparse_count"],
         diagnostics["rrf_count"],
         duplicates_removed,
         len(scores),
+        evidence_requirement,
+        requirement_satisfied,
         metrics["top_score"],
         enabled=settings.retrieval_logs,
     )
@@ -312,6 +371,7 @@ def _retrieve_v3(query: str, document_id: str) -> dict:
         "retrieval_gap_ratio": metrics["gap_ratio"],
         "retrieval_overview_top_score": None,
         "retrieval_content_top_score": metrics["top_score"] if scores else None,
+        "retrieval_evidence_requirement_satisfied": requirement_satisfied,
     }
 
 def retrieve(state: RAGState) -> dict:
@@ -326,7 +386,11 @@ def retrieve(state: RAGState) -> dict:
         if state.get("retrieval_version", "v2") == "v3":
             if not document_id:
                 raise ValueError("V3 retrieval requires a selected document")
-            return _retrieve_v3(query, document_id)
+            return _retrieve_v3(
+                query,
+                document_id,
+                state.get("evidence_requirement", "text"),
+            )
 
         if document_id:
             overview_filter = {
@@ -503,7 +567,14 @@ def assess_retrieval(state: RAGState) -> dict:
         documents = state.get("documents", [])
         scores = [float(score) for score in state.get("retrieval_scores", [])]
 
-        if not documents or not scores:
+        if (
+            state.get("retrieval_version") == "v3"
+            and state.get("retrieval_evidence_requirement_satisfied") is False
+        ):
+            decision = "grade"
+            reason = "required_evidence_missing"
+            evidence_strength = "weak"
+        elif not documents or not scores:
             decision = "grade"
             reason = "no_retrieval_candidates"
             evidence_strength = "weak"
@@ -569,11 +640,28 @@ def grade_documents(state: RAGState) -> dict:
             print("No retrieved candidates are available to grade.")
             return {"relevance_grade": "irrelevant"}
 
+        evidence_requirement = state.get("evidence_requirement", "text")
+        if (
+            state.get("retrieval_version") == "v3"
+            and not evidence_requirement_is_satisfied(
+                documents,
+                evidence_requirement,
+            )
+        ):
+            print(
+                "Retrieved records do not include the required evidence "
+                f"form: {evidence_requirement}."
+            )
+            return {"relevance_grade": "irrelevant"}
+
         preview = [
             {
                 "rank": idx,
                 "score": round(float(score), 4),
                 "type": doc.metadata.get("type"),
+                "artifact_kind": doc.metadata.get("artifact_kind"),
+                "representation_kind": doc.metadata.get("representation_kind"),
+                "grounding_basis": doc.metadata.get("grounding_basis"),
                 "source": doc.metadata.get("source"),
                 "content": doc.page_content[:500],
             }
@@ -586,6 +674,9 @@ def grade_documents(state: RAGState) -> dict:
         prompt = (
             "You are a retrieval relevance grader. Determine whether the retrieved "
             "evidence contains enough information to answer the user's query. "
+            f"The required source evidence form is {evidence_requirement}. "
+            "For a non-text requirement, at least one candidate of that artifact "
+            "kind must contain the information needed by the question. "
             "Consider the candidate type metadata: an 'overview' chunk represents "
             "whole-document evidence, while a 'content' chunk represents specific "
             "document content. Return only JSON as either "
@@ -748,6 +839,15 @@ def generate(state: RAGState) -> dict:
         format_rules = answer_format_instructions(
             state.get("response_format", "requested")
         )
+        evidence_requirement = state.get("evidence_requirement", "text")
+        evidence_rules = (
+            "The requested evidence is represented through extracted text, OCR, "
+            "captions, table Markdown, or formula text. Describe only visual or "
+            "spatial relationships explicitly present in that representation; "
+            "do not infer unseen details from an asset label alone. "
+            if evidence_requirement != "text"
+            else ""
+        )
         verification_instruction = (
             "Re-evaluate the previous answer explicitly against the new "
             "context. State what is confirmed, corrected, or unsupported. "
@@ -775,6 +875,7 @@ def generate(state: RAGState) -> dict:
             "the whole answer. Never invent a label. "
             "Do not omit important details needed to properly answer "
             "the question. "
+            f"{evidence_rules}"
             f"{verification_instruction}\n\n"
             f"Formatting rules:\n{format_rules}\n\n"
             f"Prior conversation:\n{history_text}\n\n"
@@ -859,30 +960,11 @@ def check_hallucination(state: RAGState) -> dict:
                 "hallucination_retry_count": state.get("hallucination_retry_count", 0) + 1,
             }
 
-        prompt = (
-            "Classify how well the answer is supported by the retrieved "
-            "context. Return JSON only, with this exact schema:\n"
-            '{"verdict":"grounded|insufficient_evidence|unsupported",'
-            '"unsupported_claims":["claim text"]}\n\n'
-            "The context below contains only sources cited in the answer. "
-            "Check each factual clause and example against its own cited "
-            "source label. Do not borrow support from another source or "
-            "from general knowledge. Use 'grounded' only when every factual "
-            "claim is directly supported by its cited passage. Treat examples "
-            "introduced by phrases such as 'such as' as separate claims. "
-            "Use 'insufficient_evidence' when the "
-            "context itself does not contain enough information to answer the "
-            "question reliably. Use 'unsupported' when the context is adequate "
-            "but the answer adds, changes, or overstates factual claims. "
-            "Treat a missing, invented, or mismatched [S#] citation as an "
-            "unsupported claim. List each unsupported claim verbatim; "
-            "otherwise return an empty list. In an ASCII diagram, arrows, "
-            "box borders, and layout characters are presentation rather than "
-            "factual claims; verify the factual text in nodes and transition "
-            "labels against their citations.\n\n"
-            f"Question:\n{state['question']}\n\n"
-            f"Context:\n{context}\n\n"
-            f"Answer:\n{generation}"
+        prompt = build_grounding_verifier_prompt(
+            question=state["question"],
+            context=context,
+            answer=generation,
+            evidence_requirement=state.get("evidence_requirement", "text"),
         )
 
         try:

@@ -68,6 +68,7 @@ def test_schema_factory_binds_parser_embedding_and_v3_chunking_identity() -> Non
     assert schema.parser_name == parser.name
     assert schema.parser_revision == parser.revision
     assert schema.parser_options == parser.parser_options
-    assert schema.chunking_strategy == "artifact_structure_v3"
+    assert schema.chunking_strategy == "artifact_structure_v3_token_safe_240"
+    assert schema.representation_contract == "artifact_search_record_v2"
     assert schema.text_embedding_dimension == 384
     assert schema.schema_id.startswith("multimodal_v3:")
