@@ -7,14 +7,10 @@ pytest
 ```
 
 Pytest is configured to collect only `tests/unit`. These tests cover pure
-policies, graph routing, and request-local timing without connecting to
-PostgreSQL, Pinecone, an LLM provider, or a model registry.
-
-The Python files directly under `tests/` are legacy/manual checks. Several of
-them require live services or load local ML models, and some still describe
-older application contracts. They are excluded from default collection until
-they are classified and migrated into explicit component, integration, or
-end-to-end suites.
+policies, graph routing, ingestion boundaries, diagnostics, and request-local
+timing without connecting to PostgreSQL, Pinecone, an LLM provider, or a model
+registry. Live provider probes and obsolete manual scripts are intentionally
+not stored as tests.
 
 Test-suite boundaries:
 

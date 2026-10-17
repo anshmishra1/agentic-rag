@@ -666,3 +666,25 @@ manual release-candidate and production work. No source, runtime configuration,
 service, provider, index, or stored document was changed. Next: publish this
 documentation update, synchronize the primary checkout, and run the manual V3
 release candidate when the user is ready.
+
+## 91. Repository hygiene and current README (local review checkpoint)
+
+Audited clean `main` at `70c0c5e` without reading `.env`. Removed the placeholder
+root entry point, a machine-specific dependency freeze, an empty editor
+workspace, excluded legacy/manual tests, the broken RAGAS runner, and redundant
+CSV/XLSX copies of the retained 80-question JSON source. Migrated the useful
+diagnostic writer check into the maintained offline suite. Removed unused
+RAGAS, dataset, notebook, MLflow, and Vertex AI dependencies; the regenerated
+lock resolves 164 packages and drops 80 obsolete transitive packages. Updated
+the README and handoff to the connected V3 release-candidate checkpoint, seven
+ready documents, 2,208 records, 2,203 artifacts, and repaired Figure 1 path.
+
+The complete unit suite passed 314 tests in the existing application image with
+networking disabled and the worktree mounted read-only. The only warning is the
+existing Starlette `BlockingPortal` deprecation. Lock consistency, Markdown
+local links, Python syntax, the diagnostic export contract, and
+`git diff --check` passed. No image was built, no service was started, and no
+provider, Pinecone, PostgreSQL, ingestion, or query call occurred. Research PDFs
+remain tracked pending a separate corpus-distribution decision; a repository
+license also remains a separate owner decision. Changes remain uncommitted for
+IDE review.
