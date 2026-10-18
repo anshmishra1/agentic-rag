@@ -739,3 +739,20 @@ as a semantic unit. No `.env`, live provider, Pinecone, PostgreSQL, model
 download, ingestion, query, image build, or application service was used.
 Changes remain uncommitted for IDE review. Next: review this focused repair,
 then publish it before rebuilding or running the next manual V3 comparison.
+
+## 94. Four-path answer reliability integration
+
+Integrated the reviewed output-format, Auto-routing, answerability, and
+format-aware grounding repairs on `fix/v3-answer-reliability-integration` from
+current `origin/main` `0d37538`. The two implementation commits remained
+separate by concern; their only merge conflict was the session-log section
+number, so both historical entries were preserved. The combined source and
+test edits merged without manual conflict resolution.
+
+The consolidated offline gate passed 105 formatting, query-planning,
+contextualization, graph-routing, retrieval-policy, citation, grounding,
+verifier-node, and answer-reliability tests. `git diff --check` also passed. No
+`.env`, live provider, Pinecone, PostgreSQL, model download, ingestion, query,
+image build, or application service was used. Next: publish and merge the
+integration branch, then rebuild the cached application image once before the
+focused manual V3 regression.
