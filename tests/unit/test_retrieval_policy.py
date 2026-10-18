@@ -3,9 +3,20 @@ from agentic_rag.policies import retrieval
 
 def test_relevance_parser_accepts_closed_verdicts_and_fails_uncertain() -> None:
     assert retrieval.parse_relevance_grade('{"verdict":"relevant"}') == "relevant"
+    assert (
+        retrieval.parse_relevance_grade('{"verdict":"contradicted"}')
+        == "contradicted"
+    )
     assert retrieval.parse_relevance_grade("irrelevant") == "irrelevant"
     assert retrieval.parse_relevance_grade("") == "uncertain"
     assert retrieval.parse_relevance_grade("not relevant") == "uncertain"
+
+
+def test_relevance_schema_exposes_counterevidence_verdict() -> None:
+    schema = retrieval.groq_relevance_response_format()
+
+    verdict_schema = schema["json_schema"]["schema"]["properties"]["verdict"]
+    assert verdict_schema["enum"] == ["relevant", "contradicted", "irrelevant"]
 
 
 def test_repeated_rewrite_rejects_empty_and_equivalent_queries() -> None:

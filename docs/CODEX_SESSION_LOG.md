@@ -713,3 +713,29 @@ environment. Python AST parsing and `git diff --check` passed. A broader local
 suite attempt was stopped after producing no collection or test progress for
 two minutes; no live services, provider calls, model downloads, ingestion,
 queries, or image builds occurred. Changes remain uncommitted for IDE review.
+
+## 93. Answerability and format-aware grounding repair (local review checkpoint)
+
+On isolated branch `fix/answerability-grounding` from `origin/main` `0d37538`,
+changed the semantic relevance contract so retrieved counterevidence is no
+longer discarded as irrelevant. The fast grader now returns `relevant`,
+`contradicted`, or `irrelevant`; both answerable verdicts reach generation,
+while a contradicted verdict adds an explicit instruction to correct the
+question's premise. The ordinary generation prompt carries the same safeguard
+for high-confidence retrieval paths that skip grading. No provider call was
+added and the existing retry budget is unchanged.
+
+Grounding now verifies semantic answer units after mechanically removing only
+rendering syntax such as code fences, diagram borders and connectors, Markdown
+table separators, and standalone math delimiters. Factual diagram labels,
+table cells, equations, prose, and citations remain visible to the verifier.
+The three grounding verdicts, citation fail-closed checks, one-correction
+budget, and deterministic abstention behavior are unchanged.
+
+The focused offline relevance, citation, grounding, graph-routing, generation,
+and verifier-node suite passed 76 tests using the existing project environment.
+The gate caught and repaired an ASCII `v` connector that was initially retained
+as a semantic unit. No `.env`, live provider, Pinecone, PostgreSQL, model
+download, ingestion, query, image build, or application service was used.
+Changes remain uncommitted for IDE review. Next: review this focused repair,
+then publish it before rebuilding or running the next manual V3 comparison.

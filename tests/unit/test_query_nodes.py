@@ -391,6 +391,60 @@ def test_unavailable_relevance_grader_is_uncertain_not_irrelevant(monkeypatch) -
     assert result["relevance_grade"] == "uncertain"
 
 
+def test_counterevidence_is_answerable_and_not_rewritten(monkeypatch) -> None:
+    nodes, fast_calls, _ = _load_nodes(
+        monkeypatch,
+        router_content='{"verdict":"contradicted"}',
+    )
+
+    result = _tracked_call(
+        nodes.grade_documents,
+        {
+            "question": "Why does DPO require a separate reward model?",
+            "documents": [
+                Document(
+                    page_content=(
+                        "DPO optimizes a policy directly without fitting an "
+                        "explicit reward model."
+                    ),
+                    metadata={"filename": "dpo.pdf", "type": "content"},
+                )
+            ],
+            "retrieval_scores": [0.41],
+        },
+    )
+
+    prompt = fast_calls[0][0]
+    assert "correct a false premise" in prompt
+    assert result["relevance_grade"] == "contradicted"
+
+
+def test_generation_explicitly_corrects_a_contradicted_premise(monkeypatch) -> None:
+    nodes, _, primary_calls = _load_nodes(
+        monkeypatch,
+        general_content="DPO does not require a separate reward model [S1].",
+    )
+
+    _tracked_call(
+        nodes.generate,
+        {
+            "question": "Why does DPO require a separate reward model?",
+            "response_format": "prose",
+            "relevance_grade": "contradicted",
+            "documents": [
+                Document(
+                    page_content="DPO avoids fitting an explicit reward model.",
+                    metadata={"filename": "dpo.pdf", "page": 3},
+                )
+            ],
+            "messages": [],
+        },
+    )
+
+    prompt = primary_calls[0][0]
+    assert "Do not adopt the question's false premise" in prompt
+
+
 def test_grounding_retry_uses_bounded_rewriter_and_search_only_terms(monkeypatch) -> None:
     nodes, fast_calls, _ = _load_nodes(
         monkeypatch,
@@ -477,6 +531,7 @@ def test_generation_forbids_unproved_motivation_and_exhaustive_claims(
 
     prompt = primary_calls[0][0]
     assert "Do not infer author intent, motivation, causality" in prompt
+    assert "instead of adopting the false premise" in prompt
     assert "maximality" in prompt
     assert "absence of material from the whole document" in prompt
     assert result["citations"] == ["[S1] lora.pdf, page 5"]

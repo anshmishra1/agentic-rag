@@ -35,7 +35,12 @@ from pydantic import BaseModel, ConfigDict
 from agentic_rag.config import settings
 
 
-RelevanceGrade = Literal["relevant", "irrelevant", "uncertain"]
+RelevanceGrade = Literal[
+    "relevant",
+    "contradicted",
+    "irrelevant",
+    "uncertain",
+]
 
 
 class RelevanceVerdict(BaseModel):
@@ -43,7 +48,7 @@ class RelevanceVerdict(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    verdict: Literal["relevant", "irrelevant"]
+    verdict: Literal["relevant", "contradicted", "irrelevant"]
 
 
 def groq_relevance_response_format() -> dict:
@@ -74,7 +79,7 @@ def parse_relevance_grade(content: str) -> RelevanceGrade:
             lines = lines[:-1]
         text = "\n".join(lines).strip()
 
-    if text.casefold() in {"relevant", "irrelevant"}:
+    if text.casefold() in {"relevant", "contradicted", "irrelevant"}:
         return text.casefold()
 
     try:

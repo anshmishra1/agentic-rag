@@ -7,6 +7,7 @@ from agentic_rag.policies.grounding import (
     build_grounding_verifier_prompt,
     citation_issue_result,
     grounding_result,
+    extract_verification_units,
     parse_grounding_response,
     verifier_response_diagnostics,
 )
@@ -29,7 +30,35 @@ def test_verifier_prompt_keeps_parent_and_child_claim_ownership_separate() -> No
     assert "Do not merge parent and child text into one claim" in prompt
     assert "Multiple labels on one unit may jointly support it" in prompt
     assert "Do not use an uncited source or general knowledge" in prompt
-    assert answer in prompt
+    assert "[C1] - Each encoder layer contains two sublayers [S5]:" in prompt
+    assert "[C2] 1. Multi-head self-attention [S1]." in prompt
+    assert "Do not judge whether the answer obeys a requested format" in prompt
+
+
+def test_verification_units_remove_rendering_syntax_but_keep_semantics() -> None:
+    answer = (
+        "```text\n"
+        "+----------------------+\n"
+        "| Load HBM tiles [S1] |\n"
+        "          |\n"
+        "          v\n"
+        "| Compute attention [S2] |\n"
+        "```\n\n"
+        "| Stage | Purpose |\n"
+        "| --- | --- |\n"
+        "| SRAM | On-chip work [S3] |\n"
+        "\\[\n"
+        "O(N^2) [S4]\n"
+        "\\]"
+    )
+
+    assert extract_verification_units(answer) == [
+        "| Load HBM tiles [S1] |",
+        "| Compute attention [S2] |",
+        "| Stage | Purpose |",
+        "| SRAM | On-chip work [S3] |",
+        "O(N^2) [S4]",
+    ]
 
 
 @pytest.mark.parametrize(
