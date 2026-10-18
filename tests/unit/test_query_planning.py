@@ -8,6 +8,7 @@ from agentic_rag.policies.query_planning import (
     detect_explicit_evidence_requirement,
     detect_response_format,
     direct_query_plan,
+    document_topic_overlap,
     enforce_query_plan,
     groq_query_plan_response_format,
     is_document_artifact_lookup,
@@ -69,6 +70,12 @@ def test_explicit_format_detection_is_limited_to_presentation() -> None:
         )
         == "Compare the methods"
     )
+    assert (
+        retrieval_query_without_format_request(
+            "Compare the methods in a compact table"
+        )
+        == "Compare the methods"
+    )
 
 
 def test_explicit_evidence_detection_ignores_requested_output_format() -> None:
@@ -82,6 +89,18 @@ def test_explicit_evidence_detection_ignores_requested_output_format() -> None:
     assert detect_explicit_evidence_requirement("Explain Figure 2") == "visual"
     assert detect_explicit_evidence_requirement("What is reported in Table 3?") == "table"
     assert detect_explicit_evidence_requirement("Explain Equation 4") == "formula"
+    assert (
+        detect_explicit_evidence_requirement(
+            "Can you create a table for better understanding?"
+        )
+        == "text"
+    )
+    assert (
+        detect_explicit_evidence_requirement(
+            "Does the paper contain a comparison table?"
+        )
+        == "table"
+    )
 
 
 def test_document_conversation_uses_semantic_router() -> None:
@@ -158,7 +177,31 @@ def test_explicit_flowchart_format_overrides_plan_and_cleans_search_query() -> N
     )
 
     assert enforced.response_format == "ascii_flowchart"
+    assert enforced.evidence_requirement == "text"
     assert enforced.standalone_query == "Explain FlashAttention"
+
+
+def test_output_table_cannot_become_a_source_table_requirement() -> None:
+    plan = QueryPlan(
+        source="document",
+        relationship="standalone",
+        response_format="table",
+        standalone_query="Compare full fine-tuning and LoRA",
+        needs_clarification=False,
+        evidence_requirement="table",
+    )
+
+    enforced = enforce_query_plan(
+        plan,
+        question="Compare full fine-tuning and LoRA in a compact table.",
+        history=[],
+        source_mode="document",
+        document_selected=True,
+    )
+
+    assert enforced.response_format == "table"
+    assert enforced.evidence_requirement == "text"
+    assert enforced.standalone_query == "Compare full fine-tuning and LoRA"
 
 
 def test_anaphoric_format_followup_reuses_prior_information_need() -> None:
@@ -182,6 +225,32 @@ def test_anaphoric_format_followup_reuses_prior_information_need() -> None:
     assert enforced.relationship == "follow_up"
     assert enforced.information_need_source == "previous_information_need"
     assert enforced.response_format == "ascii_flowchart"
+    assert enforced.standalone_query == "What is the Transformer architecture?"
+
+
+def test_underspecified_format_followup_reuses_latest_information_need() -> None:
+    plan = QueryPlan(
+        source="document",
+        relationship="follow_up",
+        response_format="table",
+        standalone_query="Create a table for better understanding",
+        needs_clarification=False,
+        information_need_source="current_turn",
+        evidence_requirement="table",
+    )
+
+    enforced = enforce_query_plan(
+        plan,
+        question="Can you create a table for better understanding?",
+        history=HISTORY,
+        source_mode="document",
+        document_selected=True,
+    )
+
+    assert enforced.relationship == "follow_up"
+    assert enforced.information_need_source == "previous_information_need"
+    assert enforced.response_format == "table"
+    assert enforced.evidence_requirement == "text"
     assert enforced.standalone_query == "What is the Transformer architecture?"
 
 
@@ -222,6 +291,9 @@ def test_presentation_only_guard_is_anchored_to_the_complete_request() -> None:
         "Is there a diagram in the document that explains the architecture?"
     )
     assert not is_presentation_only_follow_up("Can you explain that diagram?")
+    assert is_presentation_only_follow_up(
+        "Can you create a table for better understanding?"
+    )
 
 
 def test_document_artifact_lookup_cannot_be_forced_into_output_formatting() -> None:
@@ -286,6 +358,97 @@ def test_document_route_without_selected_document_requests_clarification() -> No
 
     assert enforced.source == "clarify"
     assert enforced.needs_clarification is True
+
+
+def test_auto_mode_prefers_selected_document_when_title_names_topic() -> None:
+    plan = QueryPlan(
+        source="general",
+        relationship="standalone",
+        response_format="prose",
+        standalone_query=None,
+        needs_clarification=False,
+    )
+
+    enforced = enforce_query_plan(
+        plan,
+        question=(
+            "Why is dot-product attention divided by the square root of the "
+            "key dimension?"
+        ),
+        history=[],
+        source_mode="auto",
+        document_selected=True,
+        document_name="AttentionIsAllYouNeed.pdf",
+    )
+
+    assert document_topic_overlap(
+        "How does FlashAttention reduce memory traffic?",
+        "FlashAttention.pdf",
+    )
+    assert document_topic_overlap(
+        "How does LoRA preserve the original weights?",
+        "LoRA_Low_Rank_Adaptation.pdf",
+    )
+    assert document_topic_overlap(
+        "Why does DPO avoid an explicit reward model?",
+        "Direct_Preference_Optimization.pdf",
+    )
+    assert enforced.source == "document"
+    assert enforced.standalone_query == (
+        "Why is dot-product attention divided by the square root of the key "
+        "dimension?"
+    )
+
+
+def test_auto_mode_keeps_clearly_unrelated_general_route() -> None:
+    plan = QueryPlan(
+        source="general",
+        relationship="standalone",
+        response_format="prose",
+        standalone_query=None,
+        needs_clarification=False,
+    )
+
+    enforced = enforce_query_plan(
+        plan,
+        question="What is the capital of France?",
+        history=[],
+        source_mode="auto",
+        document_selected=True,
+        document_name="AttentionIsAllYouNeed.pdf",
+    )
+
+    assert enforced.source == "general"
+    assert enforced.standalone_query is None
+
+
+def test_semantic_router_cannot_embellish_standalone_document_query() -> None:
+    plan = QueryPlan(
+        source="document",
+        relationship="standalone",
+        response_format="prose",
+        standalone_query=(
+            "Explain Flamingo gated cross-attention and cite the relevant "
+            "passage in the paper"
+        ),
+        needs_clarification=False,
+    )
+    question = (
+        "How do Flamingo's gated cross-attention dense layers connect visual "
+        "features to the frozen language model?"
+    )
+
+    enforced = enforce_query_plan(
+        plan,
+        question=question,
+        history=[],
+        source_mode="auto",
+        document_selected=True,
+        document_name="Flamingo.pdf",
+    )
+
+    assert enforced.source == "document"
+    assert enforced.standalone_query == question
 
 
 def test_router_prompt_separates_source_relationship_and_format() -> None:

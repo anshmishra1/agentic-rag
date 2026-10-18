@@ -58,9 +58,11 @@ _FORMAT_PATTERNS: tuple[tuple[ResponseFormat, re.Pattern[str]], ...] = (
     (
         "table",
         re.compile(
-            r"(?:\b(?:as|into)\s+(?:a\s+)?(?:markdown\s+)?table\b|"
+            r"(?:\b(?:as|into)\s+(?:a\s+)?"
+            r"(?:(?:compact|concise|simple|clear|markdown)\s+)?table\b|"
             r"\b(?:compare|summarize|present|list|organize)\b.{0,80}"
-            r"\b(?:in|as)\s+(?:a\s+)?(?:markdown\s+)?table\b|"
+            r"\b(?:in|as)\s+(?:a\s+)?"
+            r"(?:(?:compact|concise|simple|clear|markdown)\s+)?table\b|"
             r"\b(?:create|render|format|convert)\b.{0,80}\btable\b)",
             re.I,
         ),
@@ -90,18 +92,25 @@ _TRAILING_FORMAT_REQUESTS = (
         r"(?:flow\s*chart|flowchart|diagram)\s*[?.!]*$",
         re.I,
     ),
-    re.compile(r"\s+(?:as|in)\s+(?:an?\s+)?(?:markdown\s+)?table\s*[?.!]*$", re.I),
+    re.compile(
+        r"\s+(?:as|in)\s+(?:an?\s+)?"
+        r"(?:(?:compact|concise|simple|clear|markdown)\s+)?table\s*[?.!]*$",
+        re.I,
+    ),
     re.compile(r"\s+(?:as|in|using)\s+(?:concise\s+)?bullet(?:ed)?(?:\s+points?)?\s*[?.!]*$", re.I),
     re.compile(r"\s+(?:in|using)\s+(?:valid\s+)?latex\s*[?.!]*$", re.I),
 )
 _PRESENTATION_ONLY_FOLLOW_UP = re.compile(
     r"^\s*(?:(?:can|could|would)\s+you\s+|please\s+)?"
-    r"(?:put|present|format|convert|represent|rewrite|render|show)\s+"
+    r"(?:(?:put|present|format|convert|represent|rewrite|render|show)\s+"
     r"(?:that|it|the\s+(?:previous|above)(?:\s+answer)?)\s+"
-    r"(?:as|in|into)\s+(?:an?\s+)?(?:"
+    r"(?:as|in|into)\s+|(?:create|make|give|provide|show)\s+)"
+    r"(?:an?\s+)?(?:"
     r"(?:ascii\s+|text(?:ual)?\s+)?(?:flow\s*chart|flowchart|diagram)|"
     r"(?:markdown\s+)?table|bullet(?:ed)?\s+(?:list|points?)|"
-    r"(?:valid\s+)?latex)\s*[?.!]*\s*$",
+    r"(?:valid\s+)?latex)"
+    r"(?:\s+(?:for|to)\s+(?:better\s+)?(?:understanding|clarity))?"
+    r"\s*[?.!]*\s*$",
     re.I,
 )
 _DOCUMENT_ARTIFACT_LOOKUP = re.compile(
@@ -129,6 +138,15 @@ def detect_explicit_evidence_requirement(question: str) -> EvidenceRequirement:
     phrases. Ambiguous and conversational turns remain the semantic planner's
     responsibility.
     """
+
+    # A presentation request describes the answer shape, not the form of the
+    # source record. Artifact lookups remain evidence requests even when they
+    # contain words such as "table" or "diagram".
+    if (
+        detect_response_format(question) != "requested"
+        and not is_document_artifact_lookup(question)
+    ):
+        return "text"
 
     references = {
         match.group(0).strip().casefold()
@@ -176,6 +194,67 @@ def is_document_artifact_lookup(question: str) -> bool:
     """Return true for an explicit request to locate an existing artifact."""
 
     return bool(_DOCUMENT_ARTIFACT_LOOKUP.search(question))
+
+
+_DOCUMENT_NAME_NOISE = {
+    "a",
+    "an",
+    "and",
+    "article",
+    "document",
+    "for",
+    "in",
+    "of",
+    "paper",
+    "pdf",
+    "the",
+    "to",
+}
+
+
+def document_topic_overlap(question: str, document_name: str | None) -> bool:
+    """Return true when a selected document title clearly names the topic.
+
+    This is a conservative local safeguard for Auto mode. It prevents a
+    semantic router from bypassing a selected document for questions that name
+    its topic, while leaving unrelated questions eligible for general mode.
+    """
+
+    if not document_name:
+        return False
+
+    expanded_name = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", document_name)
+    question_tokens = set(re.findall(r"[a-z0-9]+", question.casefold()))
+    raw_name_tokens = re.findall(r"[a-z0-9]+", document_name.casefold())
+    expanded_tokens = re.findall(r"[a-z0-9]+", expanded_name.casefold())
+    name_tokens = list(dict.fromkeys(
+        token
+        for token in [*raw_name_tokens, *expanded_tokens]
+        if token not in _DOCUMENT_NAME_NOISE and len(token) >= 3
+    ))
+    if not question_tokens or not name_tokens:
+        return False
+
+    title_acronyms = {
+        "".join(token[0] for token in name_tokens[start : start + size])
+        for size in range(3, min(5, len(name_tokens)) + 1)
+        for start in range(0, len(name_tokens) - size + 1)
+    }
+    if question_tokens.intersection(title_acronyms):
+        return True
+
+    return any(
+        name_token == question_token
+        or (
+            min(len(name_token), len(question_token)) >= 5
+            and (
+                name_token in question_token
+                or question_token in name_token
+            )
+        )
+        for name_token in name_tokens
+        for question_token in question_tokens
+    )
 
 
 def groq_query_plan_response_format() -> dict:
@@ -348,6 +427,7 @@ def enforce_query_plan(
     history: Sequence[BaseMessage],
     source_mode: SourceMode,
     document_selected: bool,
+    document_name: str | None = None,
 ) -> QueryPlan:
     """Apply source and state invariants after semantic classification."""
 
@@ -369,8 +449,22 @@ def enforce_query_plan(
         data["source"] = source_mode
         data["needs_clarification"] = False
 
-    if data["source"] == "document" and explicit_evidence != "text":
-        data["evidence_requirement"] = explicit_evidence
+    if (
+        source_mode == "auto"
+        and document_selected
+        and data["source"] == "general"
+        and document_topic_overlap(question, document_name)
+    ):
+        data["source"] = "document"
+        data["needs_clarification"] = False
+
+    if data["source"] == "document":
+        if explicit_evidence != "text":
+            data["evidence_requirement"] = explicit_evidence
+        elif explicit_format != "requested" and not is_document_artifact_lookup(
+            question
+        ):
+            data["evidence_requirement"] = "text"
 
     if data["source"] == "document" and not document_selected:
         data.update(
@@ -388,16 +482,19 @@ def enforce_query_plan(
     )
     reuse_previous_information_need = (
         presentation_only_follow_up
-        and data["information_need_source"] == "previous_information_need"
         and data["relationship"] != "verify_previous"
     )
 
     if reuse_previous_information_need:
         data["relationship"] = "follow_up"
+        data["information_need_source"] = "previous_information_need"
         prior_request = _latest_human_request(history)
         if prior_request:
             data["standalone_query"] = retrieval_query_without_format_request(
                 prior_request
+            )
+            data["evidence_requirement"] = (
+                detect_explicit_evidence_requirement(prior_request)
             )
     elif data["relationship"] == "verify_previous" and history:
         data["information_need_source"] = "previous_information_need"
@@ -406,7 +503,17 @@ def enforce_query_plan(
         # the message contains an anaphor such as "that" or "it".
         data["information_need_source"] = "current_turn"
 
-    if data["source"] == "document" and not data.get("standalone_query"):
+    if (
+        data["source"] == "document"
+        and data["relationship"] == "standalone"
+        and data["information_need_source"] == "current_turn"
+    ):
+        # Semantic planning chooses the route; it must not embellish a complete
+        # standalone search query with new constraints or citation language.
+        data["standalone_query"] = retrieval_query_without_format_request(
+            question
+        )
+    elif data["source"] == "document" and not data.get("standalone_query"):
         data["standalone_query"] = question.strip()
 
     if data["source"] == "document" and data.get("standalone_query"):

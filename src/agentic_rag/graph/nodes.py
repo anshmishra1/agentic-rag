@@ -191,6 +191,7 @@ def contextualize_question(state: RAGState) -> dict:
             history=history,
             source_mode=source_mode,
             document_selected=document_selected,
+            document_name=state.get("document_name"),
         )
 
         query_intent = (
@@ -672,15 +673,21 @@ def grade_documents(state: RAGState) -> dict:
         print(f"Candidates sent to grader: {len(preview)}")
 
         prompt = (
-            "You are a retrieval relevance grader. Determine whether the retrieved "
-            "evidence contains enough information to answer the user's query. "
+            "You are a retrieval answerability grader. Determine whether the "
+            "retrieved evidence can support a useful, evidence-based response to "
+            "the user's query. A response may answer the question directly or "
+            "correct a false premise in it. Classify as 'relevant' when the "
+            "evidence supports a direct answer, 'contradicted' when the evidence "
+            "directly refutes or materially corrects the question's premise, and "
+            "'irrelevant' only when it neither supports nor contradicts the query. "
             f"The required source evidence form is {evidence_requirement}. "
             "For a non-text requirement, at least one candidate of that artifact "
             "kind must contain the information needed by the question. "
             "Consider the candidate type metadata: an 'overview' chunk represents "
             "whole-document evidence, while a 'content' chunk represents specific "
-            "document content. Return only JSON as either "
-            "{\"verdict\":\"relevant\"} or "
+            "document content. Return only JSON with exactly one of these verdicts: "
+            "{\"verdict\":\"relevant\"}, "
+            "{\"verdict\":\"contradicted\"}, or "
             "{\"verdict\":\"irrelevant\"}.\n\n"
             f"Question: {query}\n\n"
             f"Retrieved candidates:\n{json.dumps(preview, ensure_ascii=False, default=str)}"
@@ -854,6 +861,14 @@ def generate(state: RAGState) -> dict:
             if state.get("query_relationship") == "verify_previous"
             else ""
         )
+        contradiction_instruction = (
+            "The retrieved evidence contradicts or materially corrects a premise "
+            "in the question. State the correction directly and respectfully, "
+            "then explain what the cited evidence supports. Do not adopt the "
+            "question's false premise. "
+            if state.get("relevance_grade") == "contradicted"
+            else ""
+        )
 
         prompt = (
             "Answer the question using only the provided context and "
@@ -865,6 +880,9 @@ def generate(state: RAGState) -> dict:
             "If the user asks for a concise answer, keep it concise. "
             "If the answer isn't supported by the context, say you "
             "don't know. "
+            "If the context contradicts or materially corrects a premise in "
+            "the question, state that correction directly instead of adopting "
+            "the false premise. "
             "Do not infer author intent, motivation, causality, optimality, "
             "maximality, or the absence of material from the whole document "
             "unless the cited context states it explicitly. Describe the "
@@ -876,7 +894,8 @@ def generate(state: RAGState) -> dict:
             "Do not omit important details needed to properly answer "
             "the question. "
             f"{evidence_rules}"
-            f"{verification_instruction}\n\n"
+            f"{verification_instruction}"
+            f"{contradiction_instruction}\n\n"
             f"Formatting rules:\n{format_rules}\n\n"
             f"Prior conversation:\n{history_text}\n\n"
             f"Context:\n{context}\n\n"

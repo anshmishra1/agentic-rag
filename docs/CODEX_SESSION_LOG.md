@@ -688,3 +688,71 @@ provider, Pinecone, PostgreSQL, ingestion, or query call occurred. Research PDFs
 remain tracked pending a separate corpus-distribution decision; a repository
 license also remains a separate owner decision. Changes remain uncommitted for
 IDE review.
+
+## 92. Output-format and Auto-routing contracts (local review checkpoint)
+
+The 20-query V3 run exposed two planning defects. Presentation wording could
+turn an output table into a required source-table lane, causing a format-only
+follow-up to retry and abstain. Auto mode also sent selected-document topic
+questions to general generation or embellished complete retrieval queries; the
+same Flamingo question was unsupported in Auto mode and grounded in explicit
+Document mode.
+
+On `fix/query-planning-contracts`, answer presentation and source evidence are
+now enforced independently. A format-only follow-up reuses the latest human
+information need and its evidence form, while actual requests for a source
+figure, table, or formula retain their artifact requirement. Complete
+standalone document questions keep the user's search text. Auto mode adds a
+conservative local title-topic safeguard, including joined names and title
+acronyms such as LoRA and DPO, while unrelated questions can still use general
+generation.
+
+The focused query-planning, contextualization, graph-routing, answer-reliability,
+and V3 question-contract suites passed 61 tests with the existing project
+environment. Python AST parsing and `git diff --check` passed. A broader local
+suite attempt was stopped after producing no collection or test progress for
+two minutes; no live services, provider calls, model downloads, ingestion,
+queries, or image builds occurred. Changes remain uncommitted for IDE review.
+
+## 93. Answerability and format-aware grounding repair (local review checkpoint)
+
+On isolated branch `fix/answerability-grounding` from `origin/main` `0d37538`,
+changed the semantic relevance contract so retrieved counterevidence is no
+longer discarded as irrelevant. The fast grader now returns `relevant`,
+`contradicted`, or `irrelevant`; both answerable verdicts reach generation,
+while a contradicted verdict adds an explicit instruction to correct the
+question's premise. The ordinary generation prompt carries the same safeguard
+for high-confidence retrieval paths that skip grading. No provider call was
+added and the existing retry budget is unchanged.
+
+Grounding now verifies semantic answer units after mechanically removing only
+rendering syntax such as code fences, diagram borders and connectors, Markdown
+table separators, and standalone math delimiters. Factual diagram labels,
+table cells, equations, prose, and citations remain visible to the verifier.
+The three grounding verdicts, citation fail-closed checks, one-correction
+budget, and deterministic abstention behavior are unchanged.
+
+The focused offline relevance, citation, grounding, graph-routing, generation,
+and verifier-node suite passed 76 tests using the existing project environment.
+The gate caught and repaired an ASCII `v` connector that was initially retained
+as a semantic unit. No `.env`, live provider, Pinecone, PostgreSQL, model
+download, ingestion, query, image build, or application service was used.
+Changes remain uncommitted for IDE review. Next: review this focused repair,
+then publish it before rebuilding or running the next manual V3 comparison.
+
+## 94. Four-path answer reliability integration
+
+Integrated the reviewed output-format, Auto-routing, answerability, and
+format-aware grounding repairs on `fix/v3-answer-reliability-integration` from
+current `origin/main` `0d37538`. The two implementation commits remained
+separate by concern; their only merge conflict was the session-log section
+number, so both historical entries were preserved. The combined source and
+test edits merged without manual conflict resolution.
+
+The consolidated offline gate passed 105 formatting, query-planning,
+contextualization, graph-routing, retrieval-policy, citation, grounding,
+verifier-node, and answer-reliability tests. `git diff --check` also passed. No
+`.env`, live provider, Pinecone, PostgreSQL, model download, ingestion, query,
+image build, or application service was used. Next: publish and merge the
+integration branch, then rebuild the cached application image once before the
+focused manual V3 regression.

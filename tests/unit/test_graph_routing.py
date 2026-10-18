@@ -50,6 +50,12 @@ def test_uncertain_relevance_uses_grounding_as_the_final_gate() -> None:
     ) == "generate"
 
 
+def test_counterevidence_generates_a_premise_correction() -> None:
+    assert route_after_grading(
+        {"relevance_grade": "contradicted", "retry_count": 0}
+    ) == "generate"
+
+
 def test_irrelevant_documents_rewrite_until_budget_is_exhausted(
     monkeypatch,
 ) -> None:
