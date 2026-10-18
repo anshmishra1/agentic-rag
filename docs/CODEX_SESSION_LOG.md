@@ -688,3 +688,28 @@ provider, Pinecone, PostgreSQL, ingestion, or query call occurred. Research PDFs
 remain tracked pending a separate corpus-distribution decision; a repository
 license also remains a separate owner decision. Changes remain uncommitted for
 IDE review.
+
+## 92. Output-format and Auto-routing contracts (local review checkpoint)
+
+The 20-query V3 run exposed two planning defects. Presentation wording could
+turn an output table into a required source-table lane, causing a format-only
+follow-up to retry and abstain. Auto mode also sent selected-document topic
+questions to general generation or embellished complete retrieval queries; the
+same Flamingo question was unsupported in Auto mode and grounded in explicit
+Document mode.
+
+On `fix/query-planning-contracts`, answer presentation and source evidence are
+now enforced independently. A format-only follow-up reuses the latest human
+information need and its evidence form, while actual requests for a source
+figure, table, or formula retain their artifact requirement. Complete
+standalone document questions keep the user's search text. Auto mode adds a
+conservative local title-topic safeguard, including joined names and title
+acronyms such as LoRA and DPO, while unrelated questions can still use general
+generation.
+
+The focused query-planning, contextualization, graph-routing, answer-reliability,
+and V3 question-contract suites passed 61 tests with the existing project
+environment. Python AST parsing and `git diff --check` passed. A broader local
+suite attempt was stopped after producing no collection or test progress for
+two minutes; no live services, provider calls, model downloads, ingestion,
+queries, or image builds occurred. Changes remain uncommitted for IDE review.

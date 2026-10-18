@@ -240,6 +240,40 @@ def test_malformed_semantic_plan_fails_closed_to_clarification(monkeypatch) -> N
     assert result["needs_clarification"] is True
 
 
+def test_auto_router_cannot_bypass_selected_document_topic(monkeypatch) -> None:
+    router_content = json.dumps(
+        {
+            "source": "general",
+            "relationship": "standalone",
+            "response_format": "prose",
+            "standalone_query": None,
+            "needs_clarification": False,
+            "information_need_source": "current_turn",
+            "evidence_requirement": "text",
+        }
+    )
+    nodes, fast_calls, _ = _load_nodes(monkeypatch, router_content=router_content)
+    question = (
+        "Why is dot-product attention divided by the square root of the key "
+        "dimension?"
+    )
+
+    result = _tracked_call(
+        nodes.contextualize_question,
+        {
+            "question": question,
+            "source_mode": "auto",
+            "document_id": "doc-1",
+            "document_name": "AttentionIsAllYouNeed.pdf",
+            "messages": [],
+        },
+    )
+
+    assert len(fast_calls) == 1
+    assert result["answer_source"] == "document"
+    assert result["retrieval_query"] == question
+
+
 def test_general_generation_skips_documents_and_grounding(monkeypatch) -> None:
     nodes, fast_calls, primary_calls = _load_nodes(
         monkeypatch,

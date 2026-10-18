@@ -191,6 +191,7 @@ def contextualize_question(state: RAGState) -> dict:
             history=history,
             source_mode=source_mode,
             document_selected=document_selected,
+            document_name=state.get("document_name"),
         )
 
         query_intent = (
