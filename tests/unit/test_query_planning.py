@@ -107,12 +107,16 @@ def test_document_conversation_uses_semantic_router() -> None:
     assert direct_query_plan("Are you sure?", HISTORY, "document") is None
 
 
-def test_explicit_general_mode_skips_semantic_router_and_retrieval() -> None:
-    plan = direct_query_plan("What is the capital of France?", HISTORY, "general")
+def test_first_explicit_general_question_skips_semantic_router() -> None:
+    plan = direct_query_plan("What is the capital of France?", [], "general")
 
     assert plan is not None
     assert plan.source == "general"
     assert plan.standalone_query == "What is the capital of France?"
+
+
+def test_general_conversation_uses_semantic_router_for_follow_up_context() -> None:
+    assert direct_query_plan("Can you explain that again?", HISTORY, "general") is None
 
 
 def test_structured_verification_plan_is_parsed_and_preserved() -> None:

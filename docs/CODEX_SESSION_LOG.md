@@ -756,3 +756,30 @@ verifier-node, and answer-reliability tests. `git diff --check` also passed. No
 image build, or application service was used. Next: publish and merge the
 integration branch, then rebuild the cached application image once before the
 focused manual V3 regression.
+
+## 95. Planning and provider call-efficiency repair (local review checkpoint)
+
+On `fix/provider-call-efficiency` from merged `origin/main` `34237c9`, tightened
+the direct planner so only first-turn questions in explicit Document or General
+mode bypass the semantic router. Auto mode and every conversational follow-up
+still use semantic planning, preserving verification and prior-answer context.
+
+Replaced identical same-provider rate-limit retries with a provider/model
+cooldown. HTTP 429 responses use `Retry-After` when present, otherwise a
+configurable 60-second default capped at 300 seconds; the active call falls
+through to a distinct configured provider/model. Duplicate provider/model
+entries cannot issue the same request twice during one chain invocation.
+Every provider call now carries a stage name, and request-local diagnostics
+record content-free attempt, success, failure, rate-limit, cooldown-skip, and
+duplicate-skip counts by stage and provider tier. Prompts and document text are
+not stored in these counters.
+
+The focused offline planning, graph-node, provider, API, ingestion, runner, and
+diagnostic suites passed 72 tests with the existing repository interpreter;
+the only warning was
+the existing Starlette `BlockingPortal` deprecation. Eight changed runtime
+Python files passed AST parsing. No `.env`, Docker image, live service,
+provider, Pinecone, PostgreSQL, model download, ingestion, or query was used.
+The user reviewed the direction and authorized commit, publication, merge,
+local synchronization, and one image rebuild. The next quality gate is the
+already-planned manual V3 regression.

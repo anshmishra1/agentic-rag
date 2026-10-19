@@ -282,9 +282,9 @@ def direct_query_plan(
 ) -> QueryPlan | None:
     """Return routes that need no semantic model call.
 
-    Closed control commands and explicit general mode are deterministic. A
-    first document question is also safe to send directly to retrieval. Auto
-    mode and document conversations require semantic planning.
+    Closed control commands are deterministic. First-turn questions with an
+    explicit document or general source are also safe to route locally. Auto
+    mode and all conversational follow-ups require semantic planning.
     """
 
     if is_control_query(question):
@@ -296,7 +296,7 @@ def direct_query_plan(
             needs_clarification=False,
         )
 
-    if source_mode == "general":
+    if source_mode == "general" and not history:
         return QueryPlan(
             source="general",
             relationship="standalone",

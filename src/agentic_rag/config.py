@@ -150,8 +150,8 @@ class Settings(BaseSettings):
     performance_logs: bool = True
     graph_logs: bool = False
 
-    llm_max_retries_per_provider: int = 3
-    llm_retry_base_delay_seconds: float = 2.0
+    llm_rate_limit_cooldown_seconds: float = Field(default=60.0, ge=0.0)
+    llm_rate_limit_max_cooldown_seconds: float = Field(default=300.0, ge=0.0)
     
     model_config = SettingsConfigDict(
         env_file=".env",
