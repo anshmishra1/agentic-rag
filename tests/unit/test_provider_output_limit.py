@@ -44,7 +44,8 @@ def _load_provider_with_fake_model(monkeypatch, *, response_content="Overview"):
         fast_llm_timeout=1,
         primary_llm_max_tokens=4096,
         fast_llm_max_tokens=1024,
-        llm_max_retries_per_provider=3,
+        llm_rate_limit_cooldown_seconds=60,
+        llm_rate_limit_max_cooldown_seconds=300,
     )
     fake_groq = ModuleType("langchain_groq")
     fake_groq.ChatGroq = FakeChatModel
@@ -94,6 +95,122 @@ def test_payment_required_is_not_retried_as_a_rate_limit(monkeypatch):
     error.status_code = 402
 
     assert provider._is_rate_limit_error(error) is False
+
+
+def test_rate_limit_cools_model_without_repeating_identical_call(monkeypatch):
+    provider, _ = _load_provider_with_fake_model(monkeypatch)
+    clock = [100.0]
+
+    class RateLimitedOnce:
+        def __init__(self):
+            self.calls = 0
+
+        def bind(self, **kwargs):
+            return self
+
+        def invoke(self, prompt):
+            self.calls += 1
+            if self.calls == 1:
+                error = RuntimeError("too many requests")
+                error.status_code = 429
+                error.response = SimpleNamespace(headers={"Retry-After": "30"})
+                raise error
+            return SimpleNamespace(content="recovered")
+
+    model = RateLimitedOnce()
+    chain = provider.ProviderChain("fast", clock=lambda: clock[0])
+    chain._providers = [("groq", model)]
+
+    with pytest.raises(provider.ProviderUnavailableError):
+        chain.invoke("grade", stage="relevance_grading")
+    assert model.calls == 1
+
+    with pytest.raises(provider.ProviderUnavailableError):
+        chain.invoke("grade", stage="relevance_grading")
+    assert model.calls == 1
+
+    clock[0] = 131.0
+    assert chain.invoke("grade", stage="relevance_grading").content == "recovered"
+    assert model.calls == 2
+
+
+def test_duplicate_provider_model_is_attempted_once_per_invocation(monkeypatch):
+    provider, _ = _load_provider_with_fake_model(monkeypatch)
+
+    class FailingModel:
+        def __init__(self):
+            self.calls = 0
+
+        def bind(self, **kwargs):
+            return self
+
+        def invoke(self, prompt):
+            self.calls += 1
+            raise RuntimeError("temporary failure")
+
+    failing = FailingModel()
+    chain = provider.ProviderChain("fast")
+    chain._providers = [("groq", failing), ("groq", failing)]
+
+    with pytest.raises(provider.ProviderUnavailableError):
+        chain.invoke("grade", stage="relevance_grading")
+
+    assert failing.calls == 1
+
+
+def test_rate_limited_model_falls_through_to_distinct_provider(monkeypatch):
+    provider, _ = _load_provider_with_fake_model(monkeypatch)
+
+    class BoundModel:
+        def __init__(self, response=None, error=None):
+            self.response = response
+            self.error = error
+            self.calls = 0
+
+        def bind(self, **kwargs):
+            return self
+
+        def invoke(self, prompt):
+            self.calls += 1
+            if self.error is not None:
+                raise self.error
+            return SimpleNamespace(content=self.response)
+
+    rate_limit = RuntimeError("too many requests")
+    rate_limit.status_code = 429
+    groq = BoundModel(error=rate_limit)
+    fallback = BoundModel(response="fallback answer")
+    chain = provider.ProviderChain("fast")
+    chain._providers = [("groq", groq), ("openrouter", fallback)]
+
+    response = chain.invoke("grade", stage="relevance_grading")
+
+    assert response.content == "fallback answer"
+    assert groq.calls == 1
+    assert fallback.calls == 1
+    assert chain.last_provider == "openrouter"
+
+
+def test_request_accounting_reports_stage_counts_without_content(monkeypatch):
+    provider, _ = _load_provider_with_fake_model(monkeypatch)
+    accounting = sys.modules.get("agentic_rag.core.llm_accounting")
+    if accounting is None:
+        from agentic_rag.core import llm_accounting as accounting
+
+    token = accounting.start_llm_call_accounting()
+    try:
+        provider.fast_provider_chain.invoke(
+            "private prompt text",
+            stage="query_planning",
+        )
+        summary = accounting.get_llm_call_summary()
+    finally:
+        accounting.reset_llm_call_accounting(token)
+
+    assert summary["total_attempts"] == 1
+    assert summary["by_stage"]["query_planning"]["attempts"] == 1
+    assert summary["by_stage"]["query_planning"]["successes"] == 1
+    assert "private prompt text" not in repr(summary)
 
 
 def test_primary_calls_have_a_default_output_limit(monkeypatch):

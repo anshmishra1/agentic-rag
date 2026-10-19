@@ -465,6 +465,7 @@ def test_grounding_retry_uses_bounded_rewriter_and_search_only_terms(monkeypatch
     assert "grounding_insufficient_evidence" in prompt
     assert "remove presentation requests" in prompt
     assert options == {
+        "stage": "query_rewrite",
         "max_tokens": 512,
         "groq_reasoning_effort": "low",
         "require_nonempty_content": True,

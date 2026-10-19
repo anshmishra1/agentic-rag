@@ -168,6 +168,7 @@ def contextualize_question(state: RAGState) -> dict:
             try:
                 result = fast_provider_chain.invoke(
                     prompt,
+                    stage="query_planning",
                     max_tokens=settings.semantic_router_max_tokens,
                     groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
                     groq_response_format=groq_query_plan_response_format(),
@@ -696,6 +697,7 @@ def grade_documents(state: RAGState) -> dict:
         try:
             result = fast_provider_chain.invoke(
                 prompt,
+                stage="relevance_grading",
                 max_tokens=settings.relevance_grader_max_tokens,
                 groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
                 groq_response_format=groq_relevance_response_format(),
@@ -739,6 +741,7 @@ def rewrite_query(state: RAGState) -> dict:
         try:
             result = fast_provider_chain.invoke(
                 prompt,
+                stage="query_rewrite",
                 max_tokens=settings.query_rewrite_max_tokens,
                 groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
                 require_nonempty_content=True,
@@ -807,7 +810,7 @@ def generate_general_answer(state: RAGState) -> dict:
             f"Prior conversation:\n{history_text}\n\n"
             f"Question: {state['question']}"
         )
-        result = provider_chain.invoke(prompt)
+        result = provider_chain.invoke(prompt, stage="general_generation")
         generation = result.content.strip()
 
     return {
@@ -920,7 +923,7 @@ def generate(state: RAGState) -> dict:
         # LLM generation
         # ---------------------------------------------------------
 
-        result = provider_chain.invoke(prompt)
+        result = provider_chain.invoke(prompt, stage="document_generation")
 
         generation = normalize_citation_markers(result.content.strip())
 
@@ -989,6 +992,7 @@ def check_hallucination(state: RAGState) -> dict:
         try:
             result = fast_provider_chain.invoke(
                 prompt,
+                stage="grounding_verification",
                 max_tokens=settings.grounding_verifier_max_tokens,
                 groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
             )
@@ -1082,7 +1086,7 @@ def correct_generation(state: RAGState) -> dict:
             f"Previous (flawed) answer:\n{previous_generation}"
         )
 
-        result = provider_chain.invoke(prompt)
+        result = provider_chain.invoke(prompt, stage="corrective_generation")
         generation = normalize_citation_markers(result.content.strip())
 
         print(f"Unsupported claims addressed: {unsupported_claims}")

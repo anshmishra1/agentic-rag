@@ -45,7 +45,6 @@ def _override_text(*, bounded: bool, use_gpu: bool = True) -> str:
     if bounded:
         environment += [
             '      MAX_RETRIES: "2"',
-            '      LLM_MAX_RETRIES_PER_PROVIDER: "1"',
         ]
 
     mounts = [f"{LOG_DIR.resolve().as_posix()}:/app/logs"]

@@ -421,7 +421,7 @@ def test_pipeline_indexes_only_after_overview_succeeds(monkeypatch, tmp_path):
     writes = []
     calls = []
 
-    def invoke(prompt, *, max_tokens):
+    def invoke(prompt, *, max_tokens, stage):
         calls.append((prompt, max_tokens))
         return SimpleNamespace(content="Document overview")
 
@@ -445,7 +445,7 @@ def test_pipeline_indexes_only_after_overview_succeeds(monkeypatch, tmp_path):
 def test_pipeline_does_not_write_when_overview_provider_fails(monkeypatch, tmp_path):
     writes = []
 
-    def invoke(prompt, *, max_tokens):
+    def invoke(prompt, *, max_tokens, stage):
         raise ProviderUnavailableError("provider failed")
 
     pipeline = _pipeline(monkeypatch, invoke, writes)
@@ -466,7 +466,7 @@ def test_pipeline_rejects_mixed_index_before_provider_or_vector_work(monkeypatch
     writes = []
     provider_calls = []
 
-    def invoke(prompt, *, max_tokens):
+    def invoke(prompt, *, max_tokens, stage):
         provider_calls.append((prompt, max_tokens))
         return SimpleNamespace(content="Document overview")
 
@@ -494,7 +494,7 @@ def test_pipeline_preserves_old_vectors_if_registry_update_fails(monkeypatch, tm
     writes = []
     pipeline = _pipeline(
         monkeypatch,
-        lambda prompt, *, max_tokens: SimpleNamespace(content="Document overview"),
+        lambda prompt, *, max_tokens, stage: SimpleNamespace(content="Document overview"),
         writes,
     )
     source = tmp_path / "example.pdf"
@@ -514,7 +514,7 @@ def test_pipeline_does_not_prune_after_failed_vector_upsert(monkeypatch, tmp_pat
     writes = []
     pipeline = _pipeline(
         monkeypatch,
-        lambda prompt, *, max_tokens: SimpleNamespace(content="Document overview"),
+        lambda prompt, *, max_tokens, stage: SimpleNamespace(content="Document overview"),
         writes,
     )
     source = tmp_path / "example.pdf"

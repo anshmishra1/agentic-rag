@@ -37,6 +37,11 @@ from agentic_rag.ingestion.registry import (
 
 from agentic_rag.retrieval.reranker import warmup_cross_encoder
 from agentic_rag.core.diagnostic import DiagnosticCollector
+from agentic_rag.core.llm_accounting import (
+    get_llm_call_summary,
+    reset_llm_call_accounting,
+    start_llm_call_accounting,
+)
 from agentic_rag.core.logging import configure_logging, get_run_directory,  get_run_id, get_logger
 from agentic_rag.core.timing import PerformanceTracker, reset_current_tracker, set_current_tracker
 from agentic_rag.retrieval.vectorstore import delete_document_vectors, warmup_embeddings
@@ -167,6 +172,7 @@ def query(
 
     tracker = PerformanceTracker()
     tracker_token = set_current_tracker(tracker)
+    llm_accounting_token = start_llm_call_accounting()
 
     diagnostics = DiagnosticCollector(
         run_id=get_run_id(),
@@ -282,10 +288,16 @@ def query(
         # -----------------------------------------------------
 
         performance = tracker.summary_data()
+        llm_calls = get_llm_call_summary()
 
         diagnostics.record(
             "performance",
             **performance,
+        )
+        diagnostics.record(
+            "llm_call_summary",
+            stage="llm",
+            **llm_calls,
         )
 
         diagnostics.finalize(
@@ -296,6 +308,7 @@ def query(
                 "document_id": request.document_id,
                 "source_mode": request.source_mode,
                 "performance": performance,
+                "llm_calls": llm_calls,
             },
         )
 
@@ -304,6 +317,7 @@ def query(
         # -----------------------------------------------------
 
         reset_current_tracker(tracker_token)
+        reset_llm_call_accounting(llm_accounting_token)
 
 
 @app.post("/ingest", response_model=list[IngestResult])
