@@ -92,6 +92,7 @@ def test_verifier_node_uses_dedicated_budget_and_low_effort(monkeypatch):
     assert "arrows, box borders, and layout characters" in calls[0][0]
     assert "parent statement and every child item are separate claim units" in calls[0][0]
     assert calls[0][1] == {
+        "stage": "grounding_verification",
         "max_tokens": 1024,
         "groq_reasoning_effort": "low",
     }
