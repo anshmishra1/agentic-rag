@@ -1,0 +1,82 @@
+name: agentic-rag-aws
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agentic_rag
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must come from SSM}
+      POSTGRES_DB: agentic_rag
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentic_rag -d agentic_rag"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - backend
+
+  api:
+    image: ${APP_IMAGE:-agentic-rag-app:aws-cpu}
+    build:
+      context: ../..
+      target: cpu-runtime
+    restart: unless-stopped
+    env_file:
+      - ${APP_RUNTIME_ENV_FILE:?APP_RUNTIME_ENV_FILE must point to the generated runtime file}
+    environment:
+      DEBUG: "false"
+      EMBEDDING_DEVICE: cpu
+      CROSS_ENCODER_DEVICE: cpu
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      MODEL_LOCAL_FILES_ONLY: "true"
+      POSTGRES_URL: postgresql://agentic_rag:${POSTGRES_PASSWORD}@postgres:5432/agentic_rag?sslmode=disable
+      V3_ASSET_ROOT: /app/data/v3-assets
+    volumes:
+      - v3_assets:/app/data/v3-assets
+      - app_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 300s
+    expose:
+      - "8000"
+    networks:
+      - backend
+
+  frontend:
+    image: ${APP_IMAGE:-agentic-rag-app:aws-cpu}
+    restart: unless-stopped
+    command: streamlit run app/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+    environment:
+      RAG_API_URL: http://api:8000
+      PYTHONPATH: /app
+    ports:
+      - "${APP_BIND_ADDRESS:-0.0.0.0}:${APP_PORT:-8501}:8501"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health', timeout=5)"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks:
+      - backend
+
+networks:
+  backend:
+    internal: false
+
+volumes:
+  postgres_data:
+  v3_assets:
+  app_logs:

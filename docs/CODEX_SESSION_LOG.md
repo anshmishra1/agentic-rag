@@ -818,3 +818,29 @@ executable is missing. No image was rebuilt and no live application, model
 download, ingestion, retrieval, Pinecone, PostgreSQL, or provider call occurred
 during implementation verification. The user reviewed the changes and
 authorized commit and publication of this focused branch.
+
+## 98. AWS single-host deployment package (local review checkpoint)
+
+After PR #46 merged at `99148b7`, isolated AWS work on
+`feature/aws-deployment`. Added a single-host EC2 deployment that reuses the
+locked `cpu-runtime` image for API and Streamlit, keeps FastAPI and PostgreSQL
+off host ports, and persists PostgreSQL, V3 assets, and application logs on the
+instance's EBS-backed Docker volumes. Runtime credentials and index identities
+are fetched from one least-privilege Systems Manager Parameter Store path into
+a temporary root-only environment file that is removed after each management
+command. Routine starts never rebuild the image.
+
+The deployment guide covers root MFA, IAM Identity Center, zero-spend and
+monthly budgets, an EC2 instance role, SecureString parameters, an IP-restricted
+security group, Session Manager, deployment, update, stop, and teardown. The
+MVP deliberately avoids ECR, ECS, RDS, ALB, NAT Gateway, and Elastic IP costs.
+The resolved Compose contract passed with dummy settings and confirmed the CPU
+target, private API/PostgreSQL ports, public Streamlit port, and three persistent
+volumes. The IAM policy parsed as JSON, both shell scripts passed `bash -n`, and
+`git diff --check` passed. CI now repeats these lightweight deployment checks
+before its existing CPU image build. AWS resources were not created and no
+secrets were read. Added a CloudShell preflight that validates the selected
+region, EC2 role/trust/profile, exact SSM path permission, parameter names and
+types without decryption, budget presence, and an inventory of common billable
+resources before EC2 is launched. Next: review and publish this package, run the
+preflight, and only then provision the instance.
