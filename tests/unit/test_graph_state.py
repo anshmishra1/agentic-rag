@@ -22,6 +22,7 @@ EXPECTED_STATE_FIELDS = {
     "evidence_requirement",
     "semantic_router_used",
     "routing_parse_success",
+    "routing_reason_code",
     "needs_clarification",
     "documents",
     "retrieval_scores",

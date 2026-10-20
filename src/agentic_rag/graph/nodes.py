@@ -74,8 +74,10 @@ from agentic_rag.policies.grounding import (
 )
 from agentic_rag.policies.query_planning import (
     QueryPlan,
+    QueryPlanParseError,
     build_query_plan_prompt,
     clarification_response,
+    derive_routing_reason_code,
     direct_query_plan,
     enforce_query_plan,
     groq_query_plan_response_format,
@@ -140,6 +142,7 @@ def _fresh_turn_state() -> dict:
         "retrieval_evidence_requirement_satisfied": None,
         "semantic_router_used": False,
         "routing_parse_success": None,
+        "routing_reason_code": None,
         "needs_clarification": False,
     }
 
@@ -156,6 +159,7 @@ def contextualize_question(state: RAGState) -> dict:
         plan = direct_query_plan(question, history, source_mode)
         semantic_router_used = plan is None
         routing_parse_success = None
+        routing_failure_kind = None
 
         if plan is None:
             prompt = build_query_plan_prompt(
@@ -173,10 +177,20 @@ def contextualize_question(state: RAGState) -> dict:
                     groq_reasoning_effort=settings.groq_verifier_reasoning_effort,
                     groq_response_format=groq_query_plan_response_format(),
                 )
-                plan = parse_query_plan(result.content)
-                routing_parse_success = True
-            except (ProviderUnavailableError, TypeError, ValueError) as exc:
-                logger.warning("Semantic query routing failed closed: %s", exc)
+            except (ProviderUnavailableError, TypeError, ValueError):
+                routing_failure_kind = "provider_error"
+            else:
+                try:
+                    plan = parse_query_plan(getattr(result, "content", None))
+                    routing_parse_success = True
+                except QueryPlanParseError as exc:
+                    routing_failure_kind = exc.kind
+
+            if routing_failure_kind is not None:
+                logger.warning(
+                    "Semantic query routing failed closed: %s",
+                    routing_failure_kind,
+                )
                 plan = QueryPlan(
                     source="clarify",
                     relationship="standalone",
@@ -186,6 +200,7 @@ def contextualize_question(state: RAGState) -> dict:
                 )
                 routing_parse_success = False
 
+        planned = plan
         plan = enforce_query_plan(
             plan,
             question=question,
@@ -193,6 +208,14 @@ def contextualize_question(state: RAGState) -> dict:
             source_mode=source_mode,
             document_selected=document_selected,
             document_name=state.get("document_name"),
+        )
+        routing_reason_code = derive_routing_reason_code(
+            planned,
+            plan,
+            source_mode=source_mode,
+            document_selected=document_selected,
+            semantic_router_used=semantic_router_used,
+            failure_kind=routing_failure_kind,
         )
 
         query_intent = (
@@ -214,6 +237,8 @@ def contextualize_question(state: RAGState) -> dict:
             evidence_requirement=plan.evidence_requirement,
             semantic_router_used=semantic_router_used,
             routing_parse_success=routing_parse_success,
+            routing_failure_kind=routing_failure_kind,
+            routing_reason_code=routing_reason_code,
             needs_clarification=plan.needs_clarification,
         )
 
@@ -230,6 +255,7 @@ def contextualize_question(state: RAGState) -> dict:
         "evidence_requirement": plan.evidence_requirement,
         "semantic_router_used": semantic_router_used,
         "routing_parse_success": routing_parse_success,
+        "routing_reason_code": routing_reason_code,
         "needs_clarification": plan.needs_clarification,
     }
 

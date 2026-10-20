@@ -41,13 +41,23 @@ source: document | general | control | clarify
 relationship: standalone | follow_up | verify_previous
 information_need_source: current_turn | previous_information_need
 response_format: requested | prose | bullets | table | ascii_flowchart | math
+evidence_requirement: text | visual | table | formula | mixed
 standalone_query: string | null
 needs_clarification: boolean
 ```
 
-Groq receives the plan as a strict JSON-schema response request. The result is
-validated again with Pydantic. Malformed output, unavailable routing providers,
-and unresolved source ambiguity fail closed to a clarification turn.
+Groq receives an explicit seven-field contract through JSON Object Mode. The
+result is validated locally with Pydantic, which preserves the same closed
+allowed values without depending on provider-side strict-schema support. Empty
+output, invalid JSON, contract violations, unavailable routing providers, and
+unresolved source ambiguity fail closed to a clarification turn.
+
+The enforced plan also produces one application-owned `routing_reason_code`.
+It records whether the effective route came from explicit source selection,
+semantic selection, the selected-document topic safeguard, a missing document,
+source ambiguity, or a classified planner failure. The code is reset every turn
+and stored in flat graph state; the more detailed parse failure kind is written
+only to the transient trace.
 
 For Auto mode, the API looks up the selected document's filename from the
 index-scoped PostgreSQL registry and passes that bounded metadata to the
@@ -62,7 +72,7 @@ user message
     |
     +-- closed control command -----------------------> record_turn
     |
-    +-- explicit general mode ------------------------> general generation
+    +-- first explicit general question -------------> general generation
     |
     +-- first explicit document question ------------> format detection
     |                                                   + document retrieval
@@ -123,9 +133,10 @@ Presentation does not alter the selected evidence source.
 
 ## Cost and latency
 
-Closed commands, first explicit document questions, and explicit general turns
-need no routing call. Auto requests and document conversations use one bounded
-fast-tier call with a 256-token output cap and low Groq reasoning effort.
+Closed commands, first explicit document questions, and first explicit general
+questions need no routing call. Auto requests and conversational follow-ups use
+one bounded fast-tier call with a 256-token output cap and low Groq reasoning
+effort.
 Low-score candidate sets use one structured relevance-grade call rather than
 blindly spending retrieval retries. An uncertain grader result is allowed into
 generation, but the stricter citation-aware grounding verifier still decides
@@ -133,14 +144,13 @@ whether the answer can be accepted.
 
 ## Verification evidence
 
-- 43 focused routing, state, graph-edge, provider-option, formatting, and node
-  tests pass offline.
-- 147 tests from the supported host suite pass.
-- Three existing structure-aware chunking tests require the pinned Hugging Face
-  tokenizer that is baked into the Docker image but absent from the host cache;
-  their host failure is an environment limitation. The branch has not yet been
-  tested inside the self-contained application image.
-- No `.env`, Pinecone, PostgreSQL, Groq, model download, ingestion, or live query
+- 65 focused query-planning, contextualization-node, state, graph-routing, and
+  API diagnostic checks pass in the existing application image.
+- The image ran with networking disabled, no `.env`, and the worktree mounted
+  read-only.
+- The repository interpreter is unavailable because its uv-managed Python
+  executable is missing.
+- No Pinecone, PostgreSQL, provider, model download, ingestion, or live query
   was used for this implementation checkpoint.
 
 ## Answer-routing reliability repair

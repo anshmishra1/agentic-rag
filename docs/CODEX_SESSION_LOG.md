@@ -783,3 +783,38 @@ provider, Pinecone, PostgreSQL, model download, ingestion, or query was used.
 The user reviewed the direction and authorized commit, publication, merge,
 local synchronization, and one image rebuild. The next quality gate is the
 already-planned manual V3 regression.
+
+## 96. Provider fallback viability diagnostic
+
+With explicit authorization, ran one bounded direct request against each
+configured non-Groq provider tier without ingestion, retrieval, or Pinecone.
+OpenRouter succeeded for both the configured fast Qwen 2.5 7B model and primary
+GPT-4o mini model. Cerebras could not serve either configured tier: the fast
+Llama 3.1 8B model was unavailable and the primary GPT OSS 120B request required
+payment. The temporary container and script were removed, and `.env` was loaded
+by Docker without being opened, printed, or modified. Runtime provider order was
+not changed; the evidence supports `groq,openrouter` when the private runtime
+configuration is next updated.
+
+## 97. Query-plan resilience and routing causation (local review checkpoint)
+
+On `fix/query-plan-resilience` from `origin/main` `8ee6858`, replaced Groq's
+brittle strict-schema planner request with JSON Object Mode while retaining the
+full local Pydantic contract. Empty output, invalid JSON, contract violations,
+and provider failures now fail closed with separate content-free causes. Added
+one flat `routing_reason_code` state field, reset on every turn, so checkpoints
+and request diagnostics explain whether a route came from an explicit mode,
+semantic selection, the selected-document topic safeguard, missing document,
+ambiguous source, or a planner failure. Detailed parse failure kind remains in
+the transient trace and no prompt or response content is added to state.
+
+The focused query-planning, contextualization-node, graph-state, graph-routing,
+and API diagnostic checks passed in the existing application image with
+networking disabled, the worktree mounted read-only, and no `.env`. The API
+check also repaired its stale mocked generation-limit settings before proving
+that `run_completed` retains the reason code. `git diff --check` passed. The
+repository interpreter remains unavailable because its uv-managed Python
+executable is missing. No image was rebuilt and no live application, model
+download, ingestion, retrieval, Pinecone, PostgreSQL, or provider call occurred
+during implementation verification. The user reviewed the changes and
+authorized commit and publication of this focused branch.

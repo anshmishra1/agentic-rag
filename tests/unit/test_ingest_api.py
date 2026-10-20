@@ -31,7 +31,11 @@ def _client(
     v3_manifest_store=None,
     v3_asset_store=None,
     v2_documents=(),
+    diagnostic_records=None,
 ):
+    if diagnostic_records is None:
+        diagnostic_records = []
+
     _module(
         monkeypatch,
         "agentic_rag.config",
@@ -41,6 +45,8 @@ def _client(
             chunking_strategy="structure_aware_v2",
             v3_index_name="agentic-rag-hybrid-v3",
             v3_asset_root=Path("/tmp/v3-assets"),
+            max_generation_context_documents=5,
+            max_generation_context_overviews=1,
         ),
     )
     _module(monkeypatch, "agentic_rag.graph.builder", build_graph=lambda _: None)
@@ -87,7 +93,7 @@ def _client(
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     module.DiagnosticCollector = lambda **kwargs: SimpleNamespace(
-        record=lambda *args, **kwargs: None,
+        record=lambda event, **kwargs: diagnostic_records.append((event, kwargs)),
         finalize=lambda *args, **kwargs: None,
     )
     if v3_runtime is not None:
@@ -278,6 +284,7 @@ def test_v3_query_dispatches_to_graph_and_returns_structured_evidence(monkeypatc
             }
 
     graph_calls = []
+    diagnostic_records = []
     evidence_document = Document(
         page_content="Figure evidence",
         metadata={
@@ -304,12 +311,14 @@ def test_v3_query_dispatches_to_graph_and_returns_structured_evidence(monkeypatc
                 "citations": ["[S1] paper.pdf, page 2"],
                 "documents": [evidence_document],
                 "answer_source": "document",
+                "routing_reason_code": "explicit_document_mode",
             }
 
     client = _client(
         monkeypatch,
         lambda *_args, **_kwargs: 0,
         v3_manifest_store=ManifestStore(),
+        diagnostic_records=diagnostic_records,
     )
     client.app.state.rag_graph = Graph()
 
@@ -326,6 +335,10 @@ def test_v3_query_dispatches_to_graph_and_returns_structured_evidence(monkeypatc
 
     assert response.status_code == 200
     assert graph_calls[0][0]["retrieval_version"] == "v3"
+    run_completed = next(
+        details for event, details in diagnostic_records if event == "run_completed"
+    )
+    assert run_completed["routing_reason_code"] == "explicit_document_mode"
     assert graph_calls[0][0]["document_name"] == "paper.pdf"
     assert graph_calls[0][1]["configurable"]["thread_id"] == "session-1:v3:doc-1"
     payload = response.json()

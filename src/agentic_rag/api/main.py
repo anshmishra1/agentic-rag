@@ -236,6 +236,7 @@ def query(
             verification_exhausted=result.get("verification_exhausted", False),
             is_control=is_control,
             answer_source=result.get("answer_source", "document"),
+            routing_reason_code=result.get("routing_reason_code"),
             query_relationship=result.get("query_relationship", "standalone"),
             information_need_source=result.get(
                 "information_need_source", "current_turn"
