@@ -1,0 +1,13 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadAgenticRagRuntimeParameters",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParametersByPath"
+      ],
+      "Resource": "arn:aws:ssm:<REGION>:<ACCOUNT_ID>:parameter/agentic-rag/prod/*"
+    }
+  ]
+}

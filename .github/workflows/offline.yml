@@ -20,6 +20,34 @@ jobs:
 
       - uses: docker/setup-buildx-action@v4
 
+      - name: Validate AWS CPU deployment contract
+        shell: bash
+        run: |
+          runtime_env="$(mktemp)"
+          trap 'rm -f "$runtime_env"' EXIT
+          cat >"$runtime_env" <<'EOF'
+          GROQ_API_KEY=dummy
+          OPENROUTER_API_KEY=dummy
+          PINECONE_API_KEY=dummy
+          POSTGRES_PASSWORD=0123456789abcdef
+          PROVIDER_ORDER=groq,openrouter
+          PINECONE_INDEX_NAME=agentic-rag-hybrid-v2
+          V3_INDEX_NAME=agentic-rag-hybrid-v3
+          EOF
+          export APP_RUNTIME_ENV_FILE="$runtime_env"
+          export POSTGRES_PASSWORD=0123456789abcdef
+          docker compose \
+            --env-file "$runtime_env" \
+            -f deploy/aws/compose.yml \
+            config --quiet
+          bash -n \
+            deploy/aws/bootstrap.sh \
+            deploy/aws/manage.sh \
+            deploy/aws/preflight.sh
+          python -m json.tool \
+            deploy/aws/iam-parameter-policy.template.json \
+            >/dev/null
+
       - name: Build locked CPU image
         uses: docker/build-push-action@v7
         with:

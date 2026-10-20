@@ -317,6 +317,19 @@ The frontend is available on port 8501, the API on port 8000, and PostgreSQL
 is exposed to the host on port 5442. API startup warms both the embedding and
 cross-encoder models; their exact revisions are already baked into the image.
 
+### AWS interview-demo deployment
+
+The first cloud package uses one stoppable EC2 host and the existing locked
+`cpu-runtime` target. API and PostgreSQL stay private to Docker; only Streamlit
+is published. Runtime credentials come from a restricted Systems Manager
+Parameter Store path, while PostgreSQL data, V3 artifacts, and application logs
+remain on the instance's encrypted EBS volume. The deployment builds the shared
+CPU image directly on EC2, reuses it on routine starts, and does not require
+ECR, ECS, RDS, ALB, or a NAT Gateway.
+
+See [`deploy/aws/README.md`](deploy/aws/README.md) for account security, budget,
+IAM, Parameter Store, EC2, deployment, update, shutdown, and cost-control steps.
+
 The API reads provider settings from `.env`. For a Groq-only local run, set
 these values in your own `.env` (along with `GROQ_API_KEY` and Pinecone
 credentials):
