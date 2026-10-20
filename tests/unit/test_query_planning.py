@@ -1,12 +1,15 @@
 import json
 
+import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 
 from agentic_rag.policies.query_planning import (
     QueryPlan,
+    QueryPlanParseError,
     build_query_plan_prompt,
     detect_explicit_evidence_requirement,
     detect_response_format,
+    derive_routing_reason_code,
     direct_query_plan,
     document_topic_overlap,
     enforce_query_plan,
@@ -465,6 +468,7 @@ def test_router_prompt_separates_source_relationship_and_format() -> None:
     )
 
     assert "source=document" in prompt
+    assert "Include all seven fields and no additional fields." in prompt
     assert "relationship=verify_previous" in prompt
     assert "response_format" in prompt
     assert "Remove presentation instructions" in prompt
@@ -472,18 +476,72 @@ def test_router_prompt_separates_source_relationship_and_format() -> None:
     assert "Show that as a textual flowchart" in prompt
 
 
-def test_groq_router_schema_is_strict_and_closed() -> None:
-    response_format = groq_query_plan_response_format()
-    schema = response_format["json_schema"]["schema"]
+def test_groq_router_uses_json_object_mode_with_local_validation() -> None:
+    assert groq_query_plan_response_format() == {"type": "json_object"}
 
-    assert response_format["json_schema"]["strict"] is True
-    assert schema["additionalProperties"] is False
-    assert set(schema["required"]) == {
-        "source",
-        "relationship",
-        "response_format",
-        "standalone_query",
-        "needs_clarification",
-        "information_need_source",
-        "evidence_requirement",
-    }
+
+@pytest.mark.parametrize(
+    ("content", "kind"),
+    [
+        ("", "empty_response"),
+        ("```json\n```", "empty_response"),
+        ("not-json", "invalid_json"),
+        ("{}", "invalid_contract"),
+        (None, "invalid_contract"),
+    ],
+)
+def test_query_plan_parse_failures_are_classified_without_response_content(
+    content: object,
+    kind: str,
+) -> None:
+    with pytest.raises(QueryPlanParseError) as exc_info:
+        parse_query_plan(content)
+
+    assert exc_info.value.kind == kind
+    assert str(exc_info.value) == f"query planner response failed validation: {kind}"
+
+
+def test_routing_reason_distinguishes_local_safeguard_from_semantic_choice() -> None:
+    planned = QueryPlan(
+        source="general",
+        relationship="standalone",
+        response_format="prose",
+        standalone_query=None,
+        needs_clarification=False,
+    )
+    enforced = planned.model_copy(
+        update={"source": "document", "standalone_query": "Explain attention"}
+    )
+
+    assert (
+        derive_routing_reason_code(
+            planned,
+            enforced,
+            source_mode="auto",
+            document_selected=True,
+            semantic_router_used=True,
+        )
+        == "document_topic_safeguard"
+    )
+
+
+def test_routing_reason_prioritizes_planner_failure_cause() -> None:
+    clarification = QueryPlan(
+        source="clarify",
+        relationship="standalone",
+        response_format="prose",
+        standalone_query=None,
+        needs_clarification=True,
+    )
+
+    assert (
+        derive_routing_reason_code(
+            clarification,
+            clarification,
+            source_mode="auto",
+            document_selected=True,
+            semantic_router_used=True,
+            failure_kind="invalid_contract",
+        )
+        == "planner_invalid_contract"
+    )

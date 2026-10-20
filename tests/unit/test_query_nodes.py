@@ -218,7 +218,8 @@ def test_are_you_sure_becomes_document_verification(monkeypatch) -> None:
     assert result["retrieval_query"] == "Transformer encoder and decoder architecture"
     assert result["semantic_router_used"] is True
     assert fast_calls[0][1]["max_tokens"] == 256
-    assert fast_calls[0][1]["groq_response_format"]["type"] == "json_schema"
+    assert fast_calls[0][1]["groq_response_format"] == {"type": "json_object"}
+    assert result["routing_reason_code"] == "explicit_document_mode"
     assert "selected_document_name:\n---\ntransformer.pdf" in fast_calls[0][0]
 
 
@@ -237,6 +238,7 @@ def test_malformed_semantic_plan_fails_closed_to_clarification(monkeypatch) -> N
 
     assert result["answer_source"] == "clarify"
     assert result["routing_parse_success"] is False
+    assert result["routing_reason_code"] == "planner_invalid_json"
     assert result["needs_clarification"] is True
 
 
@@ -271,7 +273,29 @@ def test_auto_router_cannot_bypass_selected_document_topic(monkeypatch) -> None:
 
     assert len(fast_calls) == 1
     assert result["answer_source"] == "document"
+    assert result["routing_reason_code"] == "document_topic_safeguard"
     assert result["retrieval_query"] == question
+
+
+def test_unavailable_semantic_planner_records_provider_failure(monkeypatch) -> None:
+    nodes, _, _ = _load_nodes(
+        monkeypatch,
+        fast_error=ProviderUnavailableError("provider unavailable"),
+    )
+
+    result = _tracked_call(
+        nodes.contextualize_question,
+        {
+            "question": "Can you explain that again?",
+            "source_mode": "auto",
+            "document_id": "doc-1",
+            "messages": [HumanMessage(content="Explain the architecture")],
+        },
+    )
+
+    assert result["answer_source"] == "clarify"
+    assert result["routing_parse_success"] is False
+    assert result["routing_reason_code"] == "planner_provider_failure"
 
 
 def test_general_generation_skips_documents_and_grounding(monkeypatch) -> None:

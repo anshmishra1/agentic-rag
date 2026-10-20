@@ -41,6 +41,7 @@ class QueryState(TypedDict, total=False):
     evidence_requirement: Literal["text", "visual", "table", "formula", "mixed"] | str
     semantic_router_used: bool
     routing_parse_success: bool | None
+    routing_reason_code: str | None
     needs_clarification: bool
 
 

@@ -111,6 +111,7 @@ def route_after_contextualization(state: RAGState) -> str:
         "route_after_contextualization",
         query_intent=query_intent,
         answer_source=answer_source,
+        routing_reason_code=state.get("routing_reason_code"),
         decision=decision,
     )
 
