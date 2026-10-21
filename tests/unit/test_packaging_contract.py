@@ -73,6 +73,17 @@ def test_aws_bootstrap_uses_pinned_official_cli_v2_bundle() -> None:
     assert "aws_install_args+=(--update)" in bootstrap
 
 
+def test_aws_compose_build_context_matches_runtime_project_directory() -> None:
+    compose = _read("deploy/aws/compose.yml")
+    manager = _read("deploy/aws/manage.sh")
+    workflow = _read(".github/workflows/offline.yml")
+
+    assert "      context: .\n" in compose
+    assert '--project-directory "${PROJECT_ROOT}"' in manager
+    assert '--project-directory "$GITHUB_WORKSPACE"' in workflow
+    assert 'test -f "${resolved_build_context}/Dockerfile"' in workflow
+
+
 def test_selected_v3_parser_dependencies_are_exactly_pinned() -> None:
     project = tomllib.loads(_read("pyproject.toml"))
     dependencies = set(project["project"]["dependencies"])
