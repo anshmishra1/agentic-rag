@@ -871,3 +871,32 @@ the repository virtual environment points to a missing uv-managed Python 3.12
 runtime, system Python has no pytest installation, and Docker was unavailable
 from this shell. The repair therefore remains pending its first execution on
 the stopped EC2 host after review and publication.
+
+## 100. AWS Compose build-context repair
+
+The first post-bootstrap deployment retrieved its runtime configuration and
+invoked Compose, but the image build stopped immediately with `Dockerfile: no
+such file or directory`. Production supplied the repository root through
+Compose's `--project-directory` option while the AWS Compose file still moved
+the build context two directories upward. That combination resolved outside
+the repository. The existing CI check did not reproduce production's project
+directory option, so syntax and Compose configuration validation passed without
+checking that the resolved context contained the Dockerfile.
+
+On isolated `fix/aws-compose-build-context` from merged `origin/main`
+`3dbcef7`, made the AWS build context the explicit project directory (`.`) and
+made CI invoke Compose with the same repository project directory used by the
+EC2 management script. CI now reads Compose's fully resolved API build context
+and fails unless a Dockerfile exists there. Added a focused packaging contract
+for the production and CI path agreement. The repair does not change the
+application image contents, runtime settings, secrets, network exposure, or
+service topology.
+
+All ten dependency-free packaging contracts passed under the available system
+Python, the three AWS shell scripts and the modified CI contract block passed
+`bash -n`, and `git diff --check` passed. Local Docker Compose execution was
+unavailable in this shell; the pull-request workflow is the executable gate
+that resolves the production-equivalent context and performs the complete
+locked CPU build and offline suite. No `.env`, AWS API, Parameter Store value,
+provider, Pinecone, local Docker service, image build, or application service
+was used during the repair.

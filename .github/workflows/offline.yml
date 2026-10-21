@@ -36,10 +36,17 @@ jobs:
           EOF
           export APP_RUNTIME_ENV_FILE="$runtime_env"
           export POSTGRES_PASSWORD=0123456789abcdef
-          docker compose \
-            --env-file "$runtime_env" \
-            -f deploy/aws/compose.yml \
-            config --quiet
+          compose_args=(
+            --project-directory "$GITHUB_WORKSPACE"
+            --env-file "$runtime_env"
+            -f deploy/aws/compose.yml
+          )
+          docker compose "${compose_args[@]}" config --quiet
+          resolved_build_context="$(
+            docker compose "${compose_args[@]}" config --format json \
+              | python -c 'import json, sys; print(json.load(sys.stdin)["services"]["api"]["build"]["context"])'
+          )"
+          test -f "${resolved_build_context}/Dockerfile"
           bash -n \
             deploy/aws/bootstrap.sh \
             deploy/aws/manage.sh \
