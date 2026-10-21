@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+AWS_CLI_VERSION="2.38.3"
+AWS_CLI_INSTALL_DIR="/usr/local/aws-cli"
+AWS_CLI_BIN_DIR="/usr/local/bin"
+aws_cli_tmp_dir=""
+
+cleanup() {
+  if [[ -n "${aws_cli_tmp_dir}" && -d "${aws_cli_tmp_dir}" ]]; then
+    rm -rf "${aws_cli_tmp_dir}"
+  fi
+}
+
+trap cleanup EXIT
+
 if [[ "${EUID}" -ne 0 ]]; then
   printf 'Run this script with sudo.\n' >&2
   exit 1
@@ -33,12 +46,39 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install --yes --no-install-recommends \
-  awscli \
   ca-certificates \
+  curl \
   docker.io \
   docker-compose-v2 \
   git \
-  jq
+  jq \
+  unzip
+
+expected_aws_version="aws-cli/${AWS_CLI_VERSION}"
+installed_aws_version=""
+if command -v aws >/dev/null 2>&1; then
+  installed_aws_version="$(aws --version 2>&1 || true)"
+fi
+
+if [[ "${installed_aws_version}" != "${expected_aws_version}"* ]]; then
+  aws_cli_tmp_dir="$(mktemp -d)"
+  curl --fail --silent --show-error --location \
+    "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWS_CLI_VERSION}.zip" \
+    --output "${aws_cli_tmp_dir}/awscliv2.zip"
+  unzip -q "${aws_cli_tmp_dir}/awscliv2.zip" -d "${aws_cli_tmp_dir}"
+
+  aws_install_args=(
+    --install-dir "${AWS_CLI_INSTALL_DIR}"
+    --bin-dir "${AWS_CLI_BIN_DIR}"
+  )
+  if [[ -d "${AWS_CLI_INSTALL_DIR}/v2" ]]; then
+    aws_install_args+=(--update)
+  fi
+  "${aws_cli_tmp_dir}/aws/install" "${aws_install_args[@]}"
+
+  rm -rf "${aws_cli_tmp_dir}"
+  aws_cli_tmp_dir=""
+fi
 
 systemctl enable --now docker
 
