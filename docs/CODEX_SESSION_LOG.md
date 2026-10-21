@@ -844,3 +844,30 @@ region, EC2 role/trust/profile, exact SSM path permission, parameter names and
 types without decryption, budget presence, and an inventory of common billable
 resources before EC2 is launched. Next: review and publish this package, run the
 preflight, and only then provision the instance.
+
+## 99. Ubuntu 24.04 AWS CLI bootstrap repair (local review checkpoint)
+
+The first EC2 bootstrap reached Ubuntu package installation but stopped because
+the instance's Ubuntu 24.04 repositories had no installation candidate for the
+`awscli` package. Because apt handled all prerequisites in one transaction,
+Docker, Compose, Git, and jq were not installed and application deployment did
+not begin. The instance was stopped to avoid continued compute usage while the
+repository repair was prepared.
+
+On isolated `fix/aws-cli-bootstrap` from `origin/main` `26b70f4`, removed
+`awscli` from the apt transaction and installed a pinned AWS CLI v2 release
+from AWS's official Linux amd64 bundle after the Ubuntu prerequisites complete.
+The installer skips an already-matching version, updates an existing v2
+installation, cleans temporary files on success or failure, and remains safe to
+rerun after the observed partial bootstrap. Added a focused packaging contract
+for the unavailable-package regression and documented the installation path.
+No `.env`, AWS resource, Parameter Store value, provider, Pinecone, Docker
+service, image build, or application service was used during this local repair.
+The versioned installer URL returned HTTP 200 without downloading the bundle;
+all AWS shell scripts passed `bash -n`; all nine dependency-free packaging
+contract functions passed under the available system Python; and
+`git diff --check` passed. The complete pytest suite was unavailable because
+the repository virtual environment points to a missing uv-managed Python 3.12
+runtime, system Python has no pytest installation, and Docker was unavailable
+from this shell. The repair therefore remains pending its first execution on
+the stopped EC2 host after review and publication.

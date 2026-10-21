@@ -1,5 +1,6 @@
-from pathlib import Path
+import re
 import tomllib
+from pathlib import Path
 
 
 ROOT = Path(__file__).parents[2]
@@ -52,6 +53,24 @@ def test_documented_setup_files_exist() -> None:
     assert (ROOT / "scripts/create_hybrid_index.py").is_file()
     assert (ROOT / "src/agentic_rag/policies/calibrate_retrieval.py").is_file()
     assert (ROOT / "uv.lock").is_file()
+
+
+def test_aws_bootstrap_uses_pinned_official_cli_v2_bundle() -> None:
+    bootstrap = _read("deploy/aws/bootstrap.sh")
+    apt_packages = bootstrap.split("apt-get install", 1)[1].split(
+        "expected_aws_version", 1
+    )[0]
+
+    assert re.search(r'^AWS_CLI_VERSION="\d+\.\d+\.\d+"$', bootstrap, re.MULTILINE)
+    assert "awscli" not in apt_packages
+    assert "curl" in apt_packages
+    assert "unzip" in apt_packages
+    assert (
+        "https://awscli.amazonaws.com/"
+        "awscli-exe-linux-x86_64-${AWS_CLI_VERSION}.zip"
+    ) in bootstrap
+    assert '--install-dir "${AWS_CLI_INSTALL_DIR}"' in bootstrap
+    assert "aws_install_args+=(--update)" in bootstrap
 
 
 def test_selected_v3_parser_dependencies_are_exactly_pinned() -> None:

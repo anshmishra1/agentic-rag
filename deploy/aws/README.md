@@ -157,6 +157,12 @@ sudo env AWS_REGION=ap-south-1 SSM_PARAMETER_PATH=/agentic-rag/prod \
   bash deploy/aws/manage.sh deploy
 ```
 
+The bootstrap installs Docker and its host dependencies from Ubuntu packages,
+then installs the pinned AWS CLI v2 release from the official AWS Linux amd64
+bundle. Ubuntu 24.04 does not provide a usable `awscli` package in every apt
+repository configuration. The script is safe to rerun after a partial package
+installation or after stopping and restarting the instance.
+
 The first `deploy` builds the CPU image and may take substantial time. Later
 starts reuse that image:
 
