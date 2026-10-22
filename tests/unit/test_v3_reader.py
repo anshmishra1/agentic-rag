@@ -2,7 +2,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from agentic_rag.retrieval.v3_reader import retrieve_v3_hybrid_with_scores
+from agentic_rag.retrieval.v3_reader import (
+    retrieve_v3_document,
+    retrieve_v3_hybrid_with_scores,
+)
 
 
 class _ManifestStore:
@@ -197,3 +200,18 @@ def test_v3_reader_adds_artifact_lane_without_weakening_document_scope() -> None
         ]
     }
     assert diagnostics["artifact_kinds"] == ["figure", "image"]
+
+
+def test_v3_document_wrapper_rejects_a_different_application_index(
+    monkeypatch,
+) -> None:
+    from agentic_rag.config import settings
+
+    monkeypatch.setattr(settings, "v3_index_name", "agentic-rag-hybrid-v3")
+
+    with pytest.raises(ValueError, match="configured application index"):
+        retrieve_v3_document(
+            query="question",
+            document_id="doc-1",
+            index_name="agentic-rag-hybrid-v2",
+        )

@@ -1,0 +1,186 @@
+"""Private contracts for the bounded evidence-research subgraph.
+
+The model may choose only the research step fields declared here. Document,
+index, provider, and storage scope stay in ``EvidenceToolContext`` and are
+injected by the application rather than accepted from model output.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Literal, TypedDict
+
+from langchain_core.documents import Document
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from agentic_rag.policies.query_planning import EvidenceRequirement
+
+
+ResearchToolName = Literal[
+    "search_document",
+    "search_artifacts",
+    "inspect_document_structure",
+    "expand_evidence",
+]
+ResearchPurposeCode = Literal[
+    "facet_search",
+    "artifact_lookup",
+    "structure_lookup",
+    "context_expansion",
+]
+ResearchTerminationReason = Literal[
+    "evidence_ready",
+    "insufficient_evidence",
+    "budget_exhausted",
+    "planner_failed_fallback",
+    "tool_failed",
+]
+Candidate = tuple[Document, float]
+
+
+def _clean(value: str, *, name: str = "value") -> str:
+    normalized = value.strip()
+    if not normalized:
+        raise ValueError(f"{name} must be nonempty")
+    return normalized
+
+
+class ResearchToolStep(BaseModel):
+    """One model-selected, read-only evidence operation."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    tool: ResearchToolName
+    purpose_code: ResearchPurposeCode
+    query: str | None = Field(default=None, max_length=500)
+    evidence_requirement: EvidenceRequirement = "text"
+    evidence_ids: tuple[str, ...] = Field(default=(), max_length=5)
+
+    @field_validator("query")
+    @classmethod
+    def normalize_query(cls, value: str | None) -> str | None:
+        return _clean(value) if value is not None else None
+
+    @field_validator("evidence_ids")
+    @classmethod
+    def normalize_evidence_ids(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        normalized = tuple(_clean(value) for value in values)
+        if any(len(value) > 200 for value in normalized):
+            raise ValueError("evidence_ids cannot exceed 200 characters")
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("evidence_ids must be unique")
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_tool_arguments(self) -> "ResearchToolStep":
+        expected_purpose = {
+            "search_document": "facet_search",
+            "search_artifacts": "artifact_lookup",
+            "inspect_document_structure": "structure_lookup",
+            "expand_evidence": "context_expansion",
+        }[self.tool]
+        if self.purpose_code != expected_purpose:
+            raise ValueError(
+                f"{self.tool} requires purpose_code={expected_purpose}"
+            )
+        if self.tool in {"search_document", "search_artifacts"} and not self.query:
+            raise ValueError(f"{self.tool} requires a query")
+        if self.tool == "search_artifacts" and self.evidence_requirement == "text":
+            raise ValueError("search_artifacts requires structured evidence")
+        if self.tool == "inspect_document_structure":
+            if self.query is not None:
+                raise ValueError("inspect_document_structure does not accept a query")
+            if self.evidence_ids:
+                raise ValueError(
+                    "inspect_document_structure does not accept evidence_ids"
+                )
+        if self.tool == "expand_evidence":
+            if not self.evidence_ids:
+                raise ValueError("expand_evidence requires evidence_ids")
+            if self.query is not None:
+                raise ValueError("expand_evidence does not accept a query")
+        elif self.evidence_ids:
+            raise ValueError(f"{self.tool} does not accept evidence_ids")
+        return self
+
+
+class ResearchPlan(BaseModel):
+    """Small structured plan produced by the future research planner."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    objective: str = Field(max_length=500)
+    required_facets: tuple[str, ...] = Field(min_length=1, max_length=3)
+    steps: tuple[ResearchToolStep, ...] = Field(min_length=1, max_length=3)
+
+    @field_validator("objective")
+    @classmethod
+    def normalize_objective(cls, value: str) -> str:
+        return _clean(value)
+
+    @field_validator("required_facets")
+    @classmethod
+    def normalize_facets(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        normalized = tuple(_clean(value) for value in values)
+        if any(len(value) > 200 for value in normalized):
+            raise ValueError("required_facets cannot exceed 200 characters")
+        if len(set(value.casefold() for value in normalized)) != len(normalized):
+            raise ValueError("required_facets must be unique")
+        return normalized
+
+
+@dataclass(frozen=True)
+class EvidenceToolContext:
+    """Application-owned scope that is never generated by the model."""
+
+    document_id: str
+    index_name: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "document_id",
+            _clean(self.document_id, name="document_id"),
+        )
+        object.__setattr__(
+            self,
+            "index_name",
+            _clean(self.index_name, name="index_name"),
+        )
+
+
+@dataclass(frozen=True)
+class EvidenceToolObservation:
+    """Transient tool output retained only inside the research subgraph."""
+
+    tool: ResearchToolName
+    purpose_code: ResearchPurposeCode
+    candidates: tuple[Candidate, ...]
+    diagnostics: dict[str, object]
+
+
+@dataclass(frozen=True)
+class EvidenceSelection:
+    """Bounded output of one global candidate reranking pass."""
+
+    selected: tuple[Candidate, ...]
+    candidate_count: int
+    duplicates_removed: int
+    requirement_satisfied: bool
+
+
+class EvidenceResearchState(TypedDict, total=False):
+    """Private state for the future subgraph; full documents stay transient."""
+
+    question: str
+    document_id: str
+    index_name: str
+    plan: ResearchPlan
+    observations: list[EvidenceToolObservation]
+    selected_documents: list[Document]
+    selected_scores: list[float]
+    tool_steps_used: int
+    replan_count: int
+    coverage_satisfied: bool
+    termination_reason: ResearchTerminationReason
+

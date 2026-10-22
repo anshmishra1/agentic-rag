@@ -900,3 +900,36 @@ that resolves the production-equivalent context and performs the complete
 locked CPU build and offline suite. No `.env`, AWS API, Parameter Store value,
 provider, Pinecone, local Docker service, image build, or application service
 was used during the repair.
+
+## 101. Bounded evidence-research agent contracts (local review checkpoint)
+
+On isolated `feature/evidence-research-agent` from `origin/main` `3c931d5`,
+implemented Work Package 1 without connecting it to the live query graph. A
+private research contract limits a future planner to one to three explicit
+facets and one to three read-only operations. Application code, rather than
+model output, owns the document and V3 index scope. The four operations search
+ordinary document evidence, search typed visual/table/formula artifacts,
+inspect ready document structure, and expand selected records to bounded
+same-page or same-parent context.
+
+PostgreSQL readers enforce ready manifest, index, and document scope. The V3
+retrieval wrapper now rejects a requested index that differs from the active
+application index. Tool candidates are validated for provenance before all
+observations are merged, deduplicated, and passed through exactly one global
+reranker call followed by the existing evidence-requirement selection policy.
+Structured agent events accept only operational counts, decisions, timing, and
+error types; questions, passages, document identities, and record identities
+are rejected from the event schema. Full documents remain private transient
+subgraph data and are not added to the durable parent graph state.
+
+Twenty focused offline tests passed using stubs for retrieval, PostgreSQL, the
+reranker, and logging. They cover plan/tool validation, application-owned
+scope, cross-document rejection, ready-only bounded SQL, unique context
+expansion, artifact-lane selection, a single global rerank, index mismatch
+failure, and content-free events. Eleven changed Python files passed AST
+parsing and `git diff --check` passed. No `.env`, provider, Pinecone,
+PostgreSQL service, model, network, container, AWS resource, or live graph was
+used. The change remains uncommitted for IDE review. Next: Work Package 2 can
+add the bounded planner/subgraph and an explicit deterministic fallback, then
+place it behind a disabled-by-default integration boundary before any live
+route changes.

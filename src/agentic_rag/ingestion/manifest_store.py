@@ -158,6 +158,23 @@ class ManifestStore(Protocol):
         artifact_id: str,
     ) -> dict[str, Any] | None: ...
 
+    def get_ready_document_structure(
+        self,
+        *,
+        index_name: str,
+        document_id: str,
+        limit: int,
+    ) -> list[dict[str, Any]]: ...
+
+    def get_ready_related_records(
+        self,
+        *,
+        index_name: str,
+        document_id: str,
+        record_ids: tuple[str, ...],
+        limit: int,
+    ) -> list[dict[str, Any]]: ...
+
 
 def _connect():
     return psycopg.connect(settings.postgres_url)
@@ -177,6 +194,38 @@ def _nonempty(name: str, value: str) -> str:
     if not normalized:
         raise ValueError(f"{name} must be nonempty")
     return normalized
+
+
+def _bounded_limit(value: int, *, maximum: int) -> int:
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ValueError("limit must be an integer")
+    if not 1 <= value <= maximum:
+        raise ValueError(f"limit must be between 1 and {maximum}")
+    return value
+
+
+def _evidence_record(
+    *,
+    index_name: str,
+    document_id: str,
+    row,
+) -> dict[str, Any]:
+    return {
+        "index_name": index_name,
+        "document_id": document_id,
+        "record_id": row[0],
+        "artifact_id": row[1],
+        "representation_kind": row[2],
+        "search_text": row[3],
+        "grounding_basis": row[4],
+        "retrieval_schema_id": row[5],
+        "record_metadata": row[6],
+        "artifact_kind": row[7],
+        "locator": row[8],
+        "parent_artifact_id": row[9],
+        "artifact_metadata": row[10],
+        "source_name": row[11],
+    }
 
 
 def _ensure_tables(connection) -> None:
@@ -517,3 +566,164 @@ class PostgresManifestStore:
             "preview_asset_key": row[2] or row[5],
             "source_name": row[6],
         }
+
+    def get_ready_document_structure(
+        self,
+        *,
+        index_name: str,
+        document_id: str,
+        limit: int = 30,
+    ) -> list[dict[str, Any]]:
+        """Return bounded headings and page summaries for one ready document."""
+
+        index_name = _nonempty("index_name", index_name)
+        document_id = _nonempty("document_id", document_id)
+        limit = _bounded_limit(limit, maximum=100)
+        with self._connector() as connection:
+            _ensure_tables(connection)
+            rows = connection.execute(
+                """
+                SELECT record.record_id, record.artifact_id,
+                       record.representation_kind, record.search_text,
+                       record.grounding_basis, record.retrieval_schema_id,
+                       record.metadata, artifact.kind, artifact.locator,
+                       artifact.parent_artifact_id, artifact.metadata,
+                       manifest.source_name
+                FROM v3_search_records AS record
+                JOIN v3_artifacts AS artifact
+                  ON artifact.index_name = record.index_name
+                 AND artifact.artifact_id = record.artifact_id
+                 AND artifact.document_id = record.document_id
+                JOIN v3_document_manifests AS manifest
+                  ON manifest.index_name = record.index_name
+                 AND manifest.document_id = record.document_id
+                WHERE record.index_name = %s
+                  AND record.document_id = %s
+                  AND manifest.status = 'ready'
+                  AND (
+                    record.representation_kind = 'page_summary'
+                    OR artifact.metadata->>'layout_class'
+                       IN ('title', 'section-header')
+                  )
+                ORDER BY
+                  COALESCE(
+                    NULLIF(artifact.locator->>'page_start', '')::INTEGER,
+                    2147483647
+                  ),
+                  COALESCE(
+                    NULLIF(artifact.metadata->>'header_level', '')::INTEGER,
+                    2147483647
+                  ),
+                  record.record_id
+                LIMIT %s
+                """,
+                (index_name, document_id, limit),
+            ).fetchall()
+        return [
+            _evidence_record(
+                index_name=index_name,
+                document_id=document_id,
+                row=row,
+            )
+            for row in rows
+        ]
+
+    def get_ready_related_records(
+        self,
+        *,
+        index_name: str,
+        document_id: str,
+        record_ids: tuple[str, ...],
+        limit: int = 12,
+    ) -> list[dict[str, Any]]:
+        """Expand anchors to bounded same-page or same-parent evidence."""
+
+        index_name = _nonempty("index_name", index_name)
+        document_id = _nonempty("document_id", document_id)
+        limit = _bounded_limit(limit, maximum=50)
+        normalized_ids = tuple(
+            dict.fromkeys(_nonempty("record_id", value) for value in record_ids)
+        )
+        if not normalized_ids:
+            raise ValueError("record_ids must contain at least one value")
+        if len(normalized_ids) > 5:
+            raise ValueError("record_ids cannot contain more than five values")
+
+        with self._connector() as connection:
+            _ensure_tables(connection)
+            rows = connection.execute(
+                """
+                WITH anchors AS (
+                    SELECT record.record_id, artifact.artifact_id,
+                           artifact.parent_artifact_id,
+                           artifact.locator->>'page_label' AS page_label
+                    FROM v3_search_records AS record
+                    JOIN v3_artifacts AS artifact
+                      ON artifact.index_name = record.index_name
+                     AND artifact.artifact_id = record.artifact_id
+                     AND artifact.document_id = record.document_id
+                    JOIN v3_document_manifests AS manifest
+                      ON manifest.index_name = record.index_name
+                     AND manifest.document_id = record.document_id
+                    WHERE record.index_name = %s
+                      AND record.document_id = %s
+                      AND record.record_id = ANY(%s::text[])
+                      AND manifest.status = 'ready'
+                )
+                SELECT record.record_id, record.artifact_id,
+                       record.representation_kind, record.search_text,
+                       record.grounding_basis, record.retrieval_schema_id,
+                       record.metadata, artifact.kind, artifact.locator,
+                       artifact.parent_artifact_id, artifact.metadata,
+                       manifest.source_name
+                FROM v3_search_records AS record
+                JOIN v3_artifacts AS artifact
+                  ON artifact.index_name = record.index_name
+                 AND artifact.artifact_id = record.artifact_id
+                 AND artifact.document_id = record.document_id
+                JOIN v3_document_manifests AS manifest
+                  ON manifest.index_name = record.index_name
+                 AND manifest.document_id = record.document_id
+                WHERE record.index_name = %s
+                  AND record.document_id = %s
+                  AND manifest.status = 'ready'
+                  AND EXISTS (
+                    SELECT 1
+                    FROM anchors
+                    WHERE record.record_id = anchors.record_id
+                       OR (
+                         anchors.parent_artifact_id IS NOT NULL
+                         AND artifact.parent_artifact_id = anchors.parent_artifact_id
+                       )
+                       OR (
+                         anchors.page_label IS NOT NULL
+                         AND artifact.locator->>'page_label' = anchors.page_label
+                       )
+                  )
+                ORDER BY
+                  CASE WHEN record.record_id = ANY(%s::text[]) THEN 0 ELSE 1 END,
+                  COALESCE(
+                    NULLIF(artifact.locator->>'page_start', '')::INTEGER,
+                    2147483647
+                  ),
+                  record.record_id
+                LIMIT %s
+                """,
+                (
+                    index_name,
+                    document_id,
+                    list(normalized_ids),
+                    index_name,
+                    document_id,
+                    list(normalized_ids),
+                    limit,
+                ),
+            ).fetchall()
+        return [
+            _evidence_record(
+                index_name=index_name,
+                document_id=document_id,
+                row=row,
+            )
+            for row in rows
+        ]

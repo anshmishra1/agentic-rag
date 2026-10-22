@@ -225,11 +225,18 @@ def retrieve_v3_document(
     *,
     query: str,
     document_id: str,
+    index_name: str | None = None,
     artifact_kinds: frozenset[str] | None = None,
 ) -> tuple[list[tuple[Document, float]], dict[str, Any]]:
     """Application wrapper around the explicit, independently testable reader."""
 
     from agentic_rag.config import settings
+    configured_index = settings.v3_index_name
+    if index_name is not None and index_name != configured_index:
+        raise ValueError(
+            "Requested V3 index does not match the configured application index"
+        )
+
     from agentic_rag.ingestion.manifest_store import PostgresManifestStore
     from agentic_rag.retrieval.sparse import load_bm25_json
     from agentic_rag.retrieval.vectorstore import build_query_representation
@@ -237,7 +244,7 @@ def retrieve_v3_document(
     return retrieve_v3_hybrid_with_scores(
         query=query,
         document_id=document_id,
-        index_name=settings.v3_index_name,
+        index_name=configured_index,
         index=_get_index(),
         manifest_store=PostgresManifestStore(),
         query_builder=build_query_representation,
